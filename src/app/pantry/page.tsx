@@ -1,19 +1,28 @@
+
 "use client";
 
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, ChefHat, Timer, Sparkles, Trash2, Calendar as CalendarIcon, History } from "lucide-react";
-import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Package, ChefHat, Timer, Sparkles, Trash2, History } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/context/language-context";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export default function PantryPage() {
   const { items, historyRecipes, removeItem } = usePantry();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [dateSeed, setDateSeed] = useState<string>("");
+
+  useEffect(() => {
+    // Generar una semilla basada en la fecha local del usuario para evitar errores de hidratación
+    const today = new Date();
+    const seed = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    setDateSeed(seed);
+  }, []);
 
   // Filtrar items por el día seleccionado
   const dayItems = items.filter(item => {
@@ -43,14 +52,26 @@ export default function PantryPage() {
         </div>
       </header>
 
-      {/* Calendario Inmersivo */}
-      <Card className="glass border-none overflow-hidden shadow-2xl neo-glow-primary/10">
-        <CardContent className="p-2">
+      {/* Calendario Inmersivo con Fondo Dinámico */}
+      <Card className="relative border-none overflow-hidden shadow-2xl neo-glow-primary/10 rounded-[2.5rem]">
+        {dateSeed && (
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={`https://picsum.photos/seed/${dateSeed}/800/600`}
+              alt="Daily Landscape"
+              fill
+              className="object-cover opacity-60 transition-opacity duration-1000"
+              data-ai-hint="world landscape"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/20 to-background/80 backdrop-blur-[2px]" />
+          </div>
+        )}
+        <CardContent className="relative z-10 p-2 glass bg-white/10 dark:bg-black/20">
           <Calendar
             mode="single"
             selected={date}
             onSelect={setDate}
-            className="w-full"
+            className="w-full text-foreground"
           />
         </CardContent>
       </Card>

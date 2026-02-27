@@ -17,6 +17,12 @@
       "description": "A fresh vibrant salad with varied toppings.",
       "imageUrl": "https://images.unsplash.com/photo-1692780941487-505d5d908aa6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxoZWFsdGh5JTIwc2FsYWR8ZW58MHx8fHwxNzcyMTM1NTI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "healthy salad"
+    },
+    {
+      "id": "daily-landscape",
+      "description": "A breathtaking landscape from somewhere in the world, changing daily.",
+      "imageUrl": "https://images.unsplash.com/photo-1642590025127-113b1b698b02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b3JsZCUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NzIyMDgzMzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "world landscape"
     }
   ]
 }
