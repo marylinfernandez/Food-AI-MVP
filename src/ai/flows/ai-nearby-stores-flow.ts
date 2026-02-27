@@ -1,8 +1,7 @@
 'use server';
 /**
- * @fileOverview Un flujo de Genkit para encontrar tiendas cercanas con disponibilidad de productos y comparación de precios.
- *
- * - aiNearbyStores - Función para obtener tiendas, disponibilidad y precios estimados.
+ * @fileOverview A Genkit flow for finding nearby stores with product availability and price comparison.
+ * Uses Gemini 2.5 Flash Lite for high-performance reasoning.
  */
 
 import { ai } from '@/ai/genkit';
@@ -18,21 +17,21 @@ const NearbyStoresInputSchema = z.object({
 export type NearbyStoresInput = z.infer<typeof NearbyStoresInputSchema>;
 
 const ProductInfoSchema = z.object({
-  product: z.string().describe('Nombre del producto faltante.'),
-  inStock: z.boolean().describe('Si es probable que esté disponible.'),
-  estimatedPrice: z.string().describe('Precio estimado en moneda local.'),
+  product: z.string().describe('Name of the missing product.'),
+  inStock: z.boolean().describe('Whether it is likely to be available.'),
+  estimatedPrice: z.string().describe('Estimated price in local currency.'),
 });
 
 const StoreSchema = z.object({
   name: z.string(),
   address: z.string(),
-  distance: z.string().describe('Distancia aproximada, ej: "500m", "1.2km"'),
-  hours: z.string().describe('Horario de atención hoy'),
+  distance: z.string().describe('Approximate distance, e.g., "500m", "1.2km"'),
+  hours: z.string().describe('Opening hours today'),
   isOpen: z.boolean(),
-  type: z.string().describe('Categoría: Supermercado, Tienda de Conveniencia, etc.'),
-  availability: z.array(ProductInfoSchema).describe('Análisis de stock para los productos faltantes.'),
-  totalEstimatedPrice: z.string().describe('Suma total estimada de los productos faltantes en esta tienda.'),
-  websiteSearchUrl: z.string().describe('Enlace de búsqueda simulado o real para verificar en la tienda.'),
+  type: z.string().describe('Category: Supermarket, Convenience Store, etc.'),
+  availability: z.array(ProductInfoSchema).describe('Stock analysis for missing products.'),
+  totalEstimatedPrice: z.string().describe('Total estimated sum of missing products at this store.'),
+  websiteSearchUrl: z.string().describe('Direct link to the store website or a search results page for the products.'),
 });
 
 const NearbyStoresOutputSchema = z.object({
@@ -50,16 +49,16 @@ const storesPrompt = ai.definePrompt({
   input: { schema: NearbyStoresInputSchema },
   output: { schema: NearbyStoresOutputSchema },
   model: 'googleai/gemini-2.5-flash-lite',
-  prompt: `Eres FoodAI Assistant. Ayuda al usuario a encontrar dónde comprar estos ingredientes faltantes: {{{missingIngredients}}}.
+  prompt: `You are FoodAI Assistant. Help the user find where to buy these missing ingredients: {{{missingIngredients}}}.
 
-Basándote en la ubicación (Lat: {{latitude}}, Lon: {{longitude}}), sugiere 3 tiendas reales o coherentes con la zona.
-Para cada tienda:
-1. Evalúa si es probable que tengan cada producto (availability).
-2. Estima un precio realista para cada producto basándote en el tipo de tienda (ej: un supermercado suele ser más barato que una tienda de conveniencia).
-3. Calcula un "Total Estimado".
-4. Proporciona una URL de búsqueda (Google Search o sitio de la tienda) para que el usuario verifique.
+Based on location (Lat: {{latitude}}, Lon: {{longitude}}), suggest 3 real or highly plausible local stores.
+For each store:
+1. Evaluate likely stock for each missing item (availability).
+2. Estimate a realistic price based on store type (e.g., supermarkets are generally cheaper than convenience stores).
+3. Calculate a "Total Estimated Price".
+4. Provide a direct website URL if known, or a helpful Google Search/Maps link specifically for that store's inventory.
 
-Idioma de respuesta: {{{language}}}.`,
+Response Language: {{{language}}}.`,
 });
 
 const aiNearbyStoresFlow = ai.defineFlow(
@@ -70,6 +69,7 @@ const aiNearbyStoresFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await storesPrompt(input);
-    return output!;
+    if (!output) throw new Error('Failed to generate nearby stores info');
+    return output;
   }
 );

@@ -338,9 +338,12 @@ export default function RecipesPage() {
 
                  {nearbyStores && activeRecipe === idx && (
                    <div className="space-y-4 animate-in slide-in-from-top duration-500">
-                     <h4 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                       <TrendingUp className="h-4 w-4" /> Comparativa de Tiendas
-                     </h4>
+                     <div className="flex items-center justify-between">
+                       <h4 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                         <TrendingUp className="h-4 w-4" /> Comparativa de Tiendas
+                       </h4>
+                       <Button variant="ghost" size="sm" className="h-8 text-[10px]" onClick={() => setNearbyStores(null)}>Cerrar</Button>
+                     </div>
                      <div className="space-y-4">
                        {nearbyStores.stores.map((store, sIdx) => (
                          <Card key={sIdx} className="border-none glass bg-white/40 dark:bg-black/20 p-4 rounded-xl relative overflow-hidden">
@@ -367,9 +370,7 @@ export default function RecipesPage() {
                            </div>
 
                            <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="w-full mt-3 h-8 text-[10px] font-bold text-primary gap-2"
+                            className="w-full mt-4 h-10 rounded-xl bg-primary text-white font-bold text-xs gap-2 shadow-lg"
                             onClick={() => window.open(store.websiteSearchUrl, '_blank')}
                            >
                              Ver en la Tienda <ExternalLink className="h-3 w-3" />

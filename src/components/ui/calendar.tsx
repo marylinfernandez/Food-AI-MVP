@@ -13,8 +13,8 @@ import { buttonVariants } from "@/components/ui/button"
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
 /**
- * @fileOverview Un calendario con alineación matemática estricta basada en Grid.
- * Forzamos una rejilla de 7 columnas tanto en cabeceras como en días para una simetría perfecta.
+ * @fileOverview A calendar component with strict mathematical grid alignment.
+ * We force a 7-column grid layout for both headers and days to ensure absolute symmetry.
  */
 function Calendar({
   className,
@@ -48,11 +48,11 @@ function Calendar({
           "h-8 w-8 bg-background/50 p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20 absolute right-4 z-20"
         ),
         month_grid: "w-full border-collapse block space-y-0 max-w-none",
-        // CABECERAS: Grid estricto de 7 columnas con ancho total.
+        // HEADERS: Strict 7-column grid matching the day grid exactly.
         weekdays: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900 border-b border-white/10 overflow-hidden",
         weekday: "text-white font-bold text-[0.6rem] uppercase h-14 w-full flex items-center justify-center border-r border-white/10 last:border-r-0 text-center px-1 leading-tight",
         weeks: "w-full block",
-        // FILAS: Grid estricto de 7 columnas que coincide exactamente con la cabecera.
+        // ROWS: Strict 7-column grid to ensure vertical alignment with the header.
         week: "grid grid-cols-7 w-full border-b border-muted/30 last:border-b-0",
         day: "relative p-0 h-14 w-full flex items-stretch justify-stretch border-r border-muted/30 last:border-r-0",
         day_button: cn(
