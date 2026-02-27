@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser } from "@/firebase";
@@ -5,7 +6,6 @@ import { ThemeToggle } from "./theme-toggle";
 import { Sparkles, Languages, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -13,38 +13,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/context/language-context";
+import { Language } from "@/lib/i18n";
 
-/**
- * @fileOverview Encabezado global persistente con estética futurista FoodAI.
- * Ahora incluye un selector de idioma directo y es visible en toda la app.
- */
 export function Header() {
   const { user } = useUser();
-  const pathname = usePathname();
   const { toast } = useToast();
-  const [currentLang, setCurrentLang] = useState("spanish-la");
+  const { language, setLanguage, t } = useTranslation();
 
-  useEffect(() => {
-    const savedLang = localStorage.getItem('foodai_lang');
-    if (savedLang) setCurrentLang(savedLang);
-  }, []);
-
-  const changeLanguage = (langId: string, label: string) => {
-    setCurrentLang(langId);
-    localStorage.setItem('foodai_lang', langId);
+  const changeLanguage = (langId: Language, label: string) => {
+    setLanguage(langId);
     toast({
-      title: "Idioma Actualizado",
-      description: `FoodAI ahora está en ${label}.`,
+      title: t('header.langUpdated'),
+      description: t('header.langDesc'),
     });
-    // Opcional: Recargar o emitir evento si el resto de la UI necesita actualizarse inmediatamente
   };
 
   const languages = [
-    { id: "english", label: "English", flag: "🇺🇸" },
-    { id: "spanish-es", label: "Español (ES)", flag: "🇪🇸" },
-    { id: "spanish-la", label: "Español (LATAM)", flag: "🌎" }
+    { id: "english" as Language, label: "English", flag: "🇺🇸" },
+    { id: "spanish-es" as Language, label: "Español (ES)", flag: "🇪🇸" },
+    { id: "spanish-la" as Language, label: "Español (LATAM)", flag: "🌎" }
   ];
 
   return (
@@ -60,7 +49,7 @@ export function Header() {
             </h1>
             {user && (
               <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                Nexus: {user.displayName || "Chef"}
+                {t('header.nexus')}: {user.displayName || "Chef"}
               </span>
             )}
           </div>
@@ -85,20 +74,20 @@ export function Header() {
                 onClick={() => changeLanguage(lang.id, lang.label)}
                 className={cn(
                   "flex items-center justify-between rounded-xl cursor-pointer p-3 transition-colors",
-                  currentLang === lang.id ? "bg-primary/20 text-primary" : "hover:bg-white/5"
+                  language === lang.id ? "bg-primary/20 text-primary" : "hover:bg-white/5"
                 )}
               >
                 <div className="flex items-center gap-2">
                   <span>{lang.flag}</span>
                   <span className="font-bold text-xs uppercase tracking-wider">{lang.label}</span>
                 </div>
-                {currentLang === lang.id && <Check className="h-3 w-3" />}
+                {language === lang.id && <Check className="h-3 w-3" />}
               </DropdownMenuItem>
             ))}
             <div className="pt-2 mt-2 border-t border-white/10">
               <Link href="/settings" className="w-full">
                 <DropdownMenuItem className="text-[10px] text-center w-full justify-center opacity-60 uppercase font-bold hover:opacity-100">
-                  Ver más ajustes
+                  Settings
                 </DropdownMenuItem>
               </Link>
             </div>

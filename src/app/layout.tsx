@@ -1,9 +1,11 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { BottomNav } from '@/components/layout/bottom-nav';
 import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { LanguageProvider } from '@/context/language-context';
 
 export const metadata: Metadata = {
   title: 'FoodAI - Tu Asistente de Cocina Inteligente',
@@ -37,12 +39,14 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background pb-20 transition-colors duration-300">
         <FirebaseClientProvider>
-          <main className="min-h-screen max-w-lg mx-auto relative px-4 pt-6">
-            <Header />
-            {children}
-          </main>
-          <BottomNav />
-          <Toaster />
+          <LanguageProvider>
+            <main className="min-h-screen max-w-lg mx-auto relative px-4 pt-6">
+              <Header />
+              {children}
+            </main>
+            <BottomNav />
+            <Toaster />
+          </LanguageProvider>
         </FirebaseClientProvider>
       </body>
     </html>
