@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, ChefHat, Refrigerator, ArrowRight, Sparkles, HelpCircle, Info } from "lucide-react";
+import { Camera, ChefHat, Refrigerator, ArrowRight, Sparkles, HelpCircle, Info, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import { usePantry } from "@/lib/pantry-store";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/context/language-context";
+import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   const { items } = usePantry();
@@ -20,7 +21,7 @@ export default function HomePage() {
   const { t, language } = useTranslation();
   const router = useRouter();
   const fridgeHero = PlaceHolderImages.find(img => img.id === "hero-fridge");
-  const [showGuide, setShowGuide] = useState(false);
+  const [guideStep, setGuideStep] = useState<number>(0);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -30,6 +31,14 @@ export default function HomePage() {
 
   if (isUserLoading) return null;
 
+  const nextStep = () => {
+    if (guideStep === 5) {
+      setGuideStep(0);
+      return;
+    }
+    setGuideStep(prev => prev + 1);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-10">
       <div className="flex justify-between items-center px-1">
@@ -37,29 +46,35 @@ export default function HomePage() {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="rounded-full bg-secondary/10 h-8 gap-2" 
-          onClick={() => setShowGuide(!showGuide)}
+          className={cn(
+            "rounded-full h-8 gap-2 transition-all",
+            guideStep > 0 ? "bg-primary text-white" : "bg-secondary/10 text-secondary"
+          )}
+          onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
         >
-          <HelpCircle className="h-4 w-4 text-secondary" />
+          <HelpCircle className="h-4 w-4" />
           <span className="text-xs">{t('home.guide')}</span>
         </Button>
       </div>
 
-      {showGuide && (
-        <Card className="glass border-primary/20 bg-primary/5 animate-in slide-in-from-top duration-500 overflow-hidden">
-          <CardHeader className="pb-2 bg-primary/10">
-            <CardTitle className="text-lg flex items-center gap-2 text-primary">
-              <Info className="h-5 w-5" /> {t('home.guide')}
+      {guideStep > 0 && (
+        <Card className="glass border-primary/40 bg-primary/10 animate-in slide-in-from-top duration-500 overflow-hidden relative shadow-2xl">
+          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => setGuideStep(0)}>
+            <X className="h-3 w-3" />
+          </Button>
+          <CardHeader className="pb-2 bg-primary/20">
+            <CardTitle className="text-lg flex items-center gap-2 text-primary font-black uppercase">
+              <Sparkles className="h-5 w-5" /> {t(`guide.step${guideStep}.title`)}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-4 pt-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-1">
-                <p className="font-bold text-primary flex items-center gap-1"><Camera className="h-3 w-3" /> {t('home.scanBtn')}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight">Analiza tu nevera con visión IA avanzada.</p>
-              </div>
+            <p className="leading-relaxed font-medium italic">"{t(`guide.step${guideStep}.desc`)}"</p>
+            <div className="flex justify-between items-center pt-2">
+               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{guideStep} / 5</span>
+               <Button size="sm" className="rounded-xl px-6 bg-primary font-bold shadow-lg" onClick={nextStep}>
+                 {guideStep === 5 ? t('guide.finish') : t('guide.next')} <ChevronRight className="h-3 w-3 ml-1" />
+               </Button>
             </div>
-            <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/20" onClick={() => setShowGuide(false)}>Close</Button>
           </CardContent>
         </Card>
       )}
@@ -81,13 +96,19 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 gap-4">
         <Link href="/scan" className="col-span-1">
-          <Card className="h-24 glass hover:scale-[1.02] transition-all cursor-pointer group border-none flex items-center">
+          <Card className={cn(
+            "h-24 glass hover:scale-[1.02] transition-all cursor-pointer group border-none flex items-center relative",
+            guideStep === 1 && "ring-4 ring-primary ring-offset-4 ring-offset-background"
+          )}>
             <CardHeader className="flex flex-row items-center gap-4 w-full p-6">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Camera className="h-6 w-6 text-primary group-hover:rotate-12 transition-transform" />
               </div>
               <CardTitle className="text-xl">{t('home.scanBtn')}</CardTitle>
             </CardHeader>
+            {guideStep === 1 && (
+              <div className="absolute -top-3 -right-3 h-8 w-8 bg-primary text-white rounded-full flex items-center justify-center font-bold shadow-lg animate-bounce">1</div>
+            )}
           </Card>
         </Link>
       </div>
@@ -102,7 +123,10 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <Card className="overflow-hidden glass border-none group">
+        <Card className={cn(
+          "overflow-hidden glass border-none group relative",
+          (guideStep === 3 || guideStep === 4) && "ring-4 ring-primary ring-offset-4 ring-offset-background"
+        )}>
           <CardContent className="p-0 flex items-center">
             <div className="relative w-28 h-28 flex-shrink-0">
                <Image 
@@ -126,10 +150,18 @@ export default function HomePage() {
               </Link>
             </div>
           </CardContent>
+          {(guideStep === 3 || guideStep === 4) && (
+            <div className="absolute -top-3 -right-3 h-8 w-8 bg-primary text-white rounded-full flex items-center justify-center font-bold shadow-lg animate-bounce">
+              {guideStep}
+            </div>
+          )}
         </Card>
       </section>
 
-      <section className="bg-gradient-to-r from-primary/90 to-secondary/90 backdrop-blur-md rounded-[2rem] p-6 text-white space-y-4 shadow-xl neo-glow relative overflow-hidden">
+      <section className={cn(
+        "bg-gradient-to-r from-primary/90 to-secondary/90 backdrop-blur-md rounded-[2rem] p-6 text-white space-y-4 shadow-xl neo-glow relative overflow-hidden transition-all",
+        (guideStep === 2 || guideStep === 5) && "ring-4 ring-primary ring-offset-4 ring-offset-background"
+      )}>
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[40px] rounded-full -mr-16 -mt-16"></div>
         <div className="space-y-1 relative z-10">
           <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-70">Intelligent Profile</p>
@@ -141,6 +173,11 @@ export default function HomePage() {
             {t('home.setupBtn')} <ArrowRight className="h-3 w-3 ml-2" />
           </Button>
         </Link>
+        {(guideStep === 2 || guideStep === 5) && (
+          <div className="absolute -top-3 -right-3 h-8 w-8 bg-primary text-white rounded-full flex items-center justify-center font-bold shadow-lg animate-bounce">
+            {guideStep}
+          </div>
+        )}
       </section>
     </div>
   );
