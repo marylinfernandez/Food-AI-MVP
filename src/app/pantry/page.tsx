@@ -1,6 +1,6 @@
 "use client";
 
-import { usePantry } from "@/lib/pantry-store";
+import { usePantry, HistoryRecipe } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Package, ChefHat, Timer, Trash2, History, Sparkles } from "lucide-react";
@@ -28,11 +28,16 @@ export default function PantryPage() {
     return itemDate.toDateString() === date.toDateString();
   });
 
-  const dayRecipes = historyRecipes.filter(recipe => {
-    if (!date) return false;
-    const recipeDate = new Date(recipe.scannedAt);
-    return recipeDate.toDateString() === date.toDateString();
-  });
+  // Deduplicación de recetas por nombre para el día seleccionado
+  const dayRecipes = historyRecipes
+    .filter(recipe => {
+      if (!date) return false;
+      const recipeDate = new Date(recipe.scannedAt);
+      return recipeDate.toDateString() === date.toDateString();
+    })
+    .filter((recipe, index, self) => 
+      index === self.findIndex((t) => t.name === recipe.name)
+    );
 
   const isToday = date?.toDateString() === new Date().toDateString();
 

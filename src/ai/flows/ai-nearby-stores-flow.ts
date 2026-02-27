@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for finding nearby stores with product availability and price comparison.
- * Uses Gemini 2.5 Flash for high-performance reasoning and stability.
+ * Uses Gemini 2.5 Flash for high-performance reasoning.
  */
 
 import { ai } from '@/ai/genkit';
@@ -54,9 +54,9 @@ const storesPrompt = ai.definePrompt({
 Based on location (Lat: {{latitude}}, Lon: {{longitude}}), suggest 3 real or highly plausible local stores.
 For each store:
 1. Evaluate likely stock for each missing item (availability).
-2. Estimate a realistic price based on store type (e.g., supermarkets are generally cheaper than convenience stores).
+2. Estimate a realistic price based on store type.
 3. Calculate a "Total Estimated Price".
-4. Provide a direct website URL if known, or a helpful Google Search/Maps link specifically for that store's inventory.
+4. Provide a direct website URL or a helpful Google Search/Maps link specifically for that store's inventory.
 
 Response Language: {{{language}}}.`,
 });
