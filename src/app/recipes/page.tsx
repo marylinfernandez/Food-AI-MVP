@@ -58,7 +58,7 @@ export default function RecipesPage() {
         mealType: mealTypeLabel,
         complexityLevel: 'simple',
         availableTimeMinutes: 45,
-        language: language // Pasamos el idioma actual a la IA
+        language: language
       });
       setRecipes(result);
     } catch (error) {
@@ -215,9 +215,10 @@ export default function RecipesPage() {
               <Card key={idx} className="overflow-hidden border-none shadow-xl glass group/card">
                 <div className="relative h-56 w-full bg-primary/5">
                    <img 
-                    src={`https://picsum.photos/seed/foodai-${idx + (selectedCategory?.length || 0)}/600/400`} 
+                    src={`https://picsum.photos/seed/${encodeURIComponent(recipe.imageSearchTerm || recipe.name)}/600/400`} 
                     alt={recipe.name} 
                     className="object-cover w-full h-full opacity-90 transition-transform duration-700 group-hover/card:scale-110"
+                    data-ai-hint={recipe.imageSearchTerm}
                    />
                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                    <div className="absolute bottom-4 left-4 text-white">

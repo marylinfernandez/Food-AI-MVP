@@ -82,6 +82,9 @@ const RecipeSchema = z.object({
     .int()
     .positive()
     .describe('The number of servings the recipe yields.'),
+  imageSearchTerm: z
+    .string()
+    .describe('A short, English search term (1-2 words) that describes the dish visually for a food photo database.'),
 });
 
 const PersonalizedRecipeGenerationOutputSchema = z.object({
@@ -130,7 +133,8 @@ Max time (mins): {{{availableTimeMinutes}}}
 
 Complexity level: {{{complexityLevel}}}
 
-Generate recipes that are practical and don't require high cognitive effort. Instructions should be clear and concise.`,
+Generate recipes that are practical and don't require high cognitive effort. Instructions should be clear and concise.
+Also, provide an 'imageSearchTerm' in English that best represents the dish visually (e.g., 'pasta carbonara', 'strawberry smoothie', 'chocolate cake').`,
 });
 
 const personalizedRecipeGenerationFlow = ai.defineFlow(
