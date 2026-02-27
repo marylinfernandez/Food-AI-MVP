@@ -40,8 +40,29 @@ export function Header() {
             )}
           </div>
         </Link>
+        
         <div className="flex items-center gap-2">
-           <Button 
+          {/* Selector de idiomas compacto al lado del tour */}
+          <div className="hidden xs:flex items-center gap-1 bg-secondary/5 p-1 rounded-xl border border-white/10">
+            {languages.map((lang) => (
+              <Button
+                key={lang.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => setLanguage(lang.id)}
+                className={cn(
+                  "h-7 w-9 rounded-lg text-[8px] font-bold transition-all p-0",
+                  language === lang.id 
+                    ? "bg-white dark:bg-primary/20 text-primary shadow-sm" 
+                    : "text-muted-foreground hover:bg-white/5"
+                )}
+              >
+                {lang.label}
+              </Button>
+            ))}
+          </div>
+
+          <Button 
             variant="ghost" 
             size="sm" 
             className={cn(
@@ -53,13 +74,15 @@ export function Header() {
             onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
           >
             <HelpCircle className={cn("h-4 w-4", guideStep === 0 && "animate-bounce")} />
-            <span className="text-[10px] font-black uppercase tracking-wider hidden xs:inline">{t('home.guide')}</span>
+            <span className="text-[10px] font-black uppercase tracking-wider hidden sm:inline">{t('home.guide')}</span>
           </Button>
+          
           <ThemeToggle />
         </div>
       </div>
-      
-      <div className="flex items-center justify-center gap-1 bg-secondary/5 p-1 rounded-2xl border border-white/10">
+
+      {/* Selector de idiomas móvil (solo visible si la pantalla es muy pequeña) */}
+      <div className="xs:hidden flex items-center justify-center gap-1 bg-secondary/5 p-1 rounded-2xl border border-white/10">
         {languages.map((lang) => (
           <Button
             key={lang.id}

@@ -39,6 +39,6 @@ export function TourOverlay() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }
