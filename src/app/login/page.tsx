@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-   GoogleAuthProvider, 
+  GoogleAuthProvider, 
   FacebookAuthProvider, 
-  TwitterAuthProvider, 
   OAuthProvider,
   signInWithPopup,
   RecaptchaVerifier,
@@ -18,13 +17,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, Chrome, Facebook, Twitter, Phone, Instagram, Loader2, Sparkles, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Chrome, Facebook, Phone, Instagram, Loader2, Sparkles, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/context/language-context";
 
 export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -44,19 +45,19 @@ export default function LoginPage() {
     switch (providerName) {
       case 'google': provider = new GoogleAuthProvider(); break;
       case 'facebook': provider = new FacebookAuthProvider(); break;
-      case 'twitter': provider = new TwitterAuthProvider(); break;
+      case 'twitter': provider = new OAuthProvider('twitter.com'); break;
       case 'instagram': provider = new OAuthProvider('instagram.com'); break;
       default: provider = new GoogleAuthProvider();
     }
 
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: "¡Acceso Exitoso!", description: "Bienvenido de nuevo a FoodAI." });
+      toast({ title: "¡Acceso Exitoso!", description: "Bienvenido a FoodAI." });
       router.push("/");
     } catch (error: any) {
       toast({ 
         title: "Error de conexión", 
-        description: "No pudimos conectar con " + providerName + ". Revisa tu conexión.", 
+        description: "No pudimos conectar con " + providerName, 
         variant: "destructive" 
       });
     } finally {
@@ -80,12 +81,7 @@ export default function LoginPage() {
       }
       router.push("/");
     } catch (error: any) {
-      let message = "Ocurrió un error inesperado.";
-      if (error.code === 'auth/user-not-found') message = "No existe una cuenta con este correo.";
-      if (error.code === 'auth/wrong-password') message = "La contraseña es incorrecta.";
-      if (error.code === 'auth/email-already-in-use') message = "Este correo ya está registrado.";
-      
-      toast({ title: "Error", description: message, variant: "destructive" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -141,7 +137,7 @@ export default function LoginPage() {
           Food<span className="text-secondary">AI</span>
         </h1>
         <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
-          Tu despensa, evolucionada.
+          {t('login.subtitle')}
         </p>
       </div>
 
@@ -153,7 +149,7 @@ export default function LoginPage() {
             <Button variant="ghost" className="mb-2 p-0 h-auto hover:bg-transparent" onClick={() => setShowPhoneInput(false)}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Volver
             </Button>
-            <h2 className="text-2xl font-bold uppercase tracking-tight">Acceso por Teléfono</h2>
+            <h2 className="text-2xl font-bold uppercase tracking-tight">{t('login.phoneBtn')}</h2>
             {!confirmationResult ? (
               <div className="space-y-4">
                 <Input 
@@ -184,15 +180,18 @@ export default function LoginPage() {
           <Tabs defaultValue="social" className="w-full">
             <TabsList className="grid w-full grid-cols-2 rounded-none h-14 bg-secondary/5 border-b border-white/10">
               <TabsTrigger value="social" className="data-[state=active]:bg-white/40 data-[state=active]:text-primary font-bold transition-all text-xs uppercase tracking-widest">
-                Social
+                {t('login.socialTab')}
               </TabsTrigger>
               <TabsTrigger value="email" className="data-[state=active]:bg-white/40 data-[state=active]:text-primary font-bold transition-all text-xs uppercase tracking-widest">
-                Correo
+                {t('login.emailTab')}
               </TabsTrigger>
             </TabsList>
             
             <CardContent className="p-8">
               <TabsContent value="social" className="space-y-4 mt-0 animate-in slide-in-from-left-4 duration-300">
+                <p className="text-center text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                  {t('login.joinVia')}
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('google')} disabled={loading}>
                     <Chrome className="h-4 w-4 mr-2 text-red-500 group-hover:scale-110 transition-transform" /> GOOGLE
@@ -201,7 +200,10 @@ export default function LoginPage() {
                     <Facebook className="h-4 w-4 mr-2 text-blue-600 group-hover:scale-110 transition-transform" /> FACEBOOK
                   </Button>
                   <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('twitter')} disabled={loading}>
-                    <Twitter className="h-4 w-4 mr-2 text-sky-500 group-hover:scale-110 transition-transform" /> X
+                    <svg className="h-4 w-4 mr-2 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/>
+                    </svg>
+                    X
                   </Button>
                   <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('instagram')} disabled={loading}>
                     <Instagram className="h-4 w-4 mr-2 text-pink-600 group-hover:scale-110 transition-transform" /> INSTAGRAM
@@ -214,7 +216,7 @@ export default function LoginPage() {
                 </div>
 
                 <Button variant="secondary" className="w-full h-12 rounded-2xl font-bold bg-white/50 border border-white/20 hover:bg-white/70 text-xs" onClick={() => setShowPhoneInput(true)} disabled={loading}>
-                  <Phone className="h-4 w-4 mr-2 text-primary" /> NÚMERO DE TELÉFONO
+                  <Phone className="h-4 w-4 mr-2 text-primary" /> {t('login.phoneBtn')}
                 </Button>
               </TabsContent>
 
@@ -224,7 +226,7 @@ export default function LoginPage() {
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input 
                       type="email" 
-                      placeholder="Correo electrónico" 
+                      placeholder={t('login.emailPlaceholder')}
                       className="h-12 pl-12 rounded-2xl border-2 focus:ring-primary focus:border-primary transition-all text-sm"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -234,7 +236,7 @@ export default function LoginPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input 
                       type="password" 
-                      placeholder="Contraseña" 
+                      placeholder={t('login.passwordPlaceholder')}
                       className="h-12 pl-12 rounded-2xl border-2 focus:ring-primary focus:border-primary transition-all text-sm"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -246,12 +248,12 @@ export default function LoginPage() {
                   {loading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    isRegistering ? "CREAR NUEVA CUENTA" : "ENTRAR A MI DESPENSA"
+                    isRegistering ? t('login.registerBtn') : t('login.loginBtn')
                   )}
                 </Button>
                 
                 <Button variant="link" className="w-full text-primary font-bold text-[10px] uppercase tracking-wider" onClick={() => setIsRegistering(!isRegistering)}>
-                  {isRegistering ? "¿Ya tienes una cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate aquí"}
+                  {isRegistering ? t('login.switchLogin') : t('login.switchRegister')}
                 </Button>
               </TabsContent>
             </CardContent>
@@ -260,8 +262,7 @@ export default function LoginPage() {
       </Card>
       
       <p className="text-[10px] text-muted-foreground/60 text-center max-w-xs leading-relaxed uppercase tracking-widest px-4">
-        Al acceder a FoodAI, entras en un ecosistema de gestión inteligente de alimentos. 
-        Tus datos están protegidos por encriptación cuántica simulada.
+        {t('login.footer')}
       </p>
     </div>
   );

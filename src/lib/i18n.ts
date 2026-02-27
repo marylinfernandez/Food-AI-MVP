@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Diccionario de traducciones exhaustivo para FoodAI.
  * Incluye interfaz, alimentos comunes y unidades de medida.
@@ -18,6 +17,20 @@ export const translations = {
     'header.nexus': 'Nexus',
     'header.langUpdated': 'Language Updated',
     'header.langDesc': 'FoodAI is now in English.',
+    // Login
+    'login.title': 'FoodAI',
+    'login.subtitle': 'Your pantry, evolved.',
+    'login.joinVia': 'You can join via...',
+    'login.emailTab': 'Email',
+    'login.socialTab': 'Social',
+    'login.phoneBtn': 'PHONE NUMBER',
+    'login.emailPlaceholder': 'Email address',
+    'login.passwordPlaceholder': 'Password',
+    'login.loginBtn': 'ENTER MY PANTRY',
+    'login.registerBtn': 'CREATE NEW ACCOUNT',
+    'login.switchRegister': "Don't have an account? Register here",
+    'login.switchLogin': 'Already have an account? Log in',
+    'login.footer': 'By accessing FoodAI, you enter an intelligent food management ecosystem. Your data is protected by simulated quantum encryption.',
     // Home
     'home.title': 'Kitchen Status',
     'home.guide': 'View Guide',
@@ -78,7 +91,7 @@ export const translations = {
     'settings.langDesc': 'Select how you want FoodAI to speak to you.',
     'settings.voiceTitle': 'Voice Personalization',
     'settings.applyBtn': 'Apply Futuristic Changes',
-    // Food Items & Units (Dynamic Data Translation)
+    // Food Items
     'Milk': 'Milk',
     'Eggs': 'Eggs',
     'Butter': 'Butter',
@@ -111,6 +124,20 @@ export const translations = {
     'header.nexus': 'Nexus',
     'header.langUpdated': 'Idioma Actualizado',
     'header.langDesc': 'FoodAI ahora está en Español Latino.',
+    // Login
+    'login.title': 'FoodAI',
+    'login.subtitle': 'Tu despensa, evolucionada.',
+    'login.joinVia': 'Te puedes unir mediante...',
+    'login.emailTab': 'Correo',
+    'login.socialTab': 'Social',
+    'login.phoneBtn': 'NÚMERO DE TELÉFONO',
+    'login.emailPlaceholder': 'Correo electrónico',
+    'login.passwordPlaceholder': 'Contraseña',
+    'login.loginBtn': 'ENTRAR A MI DESPENSA',
+    'login.registerBtn': 'CREAR NUEVA CUENTA',
+    'login.switchRegister': '¿No tienes cuenta? Regístrate aquí',
+    'login.switchLogin': '¿Ya tienes una cuenta? Inicia sesión',
+    'login.footer': 'Al acceder a FoodAI, entras en un ecosistema de gestión inteligente de alimentos. Tus datos están protegidos por encriptación cuántica simulada.',
     'home.title': 'Estado de tu cocina',
     'home.guide': 'Ver Guía',
     'home.ingredients': 'Ingredientes',
@@ -165,7 +192,7 @@ export const translations = {
     'settings.langDesc': 'Selecciona cómo quieres que FoodAI te hable.',
     'settings.voiceTitle': 'Personalización de Voz',
     'settings.applyBtn': 'Aplicar Cambios Futuristas',
-    // Food Items & Units
+    // Food Items
     'Milk': 'Leche',
     'Eggs': 'Huevos',
     'Butter': 'Mantequilla',
@@ -200,6 +227,20 @@ export const translations = {
     'header.nexus': 'Nexus',
     'header.langUpdated': 'Idioma Actualizado',
     'header.langDesc': 'FoodAI ahora está en Español de España.',
+    // Login
+    'login.title': 'FoodAI',
+    'login.subtitle': 'Tu despensa, evolucionada.',
+    'login.joinVia': 'Te puedes unir mediante...',
+    'login.emailTab': 'Correo',
+    'login.socialTab': 'Social',
+    'login.phoneBtn': 'NÚMERO DE TELÉFONO',
+    'login.emailPlaceholder': 'Correo electrónico',
+    'login.passwordPlaceholder': 'Contraseña',
+    'login.loginBtn': 'ENTRAR A MI DESPENSA',
+    'login.registerBtn': 'CREAR NUEVA CUENTA',
+    'login.switchRegister': '¿No tienes cuenta? Regístrate aquí',
+    'login.switchLogin': '¿Ya tienes una cuenta? Inicia sesión',
+    'login.footer': 'Al acceder a FoodAI, entras en un ecosistema de gestión inteligente de alimentos. Tus datos están protegidos por encriptación cuántica simulada.',
     'home.title': 'Estado de tu cocina',
     'home.guide': 'Ver Guía',
     'home.ingredients': 'Ingredientes',
@@ -254,7 +295,7 @@ export const translations = {
     'settings.langDesc': 'Selecciona cómo quieres que FoodAI te hable.',
     'settings.voiceTitle': 'Personalización de Voz',
     'settings.applyBtn': 'Aplicar Cambios Futuristas',
-    // Food Items & Units
+    // Food Items
     'Milk': 'Leche',
     'Eggs': 'Huevos',
     'Butter': 'Mantequilla',
