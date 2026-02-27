@@ -1,7 +1,7 @@
 
 'use client';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface TourContextProps {
   guideStep: number;
@@ -11,16 +11,29 @@ interface TourContextProps {
 
 const TourContext = createContext<TourContextProps | undefined>(undefined);
 
+/**
+ * @fileOverview Contexto global para manejar el Tour Interactivo y la autonavegación.
+ */
 export function TourProvider({ children }: { children: ReactNode }) {
   const [guideStep, setGuideStep] = useState(0);
   const router = useRouter();
+  const pathname = usePathname();
 
   const nextStep = () => {
     const next = guideStep >= 5 ? 0 : guideStep + 1;
-    setGuideStep(next);
+    handleSetGuideStep(next);
+  };
 
+  const handleSetGuideStep = (step: number) => {
+    setGuideStep(step);
+    
     // Navegación automática según el paso del tour
-    switch (next) {
+    if (step === 0) {
+      if (pathname !== '/') router.push('/');
+      return;
+    }
+
+    switch (step) {
       case 1:
         router.push('/scan');
         break;
@@ -28,24 +41,16 @@ export function TourProvider({ children }: { children: ReactNode }) {
         router.push('/pantry');
         break;
       case 3:
+      case 4:
         router.push('/recipes');
         break;
-      case 4:
-        router.push('/recipes'); // Sección de tiendas dentro de recetas
-        break;
       case 5:
-        router.push('/pantry'); // Calendario/Historial en pantry
+        router.push('/pantry');
         break;
       default:
         router.push('/');
         break;
     }
-  };
-
-  const handleSetGuideStep = (step: number) => {
-    setGuideStep(step);
-    if (step === 0) router.push('/');
-    if (step === 1) router.push('/scan');
   };
 
   return (
