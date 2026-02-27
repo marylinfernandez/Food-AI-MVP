@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Diccionario de traducciones exhaustivo para FoodAI.
  */
@@ -65,6 +64,8 @@ export const translations = {
     'recipes.dessert': 'Desserts',
     'recipes.snack': 'Snacks/Apps',
     'recipes.custom': 'Specific Request',
+    'recipes.customLabel': 'Write what you want to prepare',
+    'recipes.dictation': 'Listening...',
     'recipes.owned': 'You have',
     'recipes.missing': 'Missing',
     'recipes.errorGen': 'Could not generate recipes right now.',
@@ -158,6 +159,8 @@ export const translations = {
     'recipes.dessert': 'Postres',
     'recipes.snack': 'Snacks/Aperitivos',
     'recipes.custom': 'Pedido Específico',
+    'recipes.customLabel': 'Escribe lo que deseas preparar',
+    'recipes.dictation': 'Escuchando...',
     'recipes.owned': 'Tienes',
     'recipes.missing': 'Faltan',
     'recipes.errorGen': 'No pudimos generar recetas ahora mismo.',
@@ -250,6 +253,8 @@ export const translations = {
     'recipes.dessert': 'Postres',
     'recipes.snack': 'Snacks/Aperitivos',
     'recipes.custom': 'Pedido Específico',
+    'recipes.customLabel': 'Escribe lo que deseas preparar',
+    'recipes.dictation': 'Escuchando...',
     'recipes.owned': 'Tienes',
     'recipes.missing': 'Faltan',
     'recipes.errorGen': 'No pudimos generar recetas ahora mismo.',

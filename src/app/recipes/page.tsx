@@ -7,7 +7,7 @@ import { aiNearbyStores, NearbyStoresOutput } from "@/ai/flows/ai-nearby-stores-
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Timer, Users, Sparkles, Loader2, Play, CheckCircle2, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight, Mic, ShoppingCart, CheckCircle, Search, MapPin, Clock, ExternalLink, Tag, TrendingUp } from "lucide-react";
+import { Timer, Users, Sparkles, Loader2, Play, CheckCircle2, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight, Mic, ShoppingCart, CheckCircle, Search, MapPin, Clock, ExternalLink, Tag, TrendingUp, MicOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export default function RecipesPage() {
   const [specificRequest, setSpecificRequest] = useState("");
   const [nearbyStores, setNearbyStores] = useState<NearbyStoresOutput | null>(null);
   const [storesLoading, setStoresLoading] = useState(false);
+  const [isDictating, setIsDictating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const categories = [
@@ -46,6 +47,35 @@ export default function RecipesPage() {
     { id: 'cocktail-no-alc', label: language === 'english' ? 'Mocktail' : 'Cóctel sin Alcohol' },
     { id: 'smoothie', label: language === 'english' ? 'Smoothie' : 'Batido / Smoothie' },
   ];
+
+  const startDictation = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      toast({ 
+        title: "No soportado", 
+        description: "Tu navegador no soporta reconocimiento de voz.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = language === 'english' ? 'en-US' : 'es-ES';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsDictating(true);
+    recognition.onend = () => setIsDictating(false);
+    recognition.onerror = () => setIsDictating(false);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSpecificRequest(prev => prev + (prev ? " " : "") + transcript);
+    };
+
+    recognition.start();
+  };
 
   const generateRecipes = async () => {
     if (!selectedCategory) return;
@@ -170,6 +200,7 @@ export default function RecipesPage() {
     setActiveRecipe(null);
     setSpecificRequest("");
     setNearbyStores(null);
+    setIsDictating(false);
   };
 
   return (
@@ -246,13 +277,33 @@ export default function RecipesPage() {
                 {selectedCategory === 'custom' && (
                   <div className="space-y-3 pt-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('recipes.customLabel')}</label>
-                    <div className="relative">
+                    <div className="relative group">
                       <Textarea 
                         placeholder={language === 'english' ? 'E.g. I want something with pasta and chicken' : 'Ej. Quiero algo con pasta y pollo'}
-                        className="min-h-[120px] rounded-2xl glass border-white/10 p-4"
+                        className="min-h-[120px] rounded-2xl glass border-white/10 p-4 pr-12 focus:ring-primary transition-all"
                         value={specificRequest}
                         onChange={(e) => setSpecificRequest(e.target.value)}
                       />
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className={cn(
+                          "absolute right-2 bottom-2 rounded-xl transition-all",
+                          isDictating ? "bg-accent text-white animate-pulse" : "text-primary hover:bg-primary/10"
+                        )}
+                        onClick={startDictation}
+                        disabled={isDictating}
+                      >
+                        {isDictating ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                      </Button>
+                      {isDictating && (
+                        <div className="absolute top-2 right-4 flex items-center gap-1.5 bg-accent/20 px-2 py-1 rounded-full border border-accent/30 animate-in fade-in">
+                          <span className="h-1.5 w-1.5 bg-accent rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                          <span className="h-1.5 w-1.5 bg-accent rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                          <span className="h-1.5 w-1.5 bg-accent rounded-full animate-bounce"></span>
+                          <span className="text-[8px] font-bold text-accent">{t('recipes.dictation')}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
