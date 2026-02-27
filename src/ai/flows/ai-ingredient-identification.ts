@@ -70,9 +70,8 @@ const identifyIngredientsPrompt = ai.definePrompt({
   name: 'identifyIngredientsPrompt',
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
-  model: googleAI.model('gemini-1.5-flash-latest'), // Using gemini-1.5-flash-latest for multimodal capabilities
-  prompt: [
-    {text: `You are an AI assistant specialized in identifying food ingredients from photos and videos of fridges and pantries.
+  model: googleAI.model('gemini-1.5-flash-latest'),
+  prompt: `You are an AI assistant specialized in identifying food ingredients from photos and videos of fridges and pantries.
     Your goal is to meticulously examine the provided media and list all discernable food items.
     For each item, try to estimate its quantity if possible, and provide a confidence score for its identification.
 
@@ -83,12 +82,10 @@ const identifyIngredientsPrompt = ai.definePrompt({
 
     Return the identified ingredients in a structured JSON format, including the name, an estimated quantity (if discernable), and a confidence score (0-1).
     Also provide a brief overall summary of what was identified.
-    `},
-    {media: {url: '{{{mediaDataUri}}}'}},
-    {text: '{{#if description}}Additional context from user: {{{description}}}{{/if}}'}
-  ],
-});
 
+    MEDIA TO ANALYZE: {{media url=mediaDataUri}}
+    {{#if description}}ADDITIONAL CONTEXT: {{{description}}}{{/if}}`,
+});
 
 const aiIngredientIdentificationFlow = ai.defineFlow(
   {
