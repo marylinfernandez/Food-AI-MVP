@@ -1,10 +1,9 @@
-
 "use client";
 
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Package, ChefHat, Timer, Sparkles, Trash2, History } from "lucide-react";
+import { Package, ChefHat, Timer, Trash2, History, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/context/language-context";
 import { Calendar } from "@/components/ui/calendar";
