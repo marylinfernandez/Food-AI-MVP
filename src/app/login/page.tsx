@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, Chrome, Facebook, Instagram, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -22,8 +22,7 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada.
- * Se ha eliminado la opción de teléfono para simplificar el flujo hacia Social y Email con IA.
+ * @fileOverview Pantalla de inicio de sesión optimizada con sincronización social e IA.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -82,7 +81,6 @@ export default function LoginPage() {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
         
-        // Generar contenido de bienvenida con Gemini 2.5 Flash
         try {
           const welcomeMsg = await generateWelcomeEmail({
             email: email,
