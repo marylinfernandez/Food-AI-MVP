@@ -28,23 +28,22 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-0", className)}
       classNames={{
-        months: "flex flex-col space-y-4",
-        month: "space-y-4 w-full",
-        caption: "flex justify-center pt-2 relative items-center mb-6",
+        months: "flex flex-col space-y-0",
+        month: "space-y-0 w-full",
+        caption: "flex justify-center pt-4 relative items-center mb-8",
         caption_label: "text-3xl font-bold tracking-tighter text-foreground uppercase",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-8 w-8 bg-background/50 p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse table-fixed",
+        nav_button_previous: "absolute left-2",
+        nav_button_next: "absolute right-2",
+        table: "w-full border-collapse",
         head_row: "flex w-full bg-black dark:bg-zinc-900",
-        head_cell:
-          "flex-1 text-white font-bold text-[0.6rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
+        head_cell: "flex-1 text-white font-bold text-[0.6rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
         row: "flex w-full border-b border-muted/30",
-        cell: "flex-1 relative p-0 text-center text-sm focus-within:relative focus-within:z-20 h-16 border-r border-muted/30 last:border-r-0",
+        cell: "flex-1 relative p-0 text-center text-sm h-16 border-r border-muted/30 last:border-r-0",
         day: cn(
           "h-full w-full p-2 font-medium aria-selected:opacity-100 hover:bg-primary/10 transition-all rounded-none text-xs flex items-start justify-start"
         ),
