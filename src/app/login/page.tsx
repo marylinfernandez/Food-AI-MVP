@@ -9,7 +9,8 @@ import {
   FacebookAuthProvider, 
   TwitterAuthProvider,
   OAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  getAdditionalUserInfo
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada con sincronización social e IA.
+ * @fileOverview Pantalla de inicio de sesión con sincronización social avanzada y bienvenida por IA.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -41,6 +42,7 @@ export default function LoginPage() {
     switch (providerName) {
       case 'google': 
         provider = new GoogleAuthProvider(); 
+        // Forzamos la selección de cuenta o login si no hay sesión activa
         provider.setCustomParameters({ prompt: 'select_account' });
         break;
       case 'facebook': 
@@ -57,13 +59,42 @@ export default function LoginPage() {
     }
 
     try {
-      await signInWithPopup(auth, provider);
-      toast({ title: "¡Acceso Exitoso!", description: "Bienvenido a FoodAI." });
+      const result = await signInWithPopup(auth, provider);
+      const additionalInfo = getAdditionalUserInfo(result);
+      
+      // Si es un usuario nuevo, enviamos correo de bienvenida
+      if (additionalInfo?.isNewUser) {
+        try {
+          const welcomeMsg = await generateWelcomeEmail({
+            email: result.user.email || "Chef",
+            displayName: result.user.displayName,
+            language: language
+          });
+          toast({ 
+            title: "¡Bienvenido a FoodAI!", 
+            description: `Te hemos enviado un mensaje especial: "${welcomeMsg.subject}"`,
+          });
+        } catch (aiErr) {
+          console.error("Error generating welcome email:", aiErr);
+        }
+      } else {
+        toast({ title: "¡Acceso Exitoso!", description: `Hola de nuevo, ${result.user.displayName || 'Chef'}.` });
+      }
+      
       router.push("/");
     } catch (error: any) {
+      console.error("Social Auth Error:", error);
+      let errorDesc = "Por favor, inicia sesión en tu cuenta de " + providerName + " para continuar.";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorDesc = "La ventana de acceso se cerró. Por favor, intenta de nuevo y asegúrate de iniciar sesión.";
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorDesc = "Ya existe una cuenta con este correo pero vinculada a otra red social.";
+      }
+
       toast({ 
-        title: "Error de conexión", 
-        description: "No pudimos conectar con " + providerName, 
+        title: "Sincronización requerida", 
+        description: errorDesc, 
         variant: "destructive" 
       });
     } finally {
@@ -79,7 +110,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const result = await createUserWithEmailAndPassword(auth, email, password);
         
         try {
           const welcomeMsg = await generateWelcomeEmail({
@@ -88,7 +119,7 @@ export default function LoginPage() {
           });
           toast({ 
             title: "¡Cuenta creada!", 
-            description: `Bienvenido Chef. Hemos preparado tu mensaje de bienvenida: "${welcomeMsg.subject}"`,
+            description: `Bienvenido Chef. Revisa tu bandeja de entrada: "${welcomeMsg.subject}"`,
           });
         } catch (aiErr) {
           toast({ title: "¡Cuenta creada!", description: "Bienvenido a FoodAI." });
@@ -135,8 +166,8 @@ export default function LoginPage() {
           
           <CardContent className="p-8">
             <TabsContent value="social" className="space-y-4 mt-0 animate-in slide-in-from-left-4 duration-300">
-              <p className="text-center text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                {t('login.joinVia')}
+              <p className="text-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 leading-relaxed">
+                Si no has iniciado sesión en tu cuenta preferida, se te pedirá hacerlo a continuación:
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('google')} disabled={loading}>
