@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    /* Tema Futurista Amigable: Light mode */
-    --background: 230 40% 98%;
+    /* Tema FoodAI: Light Mode (Digital Frost) */
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -33,35 +33,35 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 1.25rem;
+    --radius: 1.5rem;
   }
 
   .dark {
-    /* Tema Futurista: Dark mode Profundo */
-    --background: 222 47% 4%;
+    /* Tema FoodAI: Dark Mode (Aurora Borealis) */
+    --background: 230 50% 3%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 7%;
+    --card: 230 50% 6%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 4%;
+    --popover: 230 50% 3%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 190 90% 50%; /* Cian Eléctrico */
+    --primary-foreground: 230 50% 3%;
 
-    --secondary: 263.4 70% 50.4%;
+    --secondary: 280 80% 60%; /* Púrpura Galáctico */
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 230 30% 15%;
+    --muted-foreground: 215 20% 75%;
 
-    --accent: 181 84% 45%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 150 80% 50%; /* Verde Aurora */
+    --accent-foreground: 230 50% 3%;
 
-    --border: 217.2 32.6% 25%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 230 30% 20%;
+    --input: 230 30% 15%;
+    --ring: 190 90% 50%;
   }
 }
 
@@ -70,47 +70,90 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body selection:bg-primary/30;
-    background-image: radial-gradient(at 0% 0%, hsla(221, 83%, 53%, 0.05) 0, transparent 50%),
-                      radial-gradient(at 100% 100%, hsla(262, 83%, 58%, 0.05) 0, transparent 50%);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    @apply bg-background text-foreground font-body selection:bg-primary/30 min-h-screen relative overflow-x-hidden;
+    transition: background-color 0.5s ease, color 0.5s ease;
   }
-  
-  .dark body {
-    background-image: radial-gradient(at 0% 0%, hsla(217, 91%, 60%, 0.1) 0, transparent 50%),
-                      radial-gradient(at 100% 100%, hsla(263, 70%, 50%, 0.1) 0, transparent 50%);
+
+  /* Fondo Light Mode: Digital Frost */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: 
+      radial-gradient(at 0% 0%, hsla(221, 83%, 53%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(181, 84%, 45%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(262, 83%, 58%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(320, 80%, 60%, 0.05) 0px, transparent 50%);
+    opacity: 1;
+    transition: opacity 0.5s ease;
   }
+
+  /* Fondo Dark Mode: Aurora Borealis Animada */
+  .dark body::after {
+    content: "";
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -2;
+    background: 
+      radial-gradient(circle at 50% 50%, hsla(190, 90%, 50%, 0.15), transparent 40%),
+      radial-gradient(circle at 20% 30%, hsla(150, 80%, 50%, 0.1), transparent 30%),
+      radial-gradient(circle at 80% 70%, hsla(280, 80%, 60%, 0.1), transparent 35%);
+    filter: blur(80px);
+    animation: aurora 20s linear infinite;
+    opacity: 1;
+  }
+
+  .dark body::before {
+    opacity: 0;
+  }
+}
+
+@keyframes aurora {
+  0% { transform: rotate(0deg) translate(2%, 2%); }
+  33% { transform: rotate(120deg) translate(-2%, 4%); }
+  66% { transform: rotate(240deg) translate(4%, -2%); }
+  100% { transform: rotate(360deg) translate(2%, 2%); }
 }
 
 .glass {
-  @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
+  @apply bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-2xl;
 }
 
-.neo-glow {
-  box-shadow: 0 0 20px hsla(221, 83%, 53%, 0.2);
+.neo-glow-primary {
+  box-shadow: 0 0 25px hsla(var(--primary), 0.3);
 }
 
-.dark .neo-glow {
-  box-shadow: 0 0 30px hsla(217, 91%, 60%, 0.2);
+.neo-glow-accent {
+  box-shadow: 0 0 25px hsla(var(--accent), 0.3);
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 5s ease-in-out infinite;
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1deg); }
 }
 
-/* Scrollbar personalizada futurista */
+/* Scrollbar futurista */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-all;
+}
+
+.pb-safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
