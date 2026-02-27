@@ -17,7 +17,7 @@ import { useTranslation } from "@/context/language-context";
 export default function HomePage() {
   const { items } = usePantry();
   const { user, isUserLoading } = useUser();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const fridgeHero = PlaceHolderImages.find(img => img.id === "hero-fridge");
   const [showGuide, setShowGuide] = useState(false);
@@ -131,7 +131,9 @@ export default function HomePage() {
             </div>
             <div className="p-4 flex-1 space-y-1">
               <Badge className="bg-primary/20 text-primary border-none text-[10px]">Práctico • 15 min</Badge>
-              <h4 className="font-bold text-base leading-tight">Pasta Express Mediterránea</h4>
+              <h4 className="font-bold text-base leading-tight">
+                {language === 'english' ? 'Mediterranean Pasta Express' : 'Pasta Express Mediterránea'}
+              </h4>
               <Link href="/recipes">
                 <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90 h-7 px-3 text-[10px] mt-1">
                   <Sparkles className="h-3 w-3 mr-1" /> {t('home.cookNow')}

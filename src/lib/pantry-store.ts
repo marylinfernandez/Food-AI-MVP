@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -12,9 +13,9 @@ export interface PantryItem {
 const STORAGE_KEY = "pantry_items_v1";
 
 const DEFAULT_ITEMS: PantryItem[] = [
-  { id: "1", name: "Leche", quantity: "1L", lastUpdated: new Date() },
-  { id: "2", name: "Huevos", quantity: "6 unidades", lastUpdated: new Date() },
-  { id: "3", name: "Mantequilla", quantity: "Media barra", lastUpdated: new Date() },
+  { id: "1", name: "Milk", quantity: "1L", lastUpdated: new Date() },
+  { id: "2", name: "Eggs", quantity: "6 units", lastUpdated: new Date() },
+  { id: "3", name: "Butter", quantity: "Half a bar", lastUpdated: new Date() },
 ];
 
 export function usePantry() {

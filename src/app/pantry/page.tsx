@@ -7,19 +7,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Plus, Search, Calendar, Package, Sparkles, X, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
 
 export default function PantryPage() {
   const { items, removeItem, addItem } = usePantry();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingManual, setIsAddingManual] = useState(false);
   const [newItemName, setNewItemName] = useState("");
   const [newItemQty, setNewItemQty] = useState("");
 
   const filteredItems = items.filter(i => 
+    t(i.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
     i.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -33,6 +33,11 @@ export default function PantryPage() {
       setNewItemQty("");
       setIsAddingManual(false);
     }
+  };
+
+  const formatDate = (date: Date) => {
+    const locale = language === 'english' ? 'en-US' : (language === 'spanish-es' ? 'es-ES' : 'es-MX');
+    return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(date);
   };
 
   return (
@@ -105,13 +110,15 @@ export default function PantryPage() {
             <Card key={item.id} className="overflow-hidden border-none shadow-xl glass group hover:scale-[1.01] transition-all duration-300">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-2">
-                  <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">{item.name}</h3>
+                  <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">
+                    {t(item.name)}
+                  </h3>
                   <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                     <span className="flex items-center gap-1.5 bg-secondary/10 px-2.5 py-1 rounded-full text-secondary">
-                      <Package className="h-3 w-3" /> {item.quantity}
+                      <Package className="h-3 w-3" /> {t(item.quantity)}
                     </span>
                     <span className="flex items-center gap-1.5 bg-primary/10 px-2.5 py-1 rounded-full text-primary">
-                      <Calendar className="h-3 w-3" /> {format(item.lastUpdated, "d MMM")}
+                      <Calendar className="h-3 w-3" /> {formatDate(item.lastUpdated)}
                     </span>
                   </div>
                 </div>
@@ -134,7 +141,12 @@ export default function PantryPage() {
           </div>
           <div className="flex-1 relative z-10">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">IA Insights</p>
-            <p className="text-sm font-semibold leading-snug">Tu inventario ha crecido un {Math.round(items.length * 5)}% esta semana.</p>
+            <p className="text-sm font-semibold leading-snug">
+              {language === 'english' 
+                ? `Your inventory has grown ${Math.round(items.length * 5)}% this week.` 
+                : `Tu inventario ha crecido un ${Math.round(items.length * 5)}% esta semana.`
+              }
+            </p>
           </div>
         </div>
       </section>
