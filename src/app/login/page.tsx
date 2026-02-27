@@ -7,11 +7,13 @@ import {
   createUserWithEmailAndPassword, 
   GoogleAuthProvider, 
   FacebookAuthProvider, 
+  TwitterAuthProvider,
   OAuthProvider,
   signInWithPopup,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  ConfirmationResult
+  ConfirmationResult,
+  updateProfile
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +23,12 @@ import { Mail, Lock, Chrome, Facebook, Phone, Instagram, Loader2, Sparkles, Arro
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
+import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -43,11 +46,21 @@ export default function LoginPage() {
     let provider;
     
     switch (providerName) {
-      case 'google': provider = new GoogleAuthProvider(); break;
-      case 'facebook': provider = new FacebookAuthProvider(); break;
-      case 'twitter': provider = new OAuthProvider('twitter.com'); break;
-      case 'instagram': provider = new OAuthProvider('instagram.com'); break;
-      default: provider = new GoogleAuthProvider();
+      case 'google': 
+        provider = new GoogleAuthProvider(); 
+        provider.setCustomParameters({ prompt: 'select_account' });
+        break;
+      case 'facebook': 
+        provider = new FacebookAuthProvider(); 
+        break;
+      case 'twitter': 
+        provider = new TwitterAuthProvider(); 
+        break;
+      case 'instagram': 
+        provider = new OAuthProvider('instagram.com'); 
+        break;
+      default: 
+        provider = new GoogleAuthProvider();
     }
 
     try {
@@ -73,8 +86,22 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: "¡Cuenta creada!", description: "Bienvenido a la cocina del futuro con FoodAI." });
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Simular envío de correo de bienvenida con IA
+        try {
+          const welcomeMsg = await generateWelcomeEmail({
+            email: email,
+            language: language
+          });
+          toast({ 
+            title: "¡Cuenta creada!", 
+            description: `Te hemos enviado un correo de bienvenida: "${welcomeMsg.subject}"`,
+          });
+        } catch (aiErr) {
+          toast({ title: "¡Cuenta creada!", description: "Bienvenido a FoodAI." });
+        }
+        
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "¡Hola de nuevo!", description: "Has iniciado sesión correctamente." });
