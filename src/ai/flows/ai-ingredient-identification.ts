@@ -1,11 +1,10 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for identifying ingredients from a photo or video
  * of a fridge or pantry. 
  *
  * - aiIngredientIdentification - A function that initiates the ingredient identification process.
- * - IngredientIdentificationInput - The input type for the aiIngredientIdentification function.
- * - IngredientIdentificationOutput - The return type for the aiIngredientIdentification function.
  */
 
 import {ai} from '@/ai/genkit';

@@ -32,6 +32,7 @@ export default function PantryPage() {
     return itemDate.toDateString() === date.toDateString();
   });
 
+  // Deduplicación de recetas por nombre para el historial diario
   const dayRecipes = historyRecipes
     .filter(recipe => {
       if (!date) return false;
@@ -56,35 +57,37 @@ export default function PantryPage() {
         </div>
       </header>
 
-      <Card className={cn(
-        "relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-md transition-all duration-500",
+      <div className={cn(
+        "relative rounded-[2rem] overflow-hidden shadow-2xl glass transition-all duration-500",
         guideStep === 5 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]"
       )}>
-        {dateSeed && (
-          <div className="absolute inset-0 z-0">
-            <Image
-              src={`https://picsum.photos/seed/${dateSeed}/1000/800`}
-              alt="Daily Landscape"
-              fill
-              className="object-cover transition-transform duration-1000 group-hover:scale-110"
-              data-ai-hint="mountain landscape"
-              priority
+        <Card className="border-none overflow-hidden rounded-[2rem] mx-auto group w-full max-w-md relative bg-transparent shadow-none">
+          {dateSeed && (
+            <div className="absolute inset-0 z-0">
+              <Image
+                src={`https://picsum.photos/seed/${dateSeed}/1000/800`}
+                alt="Daily Landscape"
+                fill
+                className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                data-ai-hint="mountain landscape"
+                priority
+              />
+              <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-[2px]" />
+            </div>
+          )}
+          <CardContent className="relative z-10 p-0 overflow-hidden">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              className="w-full"
             />
-            <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-[2px]" />
-          </div>
-        )}
-        <CardContent className="relative z-10 p-0 overflow-hidden">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="w-full"
-          />
-        </CardContent>
-        {guideStep === 5 && (
-          <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white z-50">5</div>
-        )}
-      </Card>
+          </CardContent>
+          {guideStep === 5 && (
+            <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white z-50">5</div>
+          )}
+        </Card>
+      </div>
 
       <div className="space-y-8 px-1">
         <section className="space-y-4">

@@ -3,13 +3,19 @@
 
 import { useUser } from "@/firebase";
 import { ThemeToggle } from "./theme-toggle";
-import { Sparkles, HelpCircle } from "lucide-react";
+import { Sparkles, HelpCircle, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
 import { Language } from "@/lib/i18n";
 import { useTour } from "@/context/tour-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const { user } = useUser();
@@ -17,9 +23,9 @@ export function Header() {
   const { guideStep, setGuideStep } = useTour();
 
   const languages = [
-    { id: "english" as Language, label: "EN", flag: "🇺🇸" },
-    { id: "spanish-es" as Language, label: "ES", flag: "🇪🇸" },
-    { id: "spanish-la" as Language, label: "LA", flag: "🌎" }
+    { id: "english" as Language, label: "English", flag: "🇺🇸" },
+    { id: "spanish-es" as Language, label: "Español (ES)", flag: "🇪🇸" },
+    { id: "spanish-la" as Language, label: "Español (LA)", flag: "🌎" }
   ];
 
   return (
@@ -42,64 +48,49 @@ export function Header() {
         </Link>
         
         <div className="flex items-center gap-2">
-          {/* Selector de idiomas compacto al lado del tour */}
-          <div className="hidden xs:flex items-center gap-1 bg-secondary/5 p-1 rounded-xl border border-white/10">
-            {languages.map((lang) => (
-              <Button
-                key={lang.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => setLanguage(lang.id)}
-                className={cn(
-                  "h-7 w-9 rounded-lg text-[8px] font-bold transition-all p-0",
-                  language === lang.id 
-                    ? "bg-white dark:bg-primary/20 text-primary shadow-sm" 
-                    : "text-muted-foreground hover:bg-white/5"
-                )}
-              >
-                {lang.label}
+          {/* Selector de idiomas: Dropdown con un solo icono */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full bg-secondary/10 hover:bg-secondary/20 transition-all h-10 w-10">
+                <Languages className="h-5 w-5 text-primary" />
               </Button>
-            ))}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="glass border-white/10 rounded-2xl p-2 shadow-2xl">
+              {languages.map((lang) => (
+                <DropdownMenuItem 
+                  key={lang.id} 
+                  onClick={() => setLanguage(lang.id)}
+                  className={cn(
+                    "flex items-center gap-3 cursor-pointer rounded-xl px-4 py-2 text-xs font-bold transition-colors",
+                    language === lang.id 
+                      ? "bg-primary text-white" 
+                      : "text-muted-foreground hover:bg-primary/10"
+                  )}
+                >
+                  <span className="text-lg">{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
+          {/* Botón de Tour: Solo Icono */}
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             className={cn(
-              "rounded-full h-9 gap-2 transition-all shadow-sm border px-3",
+              "rounded-full h-10 w-10 transition-all shadow-sm border",
               guideStep > 0 
                 ? "bg-primary text-white border-primary" 
-                : "bg-background text-primary border-primary/20 hover:bg-primary/5"
+                : "bg-secondary/10 text-primary border-transparent hover:bg-secondary/20"
             )}
             onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
           >
-            <HelpCircle className={cn("h-4 w-4", guideStep === 0 && "animate-bounce")} />
-            <span className="text-[10px] font-black uppercase tracking-wider hidden sm:inline">{t('home.guide')}</span>
+            <HelpCircle className={cn("h-5 w-5", guideStep === 0 && "animate-bounce")} />
           </Button>
           
           <ThemeToggle />
         </div>
-      </div>
-
-      {/* Selector de idiomas móvil (solo visible si la pantalla es muy pequeña) */}
-      <div className="xs:hidden flex items-center justify-center gap-1 bg-secondary/5 p-1 rounded-2xl border border-white/10">
-        {languages.map((lang) => (
-          <Button
-            key={lang.id}
-            variant="ghost"
-            size="sm"
-            onClick={() => setLanguage(lang.id)}
-            className={cn(
-              "flex-1 h-8 rounded-xl text-[9px] font-bold transition-all gap-1",
-              language === lang.id 
-                ? "bg-white dark:bg-primary/20 text-primary shadow-sm" 
-                : "text-muted-foreground hover:bg-white/5"
-            )}
-          >
-            <span>{lang.flag}</span>
-            <span>{lang.label}</span>
-          </Button>
-        ))}
       </div>
     </header>
   );

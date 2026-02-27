@@ -2,6 +2,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow that generates personalized recipe suggestions.
+ * Uses Gemini 2.5 Flash for high-performance generation.
  */
 
 import { ai } from '@/ai/genkit';
@@ -46,7 +47,7 @@ const RecipeSchema = z.object({
     .array(z.string())
     .describe('Step-by-step instructions.'),
   prepTimeMinutes: z.number().int().nonnegative(),
-  cookTimeMinutes: z.number().int().nonnegative(),
+  cookTimeMinutes: z.number().int().nonnegative(), // Corregido: Permite 0 minutos para bebidas/platos fríos
   servings: z.number().int().positive(),
   imageSearchTerm: z.string().describe('English search term for the dish image.'),
 });
@@ -71,6 +72,11 @@ USER DATA:
 - People to serve: {{{numberOfPeople}}}
 {{#if mealType}}- Category: {{{mealType}}}{{/if}}
 {{#if specificRequest}}- Specific Goal: "{{{specificRequest}}}"{{/if}}
+
+IMPORTANT:
+- If 'specificRequest' is not provided, use ONLY 'ingredients' from the pantry.
+- If 'specificRequest' IS provided, suggest a relevant recipe even if some ingredients are missing (they will go in 'ingredientsMissing').
+- 'cookTimeMinutes' can be 0 for drinks or raw dishes.
 
 All text fields MUST be in {{{language}}}.`,
 });
