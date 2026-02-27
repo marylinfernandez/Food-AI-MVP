@@ -42,7 +42,7 @@ function Calendar({
         ),
         month_grid: "w-full border-collapse block",
         weekdays: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900 border-b border-white/10",
-        weekday: "text-white font-bold text-[0.65rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0 flex items-center justify-center",
+        weekday: "text-white font-bold text-[0.65rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0 flex items-center justify-center w-full",
         weeks: "w-full block",
         week: "grid grid-cols-7 w-full border-b border-muted/30 last:border-b-0",
         day: "relative p-0 h-14 w-full flex items-stretch justify-stretch border-r border-muted/30 last:border-r-0",
