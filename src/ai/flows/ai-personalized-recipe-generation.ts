@@ -49,6 +49,10 @@ const PersonalizedRecipeGenerationInputSchema = z.object({
     .enum(['simple', 'moderate', 'complex'])
     .default('simple')
     .describe('Optional: The desired complexity level of the recipe, prioritizing practicality.'),
+  language: z
+    .string()
+    .default('spanish-la')
+    .describe('The language in which the recipe should be generated (e.g., "english", "spanish-es", "spanish-la").'),
 });
 export type PersonalizedRecipeGenerationInput = z.infer<
   typeof PersonalizedRecipeGenerationInputSchema
@@ -94,43 +98,39 @@ const personalizedRecipePrompt = ai.definePrompt({
   name: 'personalizedRecipePrompt',
   input: { schema: PersonalizedRecipeGenerationInputSchema },
   output: { schema: PersonalizedRecipeGenerationOutputSchema },
-  prompt: `Eres un asistente de cocina experto y creativo, especializado en generar recetas personalizadas para minimizar el desperdicio de alimentos y la fatiga de decisión.
-Tu objetivo es proponer una o más recetas prácticas y deliciosas utilizando exclusivamente los ingredientes disponibles del usuario.
+  prompt: `You are an expert and creative cooking assistant for FoodAI.
+Your goal is to suggest one or more practical and delicious recipes using exclusively the user's available ingredients.
+
+IMPORTANT: You must generate the entire response (recipe name, description, ingredients, and instructions) in the following language: {{{language}}}.
 
 {{#if mealType}}
-IMPORTANTE: El usuario quiere específicamente un platillo de tipo: {{{mealType}}}. 
-Si es una bebida, puede ser jugo, cóctel con alcohol, cóctel sin alcohol o batido. Si es postre, debe ser dulce. Si es plato principal, debe ser nutritivo.
+USER PREFERENCE: The user specifically wants a: {{{mealType}}}. 
+If it is a drink, it can be juice, alcoholic cocktail, non-alcoholic cocktail, or smoothie. If it is dessert, it must be sweet. If it is a main dish, it must be nutritious.
 {{/if}}
 
-Considera los siguientes detalles para personalizar las recetas:
-
-Ingredientes disponibles: {{{ingredients}}}
-Número de personas: {{{numberOfPeople}}}
+Consider the following details:
+Available ingredients: {{{ingredients}}}
+Number of people: {{{numberOfPeople}}}
 
 {{#if allergies}}
-Alergias a considerar: {{{allergies}}}
+Allergies: {{{allergies}}}
 {{/if}}
 
 {{#if tastePreferences}}
-Preferencias de sabor/tipo de comida: {{{tastePreferences}}}
+Taste preferences: {{{tastePreferences}}}
 {{/if}}
 
 {{#if cookingAppliances}}
-Electrodomésticos disponibles: {{{cookingAppliances}}}
+Available appliances: {{{cookingAppliances}}}
 {{/if}}
 
 {{#if availableTimeMinutes}}
-Tiempo máximo disponible (en minutos, para preparación y cocción): {{{availableTimeMinutes}}}
+Max time (mins): {{{availableTimeMinutes}}}
 {{/if}}
 
-{{#if cookingSkillLevel}}
-Nivel de habilidad culinaria: {{{cookingSkillLevel}}}
-{{/if}}
+Complexity level: {{{complexityLevel}}}
 
-Nivel de complejidad de la receta deseado (priorizando la practicidad): {{{complexityLevel}}}
-
-Genera una o más recetas que cumplan con todos estos criterios. Asegúrate de que las recetas sean prácticas y no requieran un esfuerzo cognitivo excesivo para el usuario.
-Las instrucciones deben ser claras y concisas. Solo utiliza los ingredientes disponibles.`,
+Generate recipes that are practical and don't require high cognitive effort. Instructions should be clear and concise.`,
 });
 
 const personalizedRecipeGenerationFlow = ai.defineFlow(

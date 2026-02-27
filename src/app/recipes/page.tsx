@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -19,7 +18,7 @@ type Category = 'main' | 'drink' | 'dessert' | 'snack' | null;
 export default function RecipesPage() {
   const { items } = usePantry();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [audioLoading, setAudioLoading] = useState<number | null>(null);
   const [recipes, setRecipes] = useState<PersonalizedRecipeGenerationOutput | null>(null);
@@ -36,10 +35,10 @@ export default function RecipesPage() {
   ];
 
   const drinkOptions = [
-    { id: 'jugo', label: 'Jugo Natural' },
-    { id: 'cocktail-alc', label: 'Cóctel con Alcohol' },
-    { id: 'cocktail-no-alc', label: 'Cóctel sin Alcohol' },
-    { id: 'smoothie', label: 'Batido / Smoothie' },
+    { id: 'jugo', label: language === 'english' ? 'Fresh Juice' : 'Jugo Natural' },
+    { id: 'cocktail-alc', label: language === 'english' ? 'Alcoholic Cocktail' : 'Cóctel con Alcohol' },
+    { id: 'cocktail-no-alc', label: language === 'english' ? 'Mocktail' : 'Cóctel sin Alcohol' },
+    { id: 'smoothie', label: language === 'english' ? 'Smoothie' : 'Batido / Smoothie' },
   ];
 
   const generateRecipes = async () => {
@@ -58,14 +57,15 @@ export default function RecipesPage() {
         numberOfPeople: 2,
         mealType: mealTypeLabel,
         complexityLevel: 'simple',
-        availableTimeMinutes: 45
+        availableTimeMinutes: 45,
+        language: language // Pasamos el idioma actual a la IA
       });
       setRecipes(result);
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error",
-        description: "No pudimos generar recetas ahora mismo.",
+        title: t('Error'),
+        description: t('recipes.errorGen') || "No pudimos generar recetas ahora mismo.",
         variant: "destructive"
       });
     } finally {
@@ -79,13 +79,12 @@ export default function RecipesPage() {
     setAudioLoading(idx);
     try {
       const savedVoice = localStorage.getItem('foodai_voice') || 'Algenib';
-      const savedLang = localStorage.getItem('foodai_lang') || 'spanish-la';
       
       let langCode = 'es-LA';
-      if (savedLang === 'english') langCode = 'en-US';
-      if (savedLang === 'spanish-es') langCode = 'es-ES';
+      if (language === 'english') langCode = 'en-US';
+      if (language === 'spanish-es') langCode = 'es-ES';
 
-      const fullText = `Receta: ${recipe.name}. ${recipe.description}. Ingredientes: ${recipe.ingredientsNeeded.join(", ")}. Instrucciones: ${recipe.instructions.join(". ")}`;
+      const fullText = `${recipe.name}. ${recipe.description}. ${t('recipes.needed')}: ${recipe.ingredientsNeeded.join(", ")}. ${t('nav.recipes')}: ${recipe.instructions.join(". ")}`;
       
       const { audioDataUri } = await aiRecipeAudio({
         text: fullText,
@@ -101,8 +100,8 @@ export default function RecipesPage() {
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error de Audio",
-        description: "No se pudo generar el audio de la receta.",
+        title: t('Error'),
+        description: t('recipes.errorAudio') || "No se pudo generar el audio de la receta.",
         variant: "destructive"
       });
       setAudioLoading(null);
@@ -161,7 +160,7 @@ export default function RecipesPage() {
           <Card className="glass border-none overflow-hidden">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl font-bold">{t('recipes.personalize')}</CardTitle>
-              <CardDescription>Ajusta los detalles para que FoodAI sea más preciso.</CardDescription>
+              <CardDescription>{language === 'english' ? 'Adjust details for FoodAI precision.' : 'Ajusta los detalles para que FoodAI sea más preciso.'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
               {selectedCategory === 'drink' && (
@@ -169,7 +168,7 @@ export default function RecipesPage() {
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('recipes.drinkType')}</label>
                   <Select onValueChange={setSubCategory}>
                     <SelectTrigger className="h-14 rounded-2xl border-white/10 glass">
-                      <SelectValue placeholder="Selecciona el tipo..." />
+                      <SelectValue placeholder={language === 'english' ? 'Select type...' : 'Selecciona el tipo...'} />
                     </SelectTrigger>
                     <SelectContent className="glass rounded-xl border-white/10">
                       {drinkOptions.map(opt => (
@@ -208,7 +207,7 @@ export default function RecipesPage() {
       {recipes && (
         <div className="space-y-6 animate-in slide-in-from-bottom duration-700">
           <div className="flex items-center justify-between px-1">
-             <Badge className="bg-accent text-accent-foreground py-1 px-3">IA Curated • {recipes.recipes.length} opciones</Badge>
+             <Badge className="bg-accent text-accent-foreground py-1 px-3">IA Curated • {recipes.recipes.length} {language === 'english' ? 'options' : 'opciones'}</Badge>
           </div>
           
           <div className="space-y-6">
@@ -241,11 +240,11 @@ export default function RecipesPage() {
                    
                    <div className="space-y-3">
                       <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
-                        <Users className="h-4 w-4" /> Ingredientes necesarios
+                        <Users className="h-4 w-4" /> {t('recipes.needed')}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {recipe.ingredientsNeeded.map((ing, i) => (
-                          <Badge key={i} variant="secondary" className="font-normal bg-secondary/10 border-none">{ing}</Badge>
+                          <Badge key={i} variant="secondary" className="font-normal bg-secondary/10 border-none">{t(ing)}</Badge>
                         ))}
                       </div>
                    </div>
@@ -261,7 +260,7 @@ export default function RecipesPage() {
                           ))}
                         </ol>
                         <Button className="w-full h-14 bg-green-500 hover:bg-green-600 rounded-2xl font-bold shadow-lg" onClick={() => {
-                          toast({ title: "¡Buen provecho!", description: "Receta completada con éxito." });
+                          toast({ title: language === 'english' ? 'Enjoy your meal!' : '¡Buen provecho!', description: language === 'english' ? 'Recipe completed.' : 'Receta completada con éxito.' });
                           setRecipes(null);
                         }}>
                           <CheckCircle2 className="h-5 w-5 mr-2" /> {t('recipes.finish')}
