@@ -19,8 +19,6 @@ function Calendar({
   ...props
 }: CalendarProps) {
   const { language } = useTranslation();
-  
-  // Mapear el idioma de la app a los locales de date-fns
   const currentLocale = language === 'english' ? enUS : es;
 
   return (
@@ -40,13 +38,13 @@ function Calendar({
         ),
         nav_button_previous: "absolute left-4",
         nav_button_next: "absolute right-4",
-        table: "w-full border-collapse border border-white/10",
-        thead: "block w-full",
-        tbody: "block w-full",
-        head_row: "flex w-full bg-black dark:bg-zinc-900 border-b border-white/10",
+        table: "w-full border-collapse table-fixed",
+        thead: "w-full bg-black dark:bg-zinc-900",
+        tbody: "w-full",
+        head_row: "flex w-full",
         head_cell: "flex-1 text-white font-bold text-[0.65rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
         row: "flex w-full border-b border-muted/30 last:border-b-0",
-        cell: "relative flex-1 text-center text-sm h-16 border-r border-muted/30 last:border-r-0 flex items-stretch justify-stretch overflow-hidden",
+        cell: "relative flex-1 text-center text-sm h-14 flex items-stretch justify-stretch overflow-hidden border-r border-muted/30 last:border-r-0",
         day: cn(
           "h-full w-full flex items-center justify-center p-0 font-medium transition-all hover:bg-primary/10 text-xs",
           "aria-selected:bg-primary/20 aria-selected:text-primary aria-selected:font-bold aria-selected:opacity-100"

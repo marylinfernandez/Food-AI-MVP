@@ -18,20 +18,17 @@ export default function PantryPage() {
   const [dateSeed, setDateSeed] = useState<string>("");
 
   useEffect(() => {
-    // Generar una semilla basada en la fecha local para la imagen diaria
     const today = new Date();
     const seed = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     setDateSeed(seed);
   }, []);
 
-  // Filtrar items por el día seleccionado
   const dayItems = items.filter(item => {
     if (!date) return false;
     const itemDate = new Date(item.scannedAt);
     return itemDate.toDateString() === date.toDateString();
   });
 
-  // Filtrar recetas por el día seleccionado
   const dayRecipes = historyRecipes.filter(recipe => {
     if (!date) return false;
     const recipeDate = new Date(recipe.scannedAt);
@@ -52,7 +49,6 @@ export default function PantryPage() {
         </div>
       </header>
 
-      {/* Calendario con Estilo de Rejilla y Fondo Paisajístico Real */}
       <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-md">
         {dateSeed && (
           <div className="absolute inset-0 z-0">
@@ -78,7 +74,6 @@ export default function PantryPage() {
       </Card>
 
       <div className="space-y-8 px-1">
-        {/* Sección de Ingredientes del Día */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold flex items-center gap-2">
@@ -121,7 +116,6 @@ export default function PantryPage() {
           </div>
         </section>
 
-        {/* Historial de Recetas del Día */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold flex items-center gap-2">
