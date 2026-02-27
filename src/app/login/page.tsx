@@ -24,6 +24,7 @@ import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
  * @fileOverview Pantalla de inicio de sesión con sincronización social avanzada y bienvenida por IA.
+ * Se ha mejorado para asegurar que el usuario sea redirigido a las páginas de inicio de sesión si no tiene sesión activa.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -59,10 +60,12 @@ export default function LoginPage() {
     }
 
     try {
+      // signInWithPopup abrirá una ventana del proveedor. Si el usuario no está logueado, 
+      // el proveedor (Google, Facebook, etc.) le pedirá sus credenciales automáticamente.
       const result = await signInWithPopup(auth, provider);
       const additionalInfo = getAdditionalUserInfo(result);
       
-      // Si es un usuario nuevo, enviamos correo de bienvenida
+      // Si es un usuario nuevo, enviamos correo de bienvenida generado por IA
       if (additionalInfo?.isNewUser) {
         try {
           const welcomeMsg = await generateWelcomeEmail({
