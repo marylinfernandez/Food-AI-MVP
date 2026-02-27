@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for identifying ingredients from a photo or video
- * of a fridge or pantry.
+ * of a fridge or pantry. 
  *
  * - aiIngredientIdentification - A function that initiates the ingredient identification process.
  * - IngredientIdentificationInput - The input type for the aiIngredientIdentification function.
@@ -71,15 +71,13 @@ const identifyIngredientsPrompt = ai.definePrompt({
   name: 'identifyIngredientsPrompt',
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
-  model: 'googleai/gemini-2.5-flash-lite',
+  // Usar gemini-1.5-flash para mayor estabilidad y soporte de archivos multimedia
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are an AI assistant specialized in identifying food ingredients from photos and videos of fridges and pantries.
     Your goal is to meticulously examine the provided media and list all discernable food items.
     For each item, try to estimate its quantity if possible, and provide a confidence score for its identification.
 
     Focus on common food items and their approximate states (e.g., "half a carton of milk", "a bag of spinach", "3 apples").
-    Ignore non-food items unless they are containers directly associated with food (e.g., "a jar of pickles").
-
-    If a description is provided, use it to better understand the context or focus on specific areas.
 
     Return the identified ingredients in a structured JSON format, including the name, an estimated quantity (if discernable), and a confidence score (0-1).
     Also provide a brief overall summary of what was identified.

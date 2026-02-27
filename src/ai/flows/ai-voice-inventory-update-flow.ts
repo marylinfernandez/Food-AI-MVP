@@ -1,6 +1,8 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow for updating pantry inventory via voice commands.
+ * Uses a more stable model identifier to avoid 503 errors during high demand.
  *
  * - aiVoiceInventoryUpdate - A function that processes a user's voice command to update inventory.
  * - VoiceInventoryUpdateInput - The input type for the aiVoiceInventoryUpdate function.
@@ -31,6 +33,8 @@ const prompt = ai.definePrompt({
   name: 'voiceInventoryUpdatePrompt',
   input: { schema: VoiceInventoryUpdateInputSchema },
   output: { schema: VoiceInventoryUpdateOutputSchema },
+  // Usar gemini-1.5-flash para mayor estabilidad ante errores 503
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are an AI assistant designed to parse natural language voice commands into structured inventory updates.
 The user will provide a command describing changes to their food pantry inventory.
 Your task is to extract all mentioned food items, determine the intended action (add, remove, or update), and any associated quantities or notes.
@@ -52,18 +56,6 @@ Output: [ { "itemName": "apples", "quantity": "2 units", "action": "add" }, { "i
 
 Command: "The butter is only half left."
 Output: [ { "itemName": "butter", "quantity": "half", "action": "update", "notes": "half left" } ]
-
-Command: "Remove the eggs, I ate them all."
-Output: [ { "itemName": "eggs", "quantity": "all", "action": "remove" } ]
-
-Command: "I've consumed half a packet of cheese."
-Output: [ { "itemName": "cheese", "quantity": "half a packet", "action": "remove" } ]
-
-Command: "Add a bottle of olive oil."
-Output: [ { "itemName": "olive oil", "quantity": "1 bottle", "action": "add" } ]
-
-Command: "Update the lettuce, it's almost gone."
-Output: [ { "itemName": "lettuce", "quantity": "almost gone", "action": "update" } ]
 
 Now, process the following command and return a JSON array of inventory updates.
 
