@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser } from "@/firebase";
@@ -10,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview Encabezado global persistente con estética futurista.
+ * @fileOverview Encabezado global persistente con estética futurista FoodAI.
  */
 export function Header() {
   const { user } = useUser();
@@ -28,7 +27,7 @@ export function Header() {
           </div>
           <div className="flex flex-col -space-y-1">
             <h1 className="text-xl font-bold text-primary tracking-tighter">
-              PantryPal <span className="text-secondary">AI</span>
+              Food<span className="text-secondary">AI</span>
             </h1>
             {user && (
               <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -41,7 +40,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <CardTitle className="text-xl">Idioma de Preferencia</CardTitle>
-              <CardDescription>Selecciona cómo quieres que PantryPal te hable.</CardDescription>
+              <CardDescription>Selecciona cómo quieres que FoodAI te hable.</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -49,7 +48,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 gap-3">
             {[
               { id: "english", label: "English (US)", flag: "🇺🇸" },
-              { id: "spanish-es", label: "Español (España)", flag: "External" },
+              { id: "spanish-es", label: "Español (España)", flag: "🇪🇸" },
               { id: "spanish-la", label: "Español (Latinoamérica)", flag: "🌎" }
             ].map((lang) => (
               <div 
@@ -63,7 +62,7 @@ export default function SettingsPage() {
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{lang.id === 'spanish-es' ? '🇪🇸' : lang.flag}</span>
+                  <span className="text-2xl">{lang.flag}</span>
                   <span className="font-bold">{lang.label}</span>
                 </div>
                 {language === lang.id && <Check className="h-5 w-5 text-primary" />}
@@ -108,7 +107,7 @@ export default function SettingsPage() {
            {[
              { icon: User, label: "Perfil Familiar", color: "text-primary" },
              { icon: Shield, label: "Privacidad Galáctica", color: "text-secondary" },
-             { icon: Info, label: "Acerca de PantryPal AI", color: "text-accent" }
+             { icon: Info, label: "Acerca de FoodAI", color: "text-accent" }
            ].map((item, i) => (
              <div key={i} className="p-5 flex justify-between items-center hover:bg-white/5 transition-colors cursor-pointer group">
                 <div className="flex items-center gap-4">
@@ -124,7 +123,7 @@ export default function SettingsPage() {
       </div>
 
       <p className="text-center text-[9px] text-muted-foreground/60 uppercase tracking-[0.3em] pt-4">
-        PantryPal AI Engine v1.5.0 • Sync Estelar
+        FoodAI Engine v1.5.0 • Sync Estelar
       </p>
     </div>
   );

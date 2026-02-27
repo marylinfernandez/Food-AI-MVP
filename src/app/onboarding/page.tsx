@@ -5,8 +5,10 @@ import { aiGuidedProfileCreation, UserProfile } from "@/ai/flows/ai-guided-profi
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Phone, PhoneOff, User, Volume2, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -16,12 +18,11 @@ export default function OnboardingPage() {
   const [profile, setProfile] = useState<UserProfile>({});
   const [conversationHistory, setConversationHistory] = useState<{ speaker: 'user' | 'ai', text: string }[]>([]);
   const [latestUserInput, setLatestUserInput] = useState("");
-  const [aiResponseText, setAiResponseText] = useState("Hola, soy PantryPal AI. Hagamos tu perfil familiar rápidamente por voz.");
+  const [aiResponseText, setAiResponseText] = useState("Hola, soy FoodAI. Hagamos tu perfil familiar rápidamente por voz.");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const startCall = () => {
     setIsCalling(true);
-    // Initial call trigger
     handleConversationStep("");
   };
 
@@ -50,7 +51,6 @@ export default function OnboardingPage() {
         { speaker: 'ai', text: result.aiResponseText }
       ]);
 
-      // Play audio
       if (result.aiResponseAudio) {
         if (!audioRef.current) audioRef.current = new Audio();
         audioRef.current.src = result.aiResponseAudio;
@@ -65,7 +65,7 @@ export default function OnboardingPage() {
       if (result.isConversationComplete) {
         toast({
           title: "¡Perfil Completado!",
-          description: "Ya estamos listos para cocinar.",
+          description: "Ya estamos listos para cocinar con FoodAI.",
         });
         setTimeout(() => router.push("/"), 3000);
       }
@@ -160,8 +160,4 @@ export default function OnboardingPage() {
       )}
     </div>
   );
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
 }

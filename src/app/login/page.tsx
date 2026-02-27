@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -51,9 +50,8 @@ export default function LoginPage() {
     }
 
     try {
-      // Firebase signInWithPopup handles both registration and login automatically
       await signInWithPopup(auth, provider);
-      toast({ title: "¡Acceso Exitoso!", description: "Bienvenido de nuevo a PantryPal AI." });
+      toast({ title: "¡Acceso Exitoso!", description: "Bienvenido de nuevo a FoodAI." });
       router.push("/");
     } catch (error: any) {
       toast({ 
@@ -75,7 +73,7 @@ export default function LoginPage() {
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: "¡Cuenta creada!", description: "Bienvenido a la cocina del futuro." });
+        toast({ title: "¡Cuenta creada!", description: "Bienvenido a la cocina del futuro con FoodAI." });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "¡Hola de nuevo!", description: "Has iniciado sesión correctamente." });
@@ -140,7 +138,7 @@ export default function LoginPage() {
           <Sparkles className="h-10 w-10 text-white" />
         </div>
         <h1 className="text-5xl font-bold tracking-tighter text-primary">
-          PantryPal <span className="text-secondary">AI</span>
+          Food<span className="text-secondary">AI</span>
         </h1>
         <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.2em] opacity-70">
           Tu despensa, evolucionada.
@@ -262,7 +260,7 @@ export default function LoginPage() {
       </Card>
       
       <p className="text-[10px] text-muted-foreground/60 text-center max-w-xs leading-relaxed uppercase tracking-widest">
-        Al acceder, entras en un ecosistema de gestión inteligente de alimentos. 
+        Al acceder a FoodAI, entras en un ecosistema de gestión inteligente de alimentos. 
         Tus datos están protegidos por encriptación cuántica simulada.
       </p>
     </div>

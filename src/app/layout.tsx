@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'PantryPal AI - Tu Asistente de Cocina Inteligente',
+  title: 'FoodAI - Tu Asistente de Cocina Inteligente',
   description: 'Gestión de despensa impulsada por IA y generación de recetas personalizadas.',
 };
 
