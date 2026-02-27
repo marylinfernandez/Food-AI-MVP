@@ -52,7 +52,7 @@ export default function PantryPage() {
       </header>
 
       {/* Calendario con Estilo de Rejilla y Fondo Paisajístico Real */}
-      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full">
+      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-sm">
         {dateSeed && (
           <div className="absolute inset-0 z-0">
             <Image
@@ -129,7 +129,7 @@ export default function PantryPage() {
             </h2>
             <Badge variant="outline" className="rounded-full border-secondary/30 text-[10px] font-bold bg-secondary/5">
               {dayRecipes.length}
-            </h2>
+            </Badge>
           </div>
 
           <div className="grid grid-cols-1 gap-3">
