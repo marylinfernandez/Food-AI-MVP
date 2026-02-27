@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for finding nearby stores with product availability and price comparison.
- * Uses Gemini 1.5 Flash for high-performance reasoning and stability.
+ * Uses Gemini 2.5 Flash for high-performance reasoning and stability.
  */
 
 import { ai } from '@/ai/genkit';
@@ -48,7 +48,7 @@ const storesPrompt = ai.definePrompt({
   name: 'nearbyStoresPrompt',
   input: { schema: NearbyStoresInputSchema },
   output: { schema: NearbyStoresOutputSchema },
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash',
   prompt: `You are FoodAI Assistant. Help the user find where to buy these missing ingredients: {{{missingIngredients}}}.
 
 Based on location (Lat: {{latitude}}, Lon: {{longitude}}), suggest 3 real or highly plausible local stores.

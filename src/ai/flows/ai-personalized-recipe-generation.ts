@@ -61,7 +61,7 @@ const personalizedRecipePrompt = ai.definePrompt({
   name: 'personalizedRecipePrompt',
   input: { schema: PersonalizedRecipeGenerationInputSchema },
   output: { schema: PersonalizedRecipeGenerationOutputSchema },
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash',
   prompt: `You are FoodAI, a high-tech cooking assistant.
 Your goal is to suggest recipes in the following language: {{{language}}}.
 
