@@ -28,7 +28,7 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-0", className)}
       classNames={{
-        months: "flex flex-col space-y-0",
+        months: "flex flex-col space-y-0 w-full",
         month: "space-y-0 w-full",
         caption: "flex justify-center pt-4 relative items-center mb-8",
         caption_label: "text-3xl font-bold tracking-tighter text-foreground uppercase",
@@ -40,10 +40,10 @@ function Calendar({
         nav_button_previous: "absolute left-2",
         nav_button_next: "absolute right-2",
         table: "w-full border-collapse",
-        head_row: "flex w-full bg-black dark:bg-zinc-900",
-        head_cell: "flex-1 text-white font-bold text-[0.6rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
-        row: "flex w-full border-b border-muted/30",
-        cell: "flex-1 relative p-0 text-center text-sm h-16 border-r border-muted/30 last:border-r-0",
+        head_row: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900",
+        head_cell: "text-white font-bold text-[0.6rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
+        row: "grid grid-cols-7 w-full border-b border-muted/30",
+        cell: "relative p-0 text-center text-sm h-16 border-r border-muted/30 last:border-r-0",
         day: cn(
           "h-full w-full p-2 font-medium aria-selected:opacity-100 hover:bg-primary/10 transition-all rounded-none text-xs flex items-start justify-start"
         ),
