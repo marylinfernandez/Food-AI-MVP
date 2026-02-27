@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePantry, DaySchedule } from "@/lib/pantry-store";
@@ -7,16 +6,18 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, Bell, CheckCircle2 } from "lucide-react";
+import { CalendarDays, Clock, Bell, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslation } from "@/context/language-context";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useTour } from "@/context/tour-context";
 
 export default function PlannerPage() {
   const { schedule, saveSchedule } = usePantry();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { guideStep } = useTour();
   const [localSchedule, setLocalSchedule] = useState<DaySchedule[]>([]);
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function PlannerPage() {
     saveSchedule(localSchedule);
     toast({
       title: t('planner.saved'),
-      description: "Tus recordatorios han sido configurados.",
+      description: "Recibirás una notificación en los días seleccionados.",
     });
   };
 
@@ -54,14 +55,17 @@ export default function PlannerPage() {
         </p>
       </header>
 
-      <Card className="glass border-none shadow-xl mx-2">
+      <Card className={cn(
+        "glass border-none shadow-xl mx-2 transition-all duration-500",
+        guideStep === 6 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.01]"
+      )}>
         <CardHeader>
           <div className="flex items-center gap-3">
              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
                <Bell className="h-5 w-5 text-primary" />
              </div>
              <div>
-               <CardTitle className="text-xl">Recordatorios</CardTitle>
+               <CardTitle className="text-xl">Notificaciones</CardTitle>
                <CardDescription className="text-xs">
                  {t('planner.desc')}
                </CardDescription>
@@ -127,15 +131,18 @@ export default function PlannerPage() {
             <CheckCircle2 className="h-5 w-5 mr-2" /> {t('planner.save')}
           </Button>
         </CardContent>
+        {guideStep === 6 && (
+          <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white z-50">6</div>
+        )}
       </Card>
       
       <div className="px-4 py-2">
          <div className="bg-accent/10 rounded-[2rem] p-6 border border-accent/20 flex items-start gap-4 glass">
-            <CalendarDays className="h-6 w-6 text-accent mt-1" />
+            <AlertCircle className="h-6 w-6 text-accent mt-1" />
             <div>
-              <h3 className="font-bold text-sm text-accent uppercase tracking-wider">Planificación Inteligente</h3>
+              <h3 className="font-bold text-sm text-accent uppercase tracking-wider">Centro de Notificaciones</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                FoodAI te enviará notificaciones en los días seleccionados para que tu despensa esté siempre actualizada antes de cocinar.
+                FoodAI te enviará una notificación tipo mensaje a la hora exacta que elijas. Así nunca olvidarás escanear tu nevera antes de empezar a cocinar.
               </p>
             </div>
          </div>

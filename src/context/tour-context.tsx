@@ -1,4 +1,3 @@
-
 'use client';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -13,6 +12,7 @@ const TourContext = createContext<TourContextProps | undefined>(undefined);
 
 /**
  * @fileOverview Contexto global para manejar el Tour Interactivo y la autonavegación.
+ * Actualizado para incluir 6 pasos.
  */
 export function TourProvider({ children }: { children: ReactNode }) {
   const [guideStep, setGuideStep] = useState(0);
@@ -20,7 +20,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const nextStep = () => {
-    const next = guideStep >= 5 ? 0 : guideStep + 1;
+    const next = guideStep >= 6 ? 0 : guideStep + 1;
     handleSetGuideStep(next);
   };
 
@@ -46,6 +46,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
         break;
       case 5:
         router.push('/pantry');
+        break;
+      case 6:
+        router.push('/planner');
         break;
       default:
         router.push('/');

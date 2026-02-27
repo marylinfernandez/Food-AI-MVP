@@ -65,7 +65,7 @@ export const translations = {
     'recipes.dessert': 'Desserts',
     'recipes.snack': 'Snacks/Apps',
     'recipes.custom': 'Specific Request',
-    'recipes.customLabel': 'Write what you want to prepare',
+    'recipes.customLabel': 'Escribe lo que deseas preparar',
     'recipes.dictation': 'Listening...',
     'recipes.owned': 'You have',
     'recipes.missing': 'Missing',
@@ -120,6 +120,8 @@ export const translations = {
     'guide.step4.desc': 'Enable your location to find nearby stores, see estimated prices, and visit their websites directly.',
     'guide.step5.title': '5. Cooking History',
     'guide.step5.desc': 'Select any past day in the calendar to see what you had and what you cooked.',
+    'guide.step6.title': '6. Smart Planner',
+    'guide.step6.desc': 'Plan your week! Set which days you will cook and at what time you want a notification to scan your fridge.',
     'guide.next': 'Next Step',
     'guide.finish': 'Got it!',
     // Food Items
@@ -245,6 +247,8 @@ export const translations = {
     'guide.step4.desc': 'Activa tu ubicación para ver tiendas cercanas, precios estimados y visitar sus sitios web.',
     'guide.step5.title': '5. Historial de Cocina',
     'guide.step5.desc': 'Selecciona cualquier día pasado en el calendario para ver qué tenías y qué cocinaste.',
+    'guide.step6.title': '6. Planificador Inteligente',
+    'guide.step6.desc': '¡Organiza tu semana! Indica qué días cocinarás y a qué hora quieres recibir una notificación para escanear tu nevera.',
     'guide.next': 'Siguiente Paso',
     'guide.finish': '¡Entendido!',
     // Food Items
@@ -370,6 +374,8 @@ export const translations = {
     'guide.step4.desc': 'Activa tu ubicación para ver tiendas cercanas, precios estimados y visitar sus sitios web.',
     'guide.step5.title': '5. Historial de Cocina',
     'guide.step5.desc': 'Selecciona cualquier día pasado en el calendario para ver qué tenías y qué cocinaste.',
+    'guide.step6.title': '6. Planificador Inteligente',
+    'guide.step6.desc': '¡Organiza tu semana! Indica qué días cocinarás y a qué hora quieres recibir una notificación para escanear tu nevera.',
     'guide.next': 'Siguiente Paso',
     'guide.finish': '¡Entendido!',
     // Food Items

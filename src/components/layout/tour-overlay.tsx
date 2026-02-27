@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import { useTour } from "@/context/tour-context";
 import { useTranslation } from "@/context/language-context";
@@ -32,9 +31,9 @@ export function TourOverlay() {
         <CardContent className="text-sm space-y-4 pt-4">
           <p className="leading-relaxed font-medium italic text-foreground/90">"{t(`guide.step${guideStep}.desc`)}"</p>
           <div className="flex justify-between items-center pt-2">
-             <span className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em]">{guideStep} / 5</span>
+             <span className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em]">{guideStep} / 6</span>
              <Button size="sm" className="rounded-xl px-6 bg-primary font-bold shadow-lg hover:scale-105 transition-transform" onClick={nextStep}>
-               {guideStep === 5 ? t('guide.finish') : t('guide.next')} <ChevronRight className="h-3 w-3 ml-1" />
+               {guideStep === 6 ? t('guide.finish') : t('guide.next')} <ChevronRight className="h-3 w-3 ml-1" />
              </Button>
           </div>
         </CardContent>
