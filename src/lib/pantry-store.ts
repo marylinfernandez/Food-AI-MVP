@@ -7,55 +7,67 @@ export interface PantryItem {
   id: string;
   name: string;
   quantity: string;
-  lastUpdated: Date;
+  scannedAt: string; // ISO String para comparación de fechas
 }
 
-const STORAGE_KEY = "pantry_items_v1";
+export interface HistoryRecipe {
+  id: string;
+  name: string;
+  prepTime: number;
+  scannedAt: string; // ISO String
+}
 
-const DEFAULT_ITEMS: PantryItem[] = [
-  { id: "1", name: "Milk", quantity: "1L", lastUpdated: new Date() },
-  { id: "2", name: "Eggs", quantity: "6 units", lastUpdated: new Date() },
-  { id: "3", name: "Butter", quantity: "Half a bar", lastUpdated: new Date() },
-];
+const STORAGE_ITEMS_KEY = "foodai_pantry_items_v2";
+const STORAGE_RECIPES_KEY = "foodai_recipes_history_v2";
 
 export function usePantry() {
   const [items, setItems] = useState<PantryItem[]>([]);
+  const [historyRecipes, setHistoryRecipes] = useState<HistoryRecipe[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setItems(parsed.map((i: any) => ({ ...i, lastUpdated: new Date(i.lastUpdated) })));
-      } catch (e) {
-        setItems(DEFAULT_ITEMS);
-      }
-    } else {
-      setItems(DEFAULT_ITEMS);
+    const storedItems = localStorage.getItem(STORAGE_ITEMS_KEY);
+    const storedRecipes = localStorage.getItem(STORAGE_RECIPES_KEY);
+    
+    if (storedItems) {
+      setItems(JSON.parse(storedItems));
+    }
+    if (storedRecipes) {
+      setHistoryRecipes(JSON.parse(storedRecipes));
     }
   }, []);
 
   const saveItems = (newItems: PantryItem[]) => {
     setItems(newItems);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
+    localStorage.setItem(STORAGE_ITEMS_KEY, JSON.stringify(newItems));
   };
 
-  const addItem = (item: Omit<PantryItem, "id" | "lastUpdated">) => {
-    const newItem = {
+  const saveRecipes = (newRecipes: HistoryRecipe[]) => {
+    setHistoryRecipes(newRecipes);
+    localStorage.setItem(STORAGE_RECIPES_KEY, JSON.stringify(newRecipes));
+  };
+
+  const addItem = (item: Omit<PantryItem, "id" | "scannedAt">) => {
+    const newItem: PantryItem = {
       ...item,
       id: Math.random().toString(36).substr(2, 9),
-      lastUpdated: new Date(),
+      scannedAt: new Date().toISOString(),
     };
     saveItems([newItem, ...items]);
   };
 
-  const updateItem = (id: string, updates: Partial<PantryItem>) => {
-    saveItems(items.map(i => i.id === id ? { ...i, ...updates, lastUpdated: new Date() } : i));
+  const addRecipeToHistory = (recipe: { name: string, prepTime: number }) => {
+    const newRecipe: HistoryRecipe = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: recipe.name,
+      prepTime: recipe.prepTime,
+      scannedAt: new Date().toISOString(),
+    };
+    saveRecipes([newRecipe, ...historyRecipes]);
   };
 
   const removeItem = (id: string) => {
     saveItems(items.filter(i => i.id !== id));
   };
 
-  return { items, addItem, updateItem, removeItem };
+  return { items, historyRecipes, addItem, addRecipeToHistory, removeItem };
 }

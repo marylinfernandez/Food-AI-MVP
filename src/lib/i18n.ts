@@ -1,6 +1,6 @@
+
 /**
  * @fileOverview Diccionario de traducciones exhaustivo para FoodAI.
- * Incluye interfaz, alimentos comunes y unidades de medida.
  */
 
 export type Language = 'english' | 'spanish-es' | 'spanish-la';
@@ -44,8 +44,15 @@ export const translations = {
     'home.profileDesc': 'Set your tastes and allergies so the AI cooks exactly what you love.',
     'home.setupBtn': 'Setup Profile',
     // Pantry
-    'pantry.title': 'My Pantry',
-    'pantry.subtitle': 'Intelligent Inventory',
+    'pantry.title': 'Daily Inventory',
+    'pantry.subtitle': 'Today\'s Scan',
+    'pantry.historyMode': 'Historical View',
+    'pantry.dailyIngredients': 'Scanned Ingredients',
+    'pantry.dailyRecipes': 'Recipes of the Day',
+    'pantry.emptyDay': 'No ingredients scanned for this day.',
+    'pantry.noRecipesDay': 'No recipes generated yet.',
+    'pantry.aiInsight': 'IA Daily Insight',
+    'pantry.readyToCook': 'Your ingredients are ready for a new recipe!',
     'pantry.search': 'Search my inventory...',
     'pantry.empty': 'Empty Pantry',
     'pantry.add': 'Add Ingredient',
@@ -155,8 +162,16 @@ export const translations = {
     'home.profileTitle': '¿Listo para personalizar?',
     'home.profileDesc': 'Configura tus gustos y alergias para que la IA cocine exactamente lo que amas.',
     'home.setupBtn': 'Configurar Perfil',
-    'pantry.title': 'Mi Despensa',
-    'pantry.subtitle': 'Inventario Inteligente',
+    // Pantry
+    'pantry.title': 'Inventario Diario',
+    'pantry.subtitle': 'Escaneo de hoy',
+    'pantry.historyMode': 'Vista Histórica',
+    'pantry.dailyIngredients': 'Ingredientes Escaneados',
+    'pantry.dailyRecipes': 'Recetas del Día',
+    'pantry.emptyDay': 'Sin ingredientes para este día.',
+    'pantry.noRecipesDay': 'Aún no se han generado recetas.',
+    'pantry.aiInsight': 'IA Daily Insight',
+    'pantry.readyToCook': '¡Tus ingredientes están listos para una nueva receta!',
     'pantry.search': 'Buscar en mi inventario...',
     'pantry.empty': 'Despensa vacía',
     'pantry.add': 'Añadir Ingrediente',
@@ -264,8 +279,16 @@ export const translations = {
     'home.profileTitle': '¿Listo para personalizar?',
     'home.profileDesc': 'Configura tus gustos y alergias para que la IA cocine exactamente lo que amas.',
     'home.setupBtn': 'Configurar Perfil',
-    'pantry.title': 'Mi Despensa',
-    'pantry.subtitle': 'Inventario Inteligente',
+    // Pantry
+    'pantry.title': 'Inventario Diario',
+    'pantry.subtitle': 'Escaneo de hoy',
+    'pantry.historyMode': 'Vista Histórica',
+    'pantry.dailyIngredients': 'Ingredientes Escaneados',
+    'pantry.dailyRecipes': 'Recetas del Día',
+    'pantry.emptyDay': 'Sin ingredientes para este día.',
+    'pantry.noRecipesDay': 'Aún no se han generado recetas.',
+    'pantry.aiInsight': 'IA Daily Insight',
+    'pantry.readyToCook': '¡Tus ingredientes están listos para una nueva receta!',
     'pantry.search': 'Buscar en mi inventario...',
     'pantry.empty': 'Despensa vacía',
     'pantry.add': 'Añadir Ingrediente',

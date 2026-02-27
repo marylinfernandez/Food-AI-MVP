@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -17,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 type Category = 'main' | 'drink' | 'dessert' | 'snack' | 'custom' | null;
 
 export default function RecipesPage() {
-  const { items } = usePantry();
+  const { items, addRecipeToHistory } = usePantry();
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,19 @@ export default function RecipesPage() {
   const generateRecipes = async () => {
     if (!selectedCategory) return;
     
+    // El inventario inteligente usa solo los productos del día actual
+    const todayStr = new Date().toDateString();
+    const todayItems = items.filter(i => new Date(i.scannedAt).toDateString() === todayStr);
+
+    if (todayItems.length === 0) {
+      toast({
+        title: t('Error'),
+        description: language === 'english' ? "Please scan your ingredients for today first!" : "¡Por favor, escanea tus ingredientes de hoy primero!",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     setRecipes(null);
     try {
@@ -56,13 +70,22 @@ export default function RecipesPage() {
       }
 
       const result = await personalizedRecipeGeneration({
-        ingredients: items.map(i => i.name),
+        ingredients: todayItems.map(i => i.name),
         numberOfPeople: 2,
         mealType: mealTypeLabel,
         specificRequest: selectedCategory === 'custom' ? specificRequest : undefined,
         language: language
       });
+
       setRecipes(result);
+      
+      // Guardar la primera receta generada en el historial del día
+      if (result.recipes.length > 0) {
+        addRecipeToHistory({
+          name: result.recipes[0].name,
+          prepTime: result.recipes[0].prepTimeMinutes + result.recipes[0].cookTimeMinutes
+        });
+      }
     } catch (error) {
       console.error(error);
       toast({
