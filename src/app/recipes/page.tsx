@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { personalizedRecipeGeneration, PersonalizedRecipeGenerationOutput } from "@/ai/flows/personalized-recipe-generation";
+import { personalizedRecipeGeneration, PersonalizedRecipeGenerationOutput } from "@/ai/flows/ai-personalized-recipe-generation";
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
