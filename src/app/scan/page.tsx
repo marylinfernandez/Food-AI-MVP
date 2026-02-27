@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -11,10 +12,12 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { useTranslation } from "@/context/language-context";
 
 export default function ScanPage() {
   const { toast } = useToast();
   const { addItem } = usePantry();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [results, setResults] = useState<IngredientIdentificationOutput | null>(null);
@@ -53,7 +56,7 @@ export default function ScanPage() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [preview, results]);
+  }, [preview, results, toast]);
 
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
@@ -114,9 +117,9 @@ export default function ScanPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-          <Camera className="h-8 w-8 animate-pulse text-accent" /> Visión FoodAI
+          <Camera className="h-8 w-8 animate-pulse text-accent" /> {t('scan.title')}
         </h1>
-        <p className="text-sm text-muted-foreground uppercase tracking-widest opacity-70">Escáner en tiempo real</p>
+        <p className="text-sm text-muted-foreground uppercase tracking-widest opacity-70">{t('scan.subtitle')}</p>
       </div>
 
       {!preview ? (
@@ -130,15 +133,11 @@ export default function ScanPage() {
               playsInline 
             />
             
-            {/* Overlay de HUD Futurista */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-4 left-4 border-t-2 border-l-2 border-accent w-8 h-8 rounded-tl-lg" />
               <div className="absolute top-4 right-4 border-t-2 border-r-2 border-accent w-8 h-8 rounded-tr-lg" />
               <div className="absolute bottom-4 left-4 border-b-2 border-l-2 border-accent w-8 h-8 rounded-bl-lg" />
               <div className="absolute bottom-4 right-4 border-b-2 border-r-2 border-accent w-8 h-8 rounded-br-lg" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 border border-white/20 rounded-full animate-ping opacity-20" />
-              </div>
             </div>
 
             {hasCameraPermission === false && (
@@ -160,7 +159,7 @@ export default function ScanPage() {
             onClick={capturePhoto}
             disabled={hasCameraPermission === false}
           >
-            <Camera className="h-8 w-8 mr-3" /> ANALIZAR AHORA
+            <Camera className="h-8 w-8 mr-3" /> {t('scan.analyzeBtn')}
           </Button>
         </div>
       ) : (
@@ -176,10 +175,9 @@ export default function ScanPage() {
                     <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-primary animate-bounce" />
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="text-xl font-bold tracking-tighter animate-pulse text-accent">IDENTIFICANDO...</p>
+                    <p className="text-xl font-bold tracking-tighter animate-pulse text-accent">{t('scan.identifying')}</p>
                     <p className="text-[10px] uppercase tracking-[0.3em] opacity-60">IA de Visión Activa</p>
                   </div>
-                  {/* Línea de escaneo láser */}
                   <div className="absolute left-0 right-0 h-1 bg-accent/50 shadow-[0_0_15px_rgba(var(--accent),0.8)] animate-[scan_2s_infinite]" />
                 </div>
               )}
@@ -193,7 +191,7 @@ export default function ScanPage() {
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-xl flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-accent" />
-                      Análisis Completado
+                      {t('scan.completed')}
                     </CardTitle>
                     <Button variant="ghost" size="icon" onClick={resetScanner} className="rounded-full">
                       <X className="h-5 w-5" />
@@ -216,7 +214,6 @@ export default function ScanPage() {
                            <Badge variant="outline" className="text-[10px] bg-accent/10 border-accent/20 text-accent">
                              {Math.round(ing.confidence * 100)}% Prob.
                            </Badge>
-                           <CheckCircle2 className="h-5 w-5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                          </div>
                        </div>
                      ))}
@@ -224,18 +221,18 @@ export default function ScanPage() {
                 </CardContent>
                 <CardFooter className="flex flex-col gap-3">
                    <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl" onClick={addAllToPantry}>
-                     GUARDAR EN MI DESPENSA
+                     {t('scan.saveBtn')}
                    </Button>
                    <Link href="/recipes" className="w-full">
                     <Button variant="outline" className="w-full h-12 rounded-2xl border-accent/30 text-accent hover:bg-accent/10">
-                      <ChefHat className="h-5 w-5 mr-2" /> SUGERIR RECETAS CON ESTO
+                      <ChefHat className="h-5 w-5 mr-2" /> {t('scan.suggestBtn')}
                     </Button>
                    </Link>
                 </CardFooter>
               </Card>
 
               <Button variant="ghost" className="w-full h-12 text-muted-foreground flex gap-2" onClick={resetScanner}>
-                <RefreshCw className="h-4 w-4" /> REINTENTAR ESCANEO
+                <RefreshCw className="h-4 w-4" /> {t('scan.retry')}
               </Button>
             </div>
           )}

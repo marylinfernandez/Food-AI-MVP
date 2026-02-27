@@ -1,20 +1,23 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChefHat, Refrigerator, Mic, Camera, LayoutDashboard, Settings } from "lucide-react";
+import { ChefHat, Refrigerator, Mic, Camera, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { label: "Home", href: "/", icon: LayoutDashboard },
-  { label: "Pantry", href: "/pantry", icon: Refrigerator },
-  { label: "Scan", href: "/scan", icon: Camera },
-  { label: "Recipes", href: "/recipes", icon: ChefHat },
-  { label: "Talk", href: "/talk", icon: Mic },
-];
+import { useTranslation } from "@/context/language-context";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { label: t('nav.home'), href: "/", icon: LayoutDashboard },
+    { label: t('nav.pantry'), href: "/pantry", icon: Refrigerator },
+    { label: t('nav.scan'), href: "/scan", icon: Camera },
+    { label: t('nav.recipes'), href: "/recipes", icon: ChefHat },
+    { label: t('nav.talk'), href: "/talk", icon: Mic },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t pb-safe-area-inset-bottom">

@@ -9,24 +9,23 @@ import { Label } from "@/components/ui/label";
 import { Volume2, Languages, User, Shield, Info, ArrowRight, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/context/language-context";
+import { Language } from "@/lib/i18n";
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const [voice, setVoice] = useState("Algenib"); // Algenib (F), Achernar (M) for Gemini TTS
-  const [language, setLanguage] = useState("spanish-la");
+  const { t, language, setLanguage } = useTranslation();
+  const [voice, setVoice] = useState("Algenib");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedVoice = localStorage.getItem('foodai_voice');
-    const savedLang = localStorage.getItem('foodai_lang');
     if (savedVoice) setVoice(savedVoice);
-    if (savedLang) setLanguage(savedLang);
   }, []);
 
   const saveSettings = () => {
     setLoading(true);
     localStorage.setItem('foodai_voice', voice);
-    localStorage.setItem('foodai_lang', language);
     
     setTimeout(() => {
       setLoading(false);
@@ -37,12 +36,18 @@ export default function SettingsPage() {
     }, 500);
   };
 
+  const languages = [
+    { id: "english" as Language, label: "English (US)", flag: "🇺🇸" },
+    { id: "spanish-es" as Language, label: "Español (España)", flag: "🇪🇸" },
+    { id: "spanish-la" as Language, label: "Español (Latinoamérica)", flag: "🌎" }
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <header className="px-2">
-        <h1 className="text-3xl font-bold text-primary tracking-tight">Configuración</h1>
+        <h1 className="text-3xl font-bold text-primary tracking-tight">{t('settings.title')}</h1>
         <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest opacity-70">
-          Personaliza tu IA de cocina
+          {t('settings.subtitle')}
         </p>
       </header>
 
@@ -54,18 +59,14 @@ export default function SettingsPage() {
               <Languages className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-xl">Idioma de Preferencia</CardTitle>
-              <CardDescription>Selecciona cómo quieres que FoodAI te hable.</CardDescription>
+              <CardTitle className="text-xl">{t('settings.langTitle')}</CardTitle>
+              <CardDescription>{t('settings.langDesc')}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 gap-3">
-            {[
-              { id: "english", label: "English (US)", flag: "🇺🇸" },
-              { id: "spanish-es", label: "Español (España)", flag: "🇪🇸" },
-              { id: "spanish-la", label: "Español (Latinoamérica)", flag: "🌎" }
-            ].map((lang) => (
+            {languages.map((lang) => (
               <div 
                 key={lang.id}
                 onClick={() => setLanguage(lang.id)}
@@ -87,60 +88,33 @@ export default function SettingsPage() {
 
           <div className="pt-4 space-y-4">
             <Label className="text-sm font-bold flex items-center gap-2 text-muted-foreground uppercase tracking-widest">
-              <Volume2 className="h-4 w-4" /> Personalización de Voz
+              <Volume2 className="h-4 w-4" /> {t('settings.voiceTitle')}
             </Label>
             <RadioGroup value={voice} onValueChange={setVoice} className="grid grid-cols-1 gap-3">
               <div className="flex items-center space-x-3 p-4 border-2 border-transparent bg-secondary/5 rounded-2xl hover:bg-secondary/10 cursor-pointer transition-all group">
                 <RadioGroupItem value="Algenib" id="v1" className="border-primary text-primary" />
                 <Label htmlFor="v1" className="flex-1 cursor-pointer">
                   <p className="font-bold group-hover:text-primary transition-colors">Voz Femenina (Sofía)</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Cálida y amigable</p>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-4 border-2 border-transparent bg-secondary/5 rounded-2xl hover:bg-secondary/10 cursor-pointer transition-all group">
                 <RadioGroupItem value="Achernar" id="v2" className="border-primary text-primary" />
                 <Label htmlFor="v2" className="flex-1 cursor-pointer">
                   <p className="font-bold group-hover:text-primary transition-colors">Voz Masculina (Diego)</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Profesional y directo</p>
                 </Label>
               </div>
             </RadioGroup>
           </div>
           
           <Button 
-            className="w-full rounded-2xl h-14 font-bold text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary" 
+            className="w-full rounded-2xl h-14 font-bold text-lg shadow-lg transition-all bg-primary" 
             onClick={saveSettings}
             disabled={loading}
           >
-            {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : "Aplicar Cambios Futuristas"}
+            {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : t('settings.applyBtn')}
           </Button>
         </CardContent>
       </Card>
-
-      <div className="space-y-3 px-2">
-        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Ecosistema</h3>
-        <Card className="border-none shadow-sm glass divide-y divide-white/10 overflow-hidden">
-           {[
-             { icon: User, label: "Perfil Familiar", color: "text-primary" },
-             { icon: Shield, label: "Privacidad Galáctica", color: "text-secondary" },
-             { icon: Info, label: "Acerca de FoodAI", color: "text-accent" }
-           ].map((item, i) => (
-             <div key={i} className="p-5 flex justify-between items-center hover:bg-white/5 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-4">
-                  <div className={cn("h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center", item.color)}>
-                    <item.icon className="h-5 w-5" />
-                  </div>
-                  <span className="font-bold text-sm tracking-tight">{item.label}</span>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-             </div>
-           ))}
-        </Card>
-      </div>
-
-      <p className="text-center text-[9px] text-muted-foreground/60 uppercase tracking-[0.3em] pt-4">
-        FoodAI Engine v1.5.0 • Sync Estelar
-      </p>
     </div>
   );
 }

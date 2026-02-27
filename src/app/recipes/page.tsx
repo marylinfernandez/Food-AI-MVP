@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -6,17 +7,19 @@ import { aiRecipeAudio } from "@/ai/flows/ai-recipe-audio-flow";
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChefHat, Timer, Users, Sparkles, Loader2, Play, CheckCircle2, ListFilter, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight } from "lucide-react";
+import { ChefHat, Timer, Users, Sparkles, Loader2, Play, CheckCircle2, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from "@/context/language-context";
 
 type Category = 'main' | 'drink' | 'dessert' | 'snack' | null;
 
 export default function RecipesPage() {
   const { items } = usePantry();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [audioLoading, setAudioLoading] = useState<number | null>(null);
   const [recipes, setRecipes] = useState<PersonalizedRecipeGenerationOutput | null>(null);
@@ -26,10 +29,10 @@ export default function RecipesPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const categories = [
-    { id: 'main', label: 'Plato Principal', icon: Utensils, color: 'bg-blue-500' },
-    { id: 'drink', label: 'Bebidas', icon: Beer, color: 'bg-orange-500' },
-    { id: 'dessert', label: 'Postres', icon: IceCream, color: 'bg-pink-500' },
-    { id: 'snack', label: 'Snacks/Aperitivos', icon: Coffee, color: 'bg-purple-500' },
+    { id: 'main', label: t('recipes.main'), icon: Utensils, color: 'bg-blue-500' },
+    { id: 'drink', label: t('recipes.drink'), icon: Beer, color: 'bg-orange-500' },
+    { id: 'dessert', label: t('recipes.dessert'), icon: IceCream, color: 'bg-pink-500' },
+    { id: 'snack', label: t('recipes.snack'), icon: Coffee, color: 'bg-purple-500' },
   ];
 
   const drinkOptions = [
@@ -117,8 +120,8 @@ export default function RecipesPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <header className="flex justify-between items-center px-1">
         <div>
-          <h1 className="text-3xl font-bold text-primary tracking-tight">Recetas</h1>
-          <p className="text-muted-foreground text-sm font-medium">Personalizadas por FoodAI</p>
+          <h1 className="text-3xl font-bold text-primary tracking-tight">{t('recipes.title')}</h1>
+          <p className="text-muted-foreground text-sm font-medium">{t('recipes.subtitle')}</p>
         </div>
         {(selectedCategory || recipes) && (
           <Button variant="ghost" size="icon" className="rounded-full bg-secondary/10" onClick={resetSelection}>
@@ -130,8 +133,8 @@ export default function RecipesPage() {
       {!selectedCategory && !loading && (
         <div className="space-y-6 animate-in slide-in-from-bottom duration-500">
           <div className="glass p-6 rounded-[2rem] border-none text-center space-y-2">
-            <h2 className="text-xl font-bold">¿Qué te apetece hoy?</h2>
-            <p className="text-xs text-muted-foreground uppercase tracking-widest">Selecciona una categoría</p>
+            <h2 className="text-xl font-bold">{t('recipes.question')}</h2>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest">{t('recipes.category')}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -157,13 +160,13 @@ export default function RecipesPage() {
         <div className="space-y-8 animate-in zoom-in duration-300">
           <Card className="glass border-none overflow-hidden">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-2xl font-bold">Personaliza tu elección</CardTitle>
+              <CardTitle className="text-2xl font-bold">{t('recipes.personalize')}</CardTitle>
               <CardDescription>Ajusta los detalles para que FoodAI sea más preciso.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
               {selectedCategory === 'drink' && (
                 <div className="space-y-3">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Tipo de Bebida</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('recipes.drinkType')}</label>
                   <Select onValueChange={setSubCategory}>
                     <SelectTrigger className="h-14 rounded-2xl border-white/10 glass">
                       <SelectValue placeholder="Selecciona el tipo..." />
@@ -179,21 +182,11 @@ export default function RecipesPage() {
                 </div>
               )}
 
-              <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 flex items-start gap-4">
-                <div className="bg-primary p-2 rounded-xl">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-primary">IA Insight</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">Analizando {items.length} ingredientes en tu despensa para esta categoría.</p>
-                </div>
-              </div>
-
               <Button 
                 onClick={generateRecipes} 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02]"
               >
-                GENERAR RECETAS <ChevronRight className="h-5 w-5 ml-1" />
+                {t('recipes.generate')} <ChevronRight className="h-5 w-5 ml-1" />
               </Button>
             </CardContent>
           </Card>
@@ -207,8 +200,7 @@ export default function RecipesPage() {
             <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-accent animate-bounce" />
           </div>
           <div className="space-y-1">
-            <p className="text-xl font-bold text-primary animate-pulse tracking-tighter">COCINANDO IDEAS...</p>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Procesamiento de datos estelares</p>
+            <p className="text-xl font-bold text-primary animate-pulse tracking-tighter">{t('recipes.cooking')}</p>
           </div>
         </div>
       )}
@@ -217,9 +209,6 @@ export default function RecipesPage() {
         <div className="space-y-6 animate-in slide-in-from-bottom duration-700">
           <div className="flex items-center justify-between px-1">
              <Badge className="bg-accent text-accent-foreground py-1 px-3">IA Curated • {recipes.recipes.length} opciones</Badge>
-             <Button variant="ghost" size="sm" className="text-[10px] uppercase font-bold text-muted-foreground" onClick={resetSelection}>
-               Cambiar categoría
-             </Button>
           </div>
           
           <div className="space-y-6">
@@ -232,11 +221,6 @@ export default function RecipesPage() {
                     className="object-cover w-full h-full opacity-90 transition-transform duration-700 group-hover/card:scale-110"
                    />
                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                   <div className="absolute top-4 right-4 flex gap-2">
-                      <Badge className="bg-white/90 backdrop-blur-sm text-primary flex gap-1 items-center border-none shadow-md">
-                        <Timer className="h-3 w-3" /> {recipe.cookTimeMinutes + recipe.prepTimeMinutes} min
-                      </Badge>
-                   </div>
                    <div className="absolute bottom-4 left-4 text-white">
                       <h3 className="text-2xl font-bold leading-tight">{recipe.name}</h3>
                    </div>
@@ -268,14 +252,11 @@ export default function RecipesPage() {
 
                    {activeRecipe === idx ? (
                       <div className="space-y-6 pt-6 border-t border-white/10 animate-in fade-in duration-500">
-                        <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Pasos de preparación</h4>
                         <ol className="space-y-4">
                           {recipe.instructions.map((step, sIdx) => (
                             <li key={sIdx} className="flex gap-4 group">
-                              <span className="flex-shrink-0 h-7 w-7 rounded-xl bg-primary/20 text-primary flex items-center justify-center text-xs font-bold group-hover:bg-primary group-hover:text-white transition-colors">
-                                {sIdx + 1}
-                              </span>
-                              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{step}</p>
+                              <span className="flex-shrink-0 h-7 w-7 rounded-xl bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">{sIdx + 1}</span>
+                              <p className="text-sm text-muted-foreground">{step}</p>
                             </li>
                           ))}
                         </ol>
@@ -283,12 +264,12 @@ export default function RecipesPage() {
                           toast({ title: "¡Buen provecho!", description: "Receta completada con éxito." });
                           setRecipes(null);
                         }}>
-                          <CheckCircle2 className="h-5 w-5 mr-2" /> Terminar Receta
+                          <CheckCircle2 className="h-5 w-5 mr-2" /> {t('recipes.finish')}
                         </Button>
                       </div>
                    ) : (
                       <Button className="w-full h-14 rounded-2xl bg-primary shadow-lg font-bold" onClick={() => setActiveRecipe(idx)}>
-                        <Play className="h-5 w-5 mr-2" /> EMPEZAR A COCINAR
+                        <Play className="h-5 w-5 mr-2" /> {t('recipes.start')}
                       </Button>
                    )}
                 </CardContent>

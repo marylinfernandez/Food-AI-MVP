@@ -4,15 +4,16 @@
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Edit2, Plus, Search, Calendar, Package, Sparkles, X, Check } from "lucide-react";
+import { Trash2, Plus, Search, Calendar, Package, Sparkles, X, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/context/language-context";
 
 export default function PantryPage() {
   const { items, removeItem, addItem } = usePantry();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingManual, setIsAddingManual] = useState(false);
   const [newItemName, setNewItemName] = useState("");
@@ -38,8 +39,8 @@ export default function PantryPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <header className="flex justify-between items-end px-2">
         <div>
-          <h1 className="text-3xl font-bold text-primary tracking-tight">Mi Despensa</h1>
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest opacity-70">Inventario Inteligente</p>
+          <h1 className="text-3xl font-bold text-primary tracking-tight">{t('pantry.title')}</h1>
+          <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest opacity-70">{t('pantry.subtitle')}</p>
         </div>
         <Button 
           size="icon" 
@@ -53,27 +54,26 @@ export default function PantryPage() {
         </Button>
       </header>
 
-      {/* Formulario de Entrada Manual */}
       {isAddingManual && (
         <Card className="glass border-primary/20 bg-primary/5 animate-in slide-in-from-top duration-300 overflow-hidden">
           <CardContent className="p-6 space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-primary">Añadir Ingrediente</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-primary">{t('pantry.add')}</h3>
             <div className="grid grid-cols-1 gap-3">
               <Input 
-                placeholder="Nombre (ej. Tomates)" 
+                placeholder={t('pantry.namePlaceholder')}
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
                 className="rounded-xl border-white/10 bg-white/5 h-12"
               />
               <Input 
-                placeholder="Cantidad (ej. 2 kg, 3 unidades)" 
+                placeholder={t('pantry.qtyPlaceholder')}
                 value={newItemQty}
                 onChange={(e) => setNewItemQty(e.target.value)}
                 className="rounded-xl border-white/10 bg-white/5 h-12"
               />
               <div className="flex gap-2 pt-2">
                 <Button className="flex-1 rounded-xl h-12 font-bold" onClick={handleAddManual}>
-                  <Check className="h-4 w-4 mr-2" /> Guardar
+                  <Check className="h-4 w-4 mr-2" /> {t('pantry.save')}
                 </Button>
                 <Button variant="ghost" className="rounded-xl h-12" onClick={() => setIsAddingManual(false)}>
                   <X className="h-4 w-4" />
@@ -87,7 +87,7 @@ export default function PantryPage() {
       <div className="relative group px-1">
         <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Buscar en mi inventario..." 
+          placeholder={t('pantry.search')} 
           className="pl-12 rounded-[1.5rem] bg-white/40 dark:bg-black/20 backdrop-blur-md border-white/10 shadow-xl h-14 text-lg"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -98,7 +98,7 @@ export default function PantryPage() {
         {filteredItems.length === 0 ? (
           <div className="text-center py-24 text-muted-foreground space-y-4 glass rounded-[2rem] border-white/5">
             <Package className="h-16 w-16 mx-auto opacity-10" />
-            <p className="font-medium uppercase tracking-[0.2em] text-xs">Despensa vacía</p>
+            <p className="font-medium uppercase tracking-[0.2em] text-xs">{t('pantry.empty')}</p>
           </div>
         ) : (
           filteredItems.map((item) => (

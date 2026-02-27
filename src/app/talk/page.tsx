@@ -1,17 +1,21 @@
+
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { aiVoiceInventoryUpdate, VoiceInventoryUpdateOutput } from "@/ai/flows/ai-voice-inventory-update-flow";
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2, CheckCircle2, ArrowRight, Volume2 } from "lucide-react";
+import { Mic, MicOff, Loader2, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "@/context/language-context";
 
 export default function TalkPage() {
   const { toast } = useToast();
   const { items, updateItem, addItem, removeItem } = usePantry();
+  const { t } = useTranslation();
   const [isListening, setIsListening] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [command, setCommand] = useState("");
@@ -61,9 +65,9 @@ export default function TalkPage() {
     <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
-          <Mic className="h-6 w-6" /> Asistente de Voz
+          <Mic className="h-6 w-6" /> {t('talk.title')}
         </h1>
-        <p className="text-sm text-muted-foreground px-8">"Acabo de gastar toda la leche" o "Añade 3 manzanas".</p>
+        <p className="text-sm text-muted-foreground px-8">{t('talk.desc')}</p>
       </div>
 
       <div className="relative group">
@@ -99,7 +103,7 @@ export default function TalkPage() {
           onClick={() => handleSubmit(command)}
           disabled={processing || !command}
         >
-          {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Procesar Comando"}
+          {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : t('talk.process')}
         </Button>
       </div>
 
@@ -108,7 +112,7 @@ export default function TalkPage() {
           <CardContent className="p-6 space-y-4">
             <h3 className="font-bold text-lg flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ¿Confirmas estos cambios?
+              {t('talk.confirm')}
             </h3>
             <div className="space-y-3">
               {updates.map((u, i) => (
@@ -122,26 +126,11 @@ export default function TalkPage() {
               ))}
             </div>
             <Button className="w-full bg-primary rounded-xl h-12" onClick={applyUpdates}>
-              Aplicar a mi Despensa
+              {t('talk.apply')}
             </Button>
           </CardContent>
         </Card>
       )}
-
-      <div className="grid grid-cols-2 gap-3 w-full">
-         <Card className="p-3 bg-secondary/30 border-none">
-           <p className="text-[10px] uppercase font-bold opacity-50 mb-1 text-primary">Prueba diciendo</p>
-           <p className="text-xs italic">"He gastado media mantequilla"</p>
-         </Card>
-         <Card className="p-3 bg-secondary/30 border-none">
-           <p className="text-[10px] uppercase font-bold opacity-50 mb-1 text-primary">Prueba diciendo</p>
-           <p className="text-xs italic">"Añade una docena de huevos"</p>
-         </Card>
-      </div>
     </div>
   );
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
 }
