@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -28,6 +27,7 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-0 w-full", className)}
       formatters={{
+        // Mostramos el nombre completo del día para mejorar la alineación y legibilidad
         formatWeekdayName: (date, options) => format(date, 'EEEE', options),
       }}
       classNames={{
@@ -45,9 +45,11 @@ function Calendar({
           "h-8 w-8 bg-background/50 p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20 absolute right-4 z-20"
         ),
         month_grid: "w-full border-collapse block",
+        // Forzamos grid de 7 columnas para las cabeceras
         weekdays: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900 border-b border-white/10",
-        weekday: "text-white font-bold text-[0.55rem] uppercase tracking-tighter text-center py-4 border-r border-white/10 last:border-r-0 flex items-center justify-center w-full min-w-0 px-1 overflow-hidden",
+        weekday: "text-white font-bold text-[0.6rem] uppercase tracking-tighter text-center py-4 border-r border-white/10 last:border-r-0 flex items-center justify-center w-full overflow-hidden",
         weeks: "w-full block",
+        // Forzamos grid de 7 columnas para cada fila de la semana para que coincida con la cabecera
         week: "grid grid-cols-7 w-full border-b border-muted/30 last:border-b-0",
         day: "relative p-0 h-14 w-full flex items-stretch justify-stretch border-r border-muted/30 last:border-r-0",
         day_button: cn(

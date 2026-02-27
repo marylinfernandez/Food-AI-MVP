@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePantry } from "@/lib/pantry-store";
