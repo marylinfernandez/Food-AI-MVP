@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "@/context/language-context";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
 type Category = 'main' | 'drink' | 'dessert' | 'snack' | 'custom' | null;
@@ -27,7 +26,6 @@ export default function RecipesPage() {
   const [activeRecipe, setActiveRecipe] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
   const [subCategory, setSubCategory] = useState<string>("");
-  const [personalizationMode, setPersonalizationMode] = useState<"auto" | "specific">("auto");
   const [specificRequest, setSpecificRequest] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -61,7 +59,7 @@ export default function RecipesPage() {
         ingredients: items.map(i => i.name),
         numberOfPeople: 2,
         mealType: mealTypeLabel,
-        specificRequest: selectedCategory === 'custom' || personalizationMode === "specific" ? specificRequest : undefined,
+        specificRequest: selectedCategory === 'custom' ? specificRequest : undefined,
         language: language
       });
       setRecipes(result);
@@ -130,7 +128,6 @@ export default function RecipesPage() {
     setRecipes(null);
     setActiveRecipe(null);
     setSpecificRequest("");
-    setPersonalizationMode("auto");
   };
 
   return (
@@ -181,51 +178,36 @@ export default function RecipesPage() {
           <Card className="glass border-none overflow-hidden">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl font-bold">
-                {selectedCategory === 'custom' ? t('recipes.custom') : t('recipes.personalize')}
+                {selectedCategory === 'custom' ? t('recipes.custom') : categories.find(c => c.id === selectedCategory)?.label}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
               {selectedCategory !== 'custom' ? (
-                <Tabs defaultValue="auto" className="w-full" onValueChange={(v) => setPersonalizationMode(v as "auto" | "specific")}>
-                  <TabsList className="grid w-full grid-cols-2 bg-white/10 rounded-xl h-12 mb-6">
-                    <TabsTrigger value="auto" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-xs uppercase">
-                      {language === 'english' ? 'Use my Pantry' : 'Usar mi Despensa'}
-                    </TabsTrigger>
-                    <TabsTrigger value="specific" className="rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-white font-bold text-xs uppercase">
-                      {language === 'english' ? 'Specific Dish' : 'Plato Específico'}
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="auto" className="space-y-6">
-                    <p className="text-center text-xs text-muted-foreground leading-relaxed italic">
-                      {language === 'english' ? 'FoodAI will create recipes using only what you have scanned.' : 'FoodAI creará recetas usando solo lo que has escaneado.'}
-                    </p>
-                  </TabsContent>
-
-                  <TabsContent value="specific" className="space-y-4">
-                    <div className="space-y-3">
-                      <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                        {language === 'english' ? 'What do you want to cook?' : '¿Qué quieres cocinar?'}
-                      </label>
-                      <div className="relative">
-                        <Textarea 
-                          placeholder={language === 'english' ? 'E.g. Chicken Alfredo pasta...' : 'Ej. Pasta Alfredo con pollo...'}
-                          className="min-h-[100px] rounded-2xl glass border-white/10 p-4"
-                          value={specificRequest}
-                          onChange={(e) => setSpecificRequest(e.target.value)}
-                        />
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="absolute bottom-3 right-3 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
-                          onClick={() => toast({ title: "Voz Activa", description: "Habla ahora... (Simulación)" })}
-                        >
-                          <Mic className="h-5 w-5" />
-                        </Button>
-                      </div>
+                <div className="space-y-6">
+                  <p className="text-center text-xs text-muted-foreground leading-relaxed italic">
+                    {language === 'english' 
+                      ? 'FoodAI will create recipes using strictly what you have in your pantry.' 
+                      : 'FoodAI creará recetas usando estrictamente lo que tienes en tu despensa.'}
+                  </p>
+                  
+                  {selectedCategory === 'drink' && (
+                    <div className="space-y-3 pt-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('recipes.drinkType')}</label>
+                      <Select onValueChange={setSubCategory}>
+                        <SelectTrigger className="h-14 rounded-2xl border-white/10 glass">
+                          <SelectValue placeholder={language === 'english' ? 'Select type...' : 'Selecciona el tipo...'} />
+                        </SelectTrigger>
+                        <SelectContent className="glass rounded-xl border-white/10">
+                          {drinkOptions.map(opt => (
+                            <SelectItem key={opt.id} value={opt.id} className="rounded-lg">
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </TabsContent>
-                </Tabs>
+                  )}
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-3">
@@ -243,7 +225,7 @@ export default function RecipesPage() {
                         size="icon" 
                         variant="ghost" 
                         className="absolute bottom-3 right-3 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-white transition-all h-12 w-12"
-                        onClick={() => toast({ title: "Micrófono FoodAI", description: "Simulación de grabación de voz activa..." })}
+                        onClick={() => toast({ title: "Micrófono FoodAI", description: "Grabación de voz activa... (Simulación)" })}
                       >
                         <Mic className="h-6 w-6" />
                       </Button>
@@ -252,27 +234,9 @@ export default function RecipesPage() {
                 </div>
               )}
 
-              {selectedCategory === 'drink' && (
-                <div className="space-y-3 pt-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('recipes.drinkType')}</label>
-                  <Select onValueChange={setSubCategory}>
-                    <SelectTrigger className="h-14 rounded-2xl border-white/10 glass">
-                      <SelectValue placeholder={language === 'english' ? 'Select type...' : 'Selecciona el tipo...'} />
-                    </SelectTrigger>
-                    <SelectContent className="glass rounded-xl border-white/10">
-                      {drinkOptions.map(opt => (
-                        <SelectItem key={opt.id} value={opt.id} className="rounded-lg">
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
               <Button 
                 onClick={generateRecipes} 
-                disabled={selectedCategory === 'custom' && !specificRequest}
+                disabled={(selectedCategory === 'custom' && !specificRequest) || (selectedCategory === 'drink' && !subCategory)}
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-xl transition-all hover:scale-[1.02]"
               >
                 {t('recipes.generate')} <ChevronRight className="h-5 w-5 ml-1" />
