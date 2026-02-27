@@ -3,7 +3,7 @@
 import { usePantry, PantryItem } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Edit2, Plus, Search, Calendar, Package } from "lucide-react";
+import { Trash2, Edit2, Plus, Search, Calendar, Package, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { format } from "date-fns";
