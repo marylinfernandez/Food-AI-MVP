@@ -5,7 +5,7 @@ import { useAuth } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  GoogleAuthProvider, 
+   GoogleAuthProvider, 
   FacebookAuthProvider, 
   TwitterAuthProvider, 
   OAuthProvider,
@@ -130,17 +130,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[95vh] space-y-6 animate-in fade-in duration-1000 px-4">
+    <div className="flex flex-col items-center justify-center min-h-[85vh] space-y-6 animate-in fade-in duration-1000 px-4">
       <div id="recaptcha-container"></div>
       
-      <div className="text-center space-y-2 mb-4">
-        <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-primary neo-glow animate-float mb-4 shadow-[0_0_30px_rgba(var(--primary),0.5)]">
-          <Sparkles className="h-10 w-10 text-white" />
+      <div className="text-center space-y-2 mb-2">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary neo-glow animate-float mb-4 shadow-[0_0_30px_rgba(var(--primary),0.5)]">
+          <Sparkles className="h-8 w-8 text-white" />
         </div>
-        <h1 className="text-5xl font-bold tracking-tighter text-primary">
+        <h1 className="text-4xl font-bold tracking-tighter text-primary">
           Food<span className="text-secondary">AI</span>
         </h1>
-        <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.2em] opacity-70">
+        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
           Tu despensa, evolucionada.
         </p>
       </div>
@@ -153,7 +153,7 @@ export default function LoginPage() {
             <Button variant="ghost" className="mb-2 p-0 h-auto hover:bg-transparent" onClick={() => setShowPhoneInput(false)}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Volver
             </Button>
-            <h2 className="text-2xl font-bold">Acceso por Teléfono</h2>
+            <h2 className="text-2xl font-bold uppercase tracking-tight">Acceso por Teléfono</h2>
             {!confirmationResult ? (
               <div className="space-y-4">
                 <Input 
@@ -182,75 +182,75 @@ export default function LoginPage() {
           </CardContent>
         ) : (
           <Tabs defaultValue="social" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 rounded-none h-16 bg-secondary/5 border-b border-white/10">
-              <TabsTrigger value="social" className="data-[state=active]:bg-white/40 data-[state=active]:text-primary font-bold transition-all">
+            <TabsList className="grid w-full grid-cols-2 rounded-none h-14 bg-secondary/5 border-b border-white/10">
+              <TabsTrigger value="social" className="data-[state=active]:bg-white/40 data-[state=active]:text-primary font-bold transition-all text-xs uppercase tracking-widest">
                 Social
               </TabsTrigger>
-              <TabsTrigger value="email" className="data-[state=active]:bg-white/40 data-[state=active]:text-primary font-bold transition-all">
+              <TabsTrigger value="email" className="data-[state=active]:bg-white/40 data-[state=active]:text-primary font-bold transition-all text-xs uppercase tracking-widest">
                 Correo
               </TabsTrigger>
             </TabsList>
             
             <CardContent className="p-8">
               <TabsContent value="social" className="space-y-4 mt-0 animate-in slide-in-from-left-4 duration-300">
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-14 rounded-2xl border-2 hover:bg-primary/10 group transition-all" onClick={() => handleSocialLogin('google')} disabled={loading}>
-                    <Chrome className="h-5 w-5 mr-2 text-red-500 group-hover:scale-110 transition-transform" /> Google
+                <div className="grid grid-cols-2 gap-3">
+                  <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('google')} disabled={loading}>
+                    <Chrome className="h-4 w-4 mr-2 text-red-500 group-hover:scale-110 transition-transform" /> GOOGLE
                   </Button>
-                  <Button variant="outline" className="h-14 rounded-2xl border-2 hover:bg-primary/10 group transition-all" onClick={() => handleSocialLogin('facebook')} disabled={loading}>
-                    <Facebook className="h-5 w-5 mr-2 text-blue-600 group-hover:scale-110 transition-transform" /> Facebook
+                  <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('facebook')} disabled={loading}>
+                    <Facebook className="h-4 w-4 mr-2 text-blue-600 group-hover:scale-110 transition-transform" /> FACEBOOK
                   </Button>
-                  <Button variant="outline" className="h-14 rounded-2xl border-2 hover:bg-primary/10 group transition-all" onClick={() => handleSocialLogin('twitter')} disabled={loading}>
-                    <Twitter className="h-5 w-5 mr-2 text-sky-500 group-hover:scale-110 transition-transform" /> X / Twitter
+                  <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('twitter')} disabled={loading}>
+                    <Twitter className="h-4 w-4 mr-2 text-sky-500 group-hover:scale-110 transition-transform" /> X
                   </Button>
-                  <Button variant="outline" className="h-14 rounded-2xl border-2 hover:bg-primary/10 group transition-all" onClick={() => handleSocialLogin('instagram')} disabled={loading}>
-                    <Instagram className="h-5 w-5 mr-2 text-pink-600 group-hover:scale-110 transition-transform" /> Instagram
+                  <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('instagram')} disabled={loading}>
+                    <Instagram className="h-4 w-4 mr-2 text-pink-600 group-hover:scale-110 transition-transform" /> INSTAGRAM
                   </Button>
                 </div>
                 
                 <div className="relative py-4">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/20"></span></div>
-                  <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-muted-foreground">O también</span></div>
+                  <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest"><span className="bg-transparent px-2 text-muted-foreground">O también</span></div>
                 </div>
 
-                <Button variant="secondary" className="w-full h-14 rounded-2xl font-bold bg-white/50 border border-white/20 hover:bg-white/70" onClick={() => setShowPhoneInput(true)} disabled={loading}>
-                  <Phone className="h-5 w-5 mr-2 text-primary" /> Número de Teléfono
+                <Button variant="secondary" className="w-full h-12 rounded-2xl font-bold bg-white/50 border border-white/20 hover:bg-white/70 text-xs" onClick={() => setShowPhoneInput(true)} disabled={loading}>
+                  <Phone className="h-4 w-4 mr-2 text-primary" /> NÚMERO DE TELÉFONO
                 </Button>
               </TabsContent>
 
               <TabsContent value="email" className="space-y-4 mt-0 animate-in slide-in-from-right-4 duration-300">
                 <div className="space-y-3">
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input 
                       type="email" 
                       placeholder="Correo electrónico" 
-                      className="h-14 pl-12 rounded-2xl border-2 focus:ring-primary focus:border-primary transition-all"
+                      className="h-12 pl-12 rounded-2xl border-2 focus:ring-primary focus:border-primary transition-all text-sm"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input 
                       type="password" 
                       placeholder="Contraseña" 
-                      className="h-14 pl-12 rounded-2xl border-2 focus:ring-primary focus:border-primary transition-all"
+                      className="h-12 pl-12 rounded-2xl border-2 focus:ring-primary focus:border-primary transition-all text-sm"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                 </div>
                 
-                <Button className="w-full h-14 rounded-2xl font-bold text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={handleEmailAuth} disabled={loading}>
+                <Button className="w-full h-12 rounded-2xl font-bold text-sm shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={handleEmailAuth} disabled={loading}>
                   {loading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    isRegistering ? "Crear Nueva Cuenta" : "Entrar a mi Despensa"
+                    isRegistering ? "CREAR NUEVA CUENTA" : "ENTRAR A MI DESPENSA"
                   )}
                 </Button>
                 
-                <Button variant="link" className="w-full text-primary font-medium" onClick={() => setIsRegistering(!isRegistering)}>
+                <Button variant="link" className="w-full text-primary font-bold text-[10px] uppercase tracking-wider" onClick={() => setIsRegistering(!isRegistering)}>
                   {isRegistering ? "¿Ya tienes una cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate aquí"}
                 </Button>
               </TabsContent>
@@ -259,7 +259,7 @@ export default function LoginPage() {
         )}
       </Card>
       
-      <p className="text-[10px] text-muted-foreground/60 text-center max-w-xs leading-relaxed uppercase tracking-widest">
+      <p className="text-[10px] text-muted-foreground/60 text-center max-w-xs leading-relaxed uppercase tracking-widest px-4">
         Al acceder a FoodAI, entras en un ecosistema de gestión inteligente de alimentos. 
         Tus datos están protegidos por encriptación cuántica simulada.
       </p>
