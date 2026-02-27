@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -14,6 +15,9 @@ import Link from "next/link";
 import { useTranslation } from "@/context/language-context";
 import { cn } from "@/lib/utils";
 
+/**
+ * @fileOverview Pantalla de escaneo optimizada para usar la cámara trasera del celular.
+ */
 export default function ScanPage() {
   const { toast } = useToast();
   const { addItem } = usePantry();
@@ -36,8 +40,11 @@ export default function ScanPage() {
   useEffect(() => {
     const getCameraPermission = async () => {
       try {
+        // Se solicita específicamente 'environment' para usar la cámara trasera
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" },
+          video: { 
+            facingMode: { ideal: "environment" } 
+          },
           audio: false
         });
         setHasCameraPermission(true);
@@ -50,7 +57,7 @@ export default function ScanPage() {
         toast({
           variant: 'destructive',
           title: 'Acceso a Cámara Denegado',
-          description: 'Por favor, activa los permisos de cámara en tu navegador para usar el escáner.',
+          description: 'Por favor, activa los permisos de cámara en tu navegador para usar el escáner trasero.',
         });
       }
     };
@@ -113,7 +120,6 @@ export default function ScanPage() {
         setRecordingTime(prev => prev + 1);
       }, 1000);
 
-      // Auto stop after 10 seconds for safety
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') stopRecording();
       }, 10000);
@@ -134,7 +140,7 @@ export default function ScanPage() {
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: `Análisis de ${scanMode} de nevera/despensa en tiempo real`
+        description: `Análisis de ${scanMode} de nevera/despensa en tiempo real (cámara trasera)`
       });
       setResults(output);
     } catch (error) {
@@ -230,7 +236,7 @@ export default function ScanPage() {
                 <Alert variant="destructive" className="bg-destructive/20 border-destructive">
                   <AlertTitle>Cámara Bloqueada</AlertTitle>
                   <AlertDescription>
-                    No podemos acceder a la cámara. Por favor, verifica los permisos en tu navegador.
+                    No podemos acceder a la cámara trasera. Por favor, verifica los permisos en tu navegador.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -350,9 +356,9 @@ export default function ScanPage() {
           <Refrigerator className="h-6 w-6 text-accent" />
         </div>
         <div>
-          <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Laboratorio de Visión</h3>
+          <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Cámara Trasera Activada</h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Nuestra IA analiza texturas y formas para mantener tu inventario al día. El modo video permite capturar múltiples ángulos de tu nevera.
+            Hemos optimizado el escáner para usar la lente trasera de tu celular, permitiendo una identificación más precisa de tus ingredientes.
           </p>
         </div>
       </div>

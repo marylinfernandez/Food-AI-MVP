@@ -21,10 +21,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * @fileOverview Encabezado global con botones alineados matemáticamente y cierre de sesión.
+ * @fileOverview Encabezado global con botones alineados y cierre de sesión condicional.
  */
 export function Header() {
-  const { user, isUserLoading } = useUser();
+  const { user } = useUser();
   const auth = useAuth();
   const { language, setLanguage, t } = useTranslation();
   const { guideStep, setGuideStep } = useTour();
@@ -47,6 +47,7 @@ export function Header() {
     { id: "spanish-la" as Language, label: "LA", flag: "🌎" }
   ];
 
+  // El tour y el botón de salida solo aparecen tras iniciar sesión y en vistas internas
   const showInternalControls = mounted && user && pathname !== '/login';
 
   return (
@@ -93,7 +94,7 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Tour - Condicional */}
+        {/* Tour - Solo Icono y Condicional */}
         {showInternalControls && (
           <Button 
             variant="ghost" 

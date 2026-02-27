@@ -5,8 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut
+  createUserWithEmailAndPassword
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,7 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión simplificada: Solo Correo y Contraseña.
+ * @fileOverview Pantalla de inicio de sesión simplificada: Exclusivamente Correo y Contraseña.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -42,7 +41,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isRegistering) {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, email, password);
         try {
           // Generar mensaje de bienvenida con Gemini 2.5 Flash
           const welcomeMsg = await generateWelcomeEmail({
@@ -51,7 +50,7 @@ export default function LoginPage() {
           });
           toast({ 
             title: "¡Cuenta creada!", 
-            description: `Bienvenido Chef. Revisa tu bandeja de entrada: "${welcomeMsg.subject}"`,
+            description: `Bienvenido Chef. Hemos preparado una sorpresa: "${welcomeMsg.subject}"`,
           });
         } catch (aiErr) {
           toast({ title: "¡Cuenta creada!", description: "Bienvenido a FoodAI." });
