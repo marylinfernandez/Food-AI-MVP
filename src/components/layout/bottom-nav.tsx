@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChefHat, Refrigerator, Camera, LayoutDashboard } from "lucide-react";
+import { ChefHat, Refrigerator, Camera, LayoutDashboard, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
 
@@ -16,6 +16,7 @@ export function BottomNav() {
     { label: t('nav.pantry'), href: "/pantry", icon: Refrigerator },
     { label: t('nav.scan'), href: "/scan", icon: Camera },
     { label: t('nav.recipes'), href: "/recipes", icon: ChefHat },
+    { label: t('nav.planner'), href: "/planner", icon: CalendarDays },
   ];
 
   return (
@@ -33,8 +34,8 @@ export function BottomNav() {
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Icon className={cn("h-6 w-6 mb-1", isActive && "animate-pulse-soft")} />
-              <span className="text-[10px] font-medium uppercase tracking-wider">
+              <Icon className={cn("h-5 w-5 mb-1", isActive && "animate-pulse-soft")} />
+              <span className="text-[9px] font-medium uppercase tracking-wider">
                 {item.label}
               </span>
             </Link>

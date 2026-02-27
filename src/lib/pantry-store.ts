@@ -17,22 +17,37 @@ export interface HistoryRecipe {
   scannedAt: string; // ISO String
 }
 
+export interface DaySchedule {
+  day: string;
+  isCooking: boolean;
+  reminderTime: string; // "HH:mm" format
+}
+
 const STORAGE_ITEMS_KEY = "foodai_pantry_items_v2";
 const STORAGE_RECIPES_KEY = "foodai_recipes_history_v2";
+const STORAGE_PLANNER_KEY = "foodai_planner_schedule_v2";
 
 export function usePantry() {
   const [items, setItems] = useState<PantryItem[]>([]);
   const [historyRecipes, setHistoryRecipes] = useState<HistoryRecipe[]>([]);
+  const [schedule, setSchedule] = useState<DaySchedule[]>([]);
 
   useEffect(() => {
     const storedItems = localStorage.getItem(STORAGE_ITEMS_KEY);
     const storedRecipes = localStorage.getItem(STORAGE_RECIPES_KEY);
+    const storedSchedule = localStorage.getItem(STORAGE_PLANNER_KEY);
     
-    if (storedItems) {
-      setItems(JSON.parse(storedItems));
-    }
-    if (storedRecipes) {
-      setHistoryRecipes(JSON.parse(storedRecipes));
+    if (storedItems) setItems(JSON.parse(storedItems));
+    if (storedRecipes) setHistoryRecipes(JSON.parse(storedRecipes));
+    
+    if (storedSchedule) {
+      setSchedule(JSON.parse(storedSchedule));
+    } else {
+      // Default empty schedule
+      const defaultSchedule = [
+        "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+      ].map(day => ({ day, isCooking: false, reminderTime: "09:00" }));
+      setSchedule(defaultSchedule);
     }
   }, []);
 
@@ -44,6 +59,11 @@ export function usePantry() {
   const saveRecipes = (newRecipes: HistoryRecipe[]) => {
     setHistoryRecipes(newRecipes);
     localStorage.setItem(STORAGE_RECIPES_KEY, JSON.stringify(newRecipes));
+  };
+
+  const saveSchedule = (newSchedule: DaySchedule[]) => {
+    setSchedule(newSchedule);
+    localStorage.setItem(STORAGE_PLANNER_KEY, JSON.stringify(newSchedule));
   };
 
   const addItem = (item: Omit<PantryItem, "id" | "scannedAt">) => {
@@ -69,5 +89,13 @@ export function usePantry() {
     saveItems(items.filter(i => i.id !== id));
   };
 
-  return { items, historyRecipes, addItem, addRecipeToHistory, removeItem };
+  return { 
+    items, 
+    historyRecipes, 
+    schedule, 
+    addItem, 
+    addRecipeToHistory, 
+    removeItem, 
+    saveSchedule 
+  };
 }

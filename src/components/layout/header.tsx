@@ -11,6 +11,7 @@ import { useTranslation } from "@/context/language-context";
 import { Language } from "@/lib/i18n";
 import { useTour } from "@/context/tour-context";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,13 +21,18 @@ import {
 
 /**
  * @fileOverview Encabezado global con selectores de idioma, tour y tema.
- * Los controles están agrupados en la parte superior derecha con alineación matemática estricta.
+ * Corregido para evitar errores de hidratación mediante el uso de useEffect para el estado del usuario.
  */
 export function Header() {
   const { user, isUserLoading } = useUser();
   const { language, setLanguage, t } = useTranslation();
   const { guideStep, setGuideStep } = useTour();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const languages = [
     { id: "english" as Language, label: "EN", flag: "🇺🇸" },
@@ -35,7 +41,7 @@ export function Header() {
   ];
 
   // El tour solo se muestra si el usuario está logueado y no está en la página de login
-  const showTourButton = user && pathname !== '/login';
+  const showTourButton = mounted && user && pathname !== '/login';
 
   return (
     <header className="flex justify-between items-center mb-6 px-2 animate-in fade-in slide-in-from-top duration-500 relative z-[60] w-full">
@@ -47,7 +53,7 @@ export function Header() {
           <h1 className="text-xl font-bold text-primary tracking-tighter leading-none">
             Food<span className="text-secondary">AI</span>
           </h1>
-          {user && (
+          {mounted && user && (
             <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
               {user.displayName || "Chef"}
             </span>
