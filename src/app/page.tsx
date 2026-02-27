@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, ChefHat, Mic, Refrigerator, ArrowRight, Sparkles, HelpCircle, Info } from "lucide-react";
+import { Camera, ChefHat, Refrigerator, ArrowRight, Sparkles, HelpCircle, Info } from "lucide-react";
 import Link from "next/link";
 import { usePantry } from "@/lib/pantry-store";
 import { Badge } from "@/components/ui/badge";
@@ -53,14 +53,10 @@ export default function HomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-1">
                 <p className="font-bold text-primary flex items-center gap-1"><Camera className="h-3 w-3" /> {t('home.scanBtn')}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight">Analiza tu nevera con IA.</p>
-              </div>
-              <div className="space-y-1">
-                <p className="font-bold text-secondary flex items-center gap-1"><Mic className="h-3 w-3" /> {t('home.talkBtn')}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight">Controla el stock con tu voz.</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">Analiza tu nevera con visión IA avanzada.</p>
               </div>
             </div>
             <Button variant="outline" size="sm" className="w-full rounded-xl border-primary/20" onClick={() => setShowGuide(false)}>Close</Button>
@@ -83,25 +79,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Link href="/scan" className="col-span-1">
-          <Card className="h-full glass hover:scale-105 transition-all cursor-pointer group border-none">
-            <CardHeader className="pb-2 p-4">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
-                <Camera className="h-5 w-5 text-primary group-hover:rotate-12 transition-transform" />
+          <Card className="h-24 glass hover:scale-[1.02] transition-all cursor-pointer group border-none flex items-center">
+            <CardHeader className="flex flex-row items-center gap-4 w-full p-6">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Camera className="h-6 w-6 text-primary group-hover:rotate-12 transition-transform" />
               </div>
-              <CardTitle className="text-base">{t('home.scanBtn')}</CardTitle>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href="/talk" className="col-span-1">
-          <Card className="h-full glass hover:scale-105 transition-all cursor-pointer group border-none">
-            <CardHeader className="pb-2 p-4">
-              <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center mb-2">
-                <Mic className="h-5 w-5 text-secondary group-hover:scale-110 transition-transform" />
-              </div>
-              <CardTitle className="text-base">{t('home.talkBtn')}</CardTitle>
+              <CardTitle className="text-xl">{t('home.scanBtn')}</CardTitle>
             </CardHeader>
           </Card>
         </Link>

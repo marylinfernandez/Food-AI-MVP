@@ -1,7 +1,7 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow that generates personalized recipe suggestions.
- * It now handles specific user requests and compares them against available pantry items.
  */
 
 import { ai } from '@/ai/genkit';
@@ -10,24 +10,24 @@ import { z } from 'genkit';
 const PersonalizedRecipeGenerationInputSchema = z.object({
   ingredients: z
     .array(z.string())
-    .describe('A list of ingredients currently available in the pantry/fridge.'),
+    .describe('A list of ingredients currently available.'),
   numberOfPeople: z
     .number()
     .int()
     .positive()
-    .describe('The number of people the recipe should serve.'),
+    .describe('The number of people to serve.'),
   mealType: z
     .string()
     .optional()
-    .describe('The type of dish requested (e.g., "Main Dish", "Dessert").'),
+    .describe('The type of dish requested.'),
   specificRequest: z
     .string()
     .optional()
-    .describe('A specific dish the user wants to prepare (e.g., "Lasagna").'),
+    .describe('A specific dish requested.'),
   language: z
     .string()
     .default('spanish-la')
-    .describe('The language in which the recipe should be generated.'),
+    .describe('The language for the recipe.'),
 });
 export type PersonalizedRecipeGenerationInput = z.infer<
   typeof PersonalizedRecipeGenerationInputSchema
@@ -38,10 +38,10 @@ const RecipeSchema = z.object({
   description: z.string().describe('A brief description.'),
   ingredientsOwned: z
     .array(z.string())
-    .describe('Ingredients required that the user ALREADY HAS in their pantry.'),
+    .describe('Ingredients required that the user HAS.'),
   ingredientsMissing: z
     .array(z.string())
-    .describe('Ingredients required that the user IS MISSING.'),
+    .describe('Ingredients required that the user MISSES.'),
   instructions: z
     .array(z.string())
     .describe('Step-by-step instructions.'),
@@ -62,23 +62,17 @@ const personalizedRecipePrompt = ai.definePrompt({
   name: 'personalizedRecipePrompt',
   input: { schema: PersonalizedRecipeGenerationInputSchema },
   output: { schema: PersonalizedRecipeGenerationOutputSchema },
+  model: 'googleai/gemini-2.5-flash-lite',
   prompt: `You are FoodAI, a high-tech cooking assistant.
 Your goal is to suggest recipes in the following language: {{{language}}}.
 
 USER DATA:
 - Pantry Ingredients: {{{ingredients}}}
 - People to serve: {{{numberOfPeople}}}
-{{#if mealType}}- Requested Category: {{{mealType}}}{{/if}}
+{{#if mealType}}- Category: {{{mealType}}}{{/if}}
 {{#if specificRequest}}- Specific Goal: "{{{specificRequest}}}"{{/if}}
 
-INSTRUCTIONS:
-1. If 'specificRequest' is provided, generate a recipe for THAT exact dish. Compare the required ingredients with the 'Pantry Ingredients' list.
-2. Populating 'ingredientsOwned': List items needed that are present in the pantry.
-3. Populating 'ingredientsMissing': List items needed that are NOT in the pantry.
-4. If 'specificRequest' is NOT provided, suggest creative recipes using ONLY the 'Pantry Ingredients'. In this case, 'ingredientsMissing' should be empty.
-5. Provide a short 'imageSearchTerm' in English for a photo database.
-
-All text fields (name, description, ingredients, instructions) MUST be in {{{language}}}.`,
+All text fields MUST be in {{{language}}}.`,
 });
 
 const personalizedRecipeGenerationFlow = ai.defineFlow(

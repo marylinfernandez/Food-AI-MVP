@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChefHat, Refrigerator, Mic, Camera, LayoutDashboard } from "lucide-react";
+import { ChefHat, Refrigerator, Camera, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
 
@@ -16,7 +16,6 @@ export function BottomNav() {
     { label: t('nav.pantry'), href: "/pantry", icon: Refrigerator },
     { label: t('nav.scan'), href: "/scan", icon: Camera },
     { label: t('nav.recipes'), href: "/recipes", icon: ChefHat },
-    { label: t('nav.talk'), href: "/talk", icon: Mic },
   ];
 
   return (

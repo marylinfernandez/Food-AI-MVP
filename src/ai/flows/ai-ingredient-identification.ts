@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for identifying ingredients from a photo or video
@@ -10,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const IngredientIdentificationInputSchema = z.object({
   mediaDataUri: z
@@ -21,7 +23,7 @@ const IngredientIdentificationInputSchema = z.object({
     .string()
     .optional()
     .describe(
-      'An optional text description to provide additional context about the contents or specific areas to focus on.'
+      'An optional text description to provide additional context about the contents.'
     ),
 });
 
@@ -38,21 +40,21 @@ const IngredientIdentificationOutputSchema = z.object({
           .string()
           .optional()
           .describe(
-            'The estimated quantity or amount of the ingredient, if discernable (e.g., "half a carton", "3 apples").'
+            'The estimated quantity or amount of the ingredient (e.g., "half a carton", "3 apples").'
           ),
         confidence: z
           .number()
           .min(0)
           .max(1)
           .describe(
-            'A confidence score between 0 and 1 (where 1 is highest confidence) for the identification.'
+            'A confidence score between 0 and 1.'
           ),
       })
     )
-    .describe('A list of food items identified in the media.'),
+    .describe('A list of food items identified.'),
   summary: z
     .string()
-    .describe('A brief summary of the identified items and the overall contents.'),
+    .describe('A brief summary of the contents.'),
 });
 
 export type IngredientIdentificationOutput = z.infer<
@@ -71,13 +73,8 @@ const identifyIngredientsPrompt = ai.definePrompt({
   output: {schema: IngredientIdentificationOutputSchema},
   model: 'googleai/gemini-2.5-flash-lite',
   prompt: `You are an AI assistant specialized in identifying food ingredients from photos and videos of fridges and pantries.
-    Your goal is to meticulously examine the provided media and list all discernable food items.
-    For each item, try to estimate its quantity if possible, and provide a confidence score for its identification.
-
-    Focus on common food items and their approximate states (e.g., "half a carton of milk", "a bag of spinach", "3 apples").
-
-    Return the identified ingredients in a structured JSON format, including the name, an estimated quantity (if discernable), and a confidence score (0-1).
-    Also provide a brief overall summary of what was identified.
+    Meticulously examine the provided media and list all discernable food items.
+    For each item, try to estimate its quantity and provide a confidence score.
 
     MEDIA TO ANALYZE: {{media url=mediaDataUri}}
     {{#if description}}ADDITIONAL CONTEXT: {{{description}}}{{/if}}`,
