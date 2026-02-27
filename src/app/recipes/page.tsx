@@ -1,20 +1,25 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { personalizedRecipeGeneration, PersonalizedRecipeGenerationOutput } from "@/ai/flows/ai-personalized-recipe-generation";
+import { aiRecipeAudio } from "@/ai/flows/ai-recipe-audio-flow";
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChefHat, Timer, Users, Sparkles, Loader2, Play, CheckCircle2, ListFilter } from "lucide-react";
+import { ChefHat, Timer, Users, Sparkles, Loader2, Play, CheckCircle2, ListFilter, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function RecipesPage() {
   const { items } = usePantry();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [audioLoading, setAudioLoading] = useState<number | null>(null);
   const [recipes, setRecipes] = useState<PersonalizedRecipeGenerationOutput | null>(null);
   const [activeRecipe, setActiveRecipe] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const generateRecipes = async () => {
     setLoading(true);
@@ -36,6 +41,42 @@ export default function RecipesPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleListen = async (idx: number, recipe: any) => {
+    if (audioLoading !== null) return;
+    
+    setAudioLoading(idx);
+    try {
+      const savedVoice = localStorage.getItem('foodai_voice') || 'Algenib';
+      const savedLang = localStorage.getItem('foodai_lang') || 'spanish-la';
+      
+      let langCode = 'es-LA';
+      if (savedLang === 'english') langCode = 'en-US';
+      if (savedLang === 'spanish-es') langCode = 'es-ES';
+
+      const fullText = `Receta: ${recipe.name}. ${recipe.description}. Ingredientes: ${recipe.ingredientsNeeded.join(", ")}. Instrucciones: ${recipe.instructions.join(". ")}`;
+      
+      const { audioDataUri } = await aiRecipeAudio({
+        text: fullText,
+        voiceName: savedVoice,
+        languageCode: langCode
+      });
+
+      if (!audioRef.current) audioRef.current = new Audio();
+      audioRef.current.src = audioDataUri;
+      audioRef.current.play();
+      
+      audioRef.current.onended = () => setAudioLoading(null);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error de Audio",
+        description: "No se pudo generar el audio de la receta.",
+        variant: "destructive"
+      });
+      setAudioLoading(null);
     }
   };
 
@@ -82,18 +123,29 @@ export default function RecipesPage() {
           
           <div className="space-y-6">
             {recipes.recipes.map((recipe, idx) => (
-              <Card key={idx} className="overflow-hidden border-none shadow-xl bg-white ring-1 ring-border/50">
-                <div className="relative h-48 w-full bg-primary/5">
+              <Card key={idx} className="overflow-hidden border-none shadow-xl bg-white ring-1 ring-border/50 group/card">
+                <div className="relative h-48 w-full bg-primary/5 overflow-hidden">
                    <img 
                     src={`https://picsum.photos/seed/recipe-${idx}/600/400`} 
                     alt={recipe.name} 
-                    className="object-cover w-full h-full opacity-90"
+                    className="object-cover w-full h-full opacity-90 transition-transform duration-700 group-hover/card:scale-110"
                    />
                    <div className="absolute top-4 right-4 flex gap-2">
                       <Badge className="bg-white/90 backdrop-blur-sm text-primary flex gap-1 items-center">
                         <Timer className="h-3 w-3" /> {recipe.cookTimeMinutes + recipe.prepTimeMinutes} min
                       </Badge>
                    </div>
+                   <Button 
+                    size="icon" 
+                    className={cn(
+                      "absolute bottom-4 right-4 rounded-full shadow-lg transition-all",
+                      audioLoading === idx ? "bg-accent animate-pulse" : "bg-primary"
+                    )}
+                    onClick={() => handleListen(idx, recipe)}
+                    disabled={audioLoading !== null}
+                   >
+                     {audioLoading === idx ? <Loader2 className="h-5 w-5 animate-spin" /> : <Volume2 className="h-5 w-5" />}
+                   </Button>
                 </div>
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold text-primary">{recipe.name}</CardTitle>

@@ -1,25 +1,40 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Volume2, Languages, User, Shield, Info, ArrowRight, Check } from "lucide-react";
+import { Volume2, Languages, User, Shield, Info, ArrowRight, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const [voice, setVoice] = useState("es-LA-Standard-A");
+  const [voice, setVoice] = useState("Algenib"); // Algenib (F), Achernar (M) for Gemini TTS
   const [language, setLanguage] = useState("spanish-la");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const savedVoice = localStorage.getItem('foodai_voice');
+    const savedLang = localStorage.getItem('foodai_lang');
+    if (savedVoice) setVoice(savedVoice);
+    if (savedLang) setLanguage(savedLang);
+  }, []);
 
   const saveSettings = () => {
-    toast({
-      title: "Ajustes Actualizados",
-      description: "Tu preferencia de idioma y voz se ha guardado con éxito.",
-    });
+    setLoading(true);
+    localStorage.setItem('foodai_voice', voice);
+    localStorage.setItem('foodai_lang', language);
+    
+    setTimeout(() => {
+      setLoading(false);
+      toast({
+        title: "Ajustes Actualizados",
+        description: "Tu preferencia de idioma y voz se ha guardado con éxito.",
+      });
+    }, 500);
   };
 
   return (
@@ -76,14 +91,14 @@ export default function SettingsPage() {
             </Label>
             <RadioGroup value={voice} onValueChange={setVoice} className="grid grid-cols-1 gap-3">
               <div className="flex items-center space-x-3 p-4 border-2 border-transparent bg-secondary/5 rounded-2xl hover:bg-secondary/10 cursor-pointer transition-all group">
-                <RadioGroupItem value="es-LA-Standard-A" id="v1" className="border-primary text-primary" />
+                <RadioGroupItem value="Algenib" id="v1" className="border-primary text-primary" />
                 <Label htmlFor="v1" className="flex-1 cursor-pointer">
                   <p className="font-bold group-hover:text-primary transition-colors">Voz Femenina (Sofía)</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Cálida y amigable</p>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-4 border-2 border-transparent bg-secondary/5 rounded-2xl hover:bg-secondary/10 cursor-pointer transition-all group">
-                <RadioGroupItem value="es-LA-Standard-B" id="v2" className="border-primary text-primary" />
+                <RadioGroupItem value="Achernar" id="v2" className="border-primary text-primary" />
                 <Label htmlFor="v2" className="flex-1 cursor-pointer">
                   <p className="font-bold group-hover:text-primary transition-colors">Voz Masculina (Diego)</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Profesional y directo</p>
@@ -95,8 +110,9 @@ export default function SettingsPage() {
           <Button 
             className="w-full rounded-2xl h-14 font-bold text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary" 
             onClick={saveSettings}
+            disabled={loading}
           >
-            Aplicar Cambios Futuristas
+            {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : "Aplicar Cambios Futuristas"}
           </Button>
         </CardContent>
       </Card>
