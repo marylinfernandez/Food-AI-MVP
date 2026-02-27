@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Loader2, Refrigerator, CheckCircle2, Sparkles, RefreshCw, X, ChefHat } from "lucide-react";
+import { Camera, Loader2, Refrigerator, CheckCircle2, Sparkles, RefreshCw, X, ChefHat, Video, StopCircle, Radio } from "lucide-react";
 import { aiIngredientIdentification, IngredientIdentificationOutput } from "@/ai/flows/ai-ingredient-identification";
 import { usePantry } from "@/lib/pantry-store";
 import { useToast } from "@/hooks/use-toast";
@@ -13,23 +12,33 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { useTranslation } from "@/context/language-context";
+import { cn } from "@/lib/utils";
 
 export default function ScanPage() {
   const { toast } = useToast();
   const { addItem } = usePantry();
   const { t } = useTranslation();
+  
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [results, setResults] = useState<IngredientIdentificationOutput | null>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [scanMode, setScanMode] = useState<'photo' | 'video'>('photo');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const getCameraPermission = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" } 
+          video: { facingMode: "environment" },
+          audio: false
         });
         setHasCameraPermission(true);
         if (videoRef.current) {
@@ -55,6 +64,7 @@ export default function ScanPage() {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [preview, results, toast]);
 
@@ -74,20 +84,64 @@ export default function ScanPage() {
     }
   };
 
+  const startRecording = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      chunksRef.current = [];
+      const stream = videoRef.current.srcObject as MediaStream;
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+          const dataUri = reader.result as string;
+          setPreview(dataUri);
+          identify(dataUri);
+        };
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+      // Auto stop after 10 seconds for safety
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') stopRecording();
+      }, 10000);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  };
+
   const identify = async (dataUri: string) => {
     setLoading(true);
     setResults(null);
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: "Análisis de nevera en tiempo real"
+        description: `Análisis de ${scanMode} de nevera/despensa en tiempo real`
       });
       setResults(output);
     } catch (error) {
       console.error(error);
       toast({
         title: "Error de Escaneo",
-        description: "La IA no pudo procesar la imagen. Intenta capturar de nuevo con mejor luz.",
+        description: "La IA no pudo procesar el contenido. Intenta capturar de nuevo con mejor luz.",
         variant: "destructive"
       });
       setPreview(null);
@@ -111,6 +165,8 @@ export default function ScanPage() {
   const resetScanner = () => {
     setResults(null);
     setPreview(null);
+    setIsRecording(false);
+    setRecordingTime(0);
   };
 
   return (
@@ -123,7 +179,30 @@ export default function ScanPage() {
       </div>
 
       {!preview ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <div className="flex p-1 bg-secondary/10 rounded-2xl max-w-xs mx-auto">
+            <Button 
+              variant="ghost" 
+              className={cn(
+                "flex-1 rounded-xl h-10 gap-2 transition-all",
+                scanMode === 'photo' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              onClick={() => setScanMode('photo')}
+            >
+              <Camera className="h-4 w-4" /> Foto
+            </Button>
+            <Button 
+              variant="ghost" 
+              className={cn(
+                "flex-1 rounded-xl h-10 gap-2 transition-all",
+                scanMode === 'video' ? "bg-white text-secondary shadow-sm" : "text-muted-foreground"
+              )}
+              onClick={() => setScanMode('video')}
+            >
+              <Video className="h-4 w-4" /> Video
+            </Button>
+          </div>
+
           <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl glass bg-black group">
             <video 
               ref={videoRef} 
@@ -133,6 +212,12 @@ export default function ScanPage() {
               playsInline 
             />
             
+            {isRecording && (
+              <div className="absolute top-4 left-4 bg-red-500/80 text-white px-3 py-1 rounded-full flex items-center gap-2 animate-pulse text-xs font-bold">
+                <Radio className="h-3 w-3" /> REC 00:{recordingTime.toString().padStart(2, '0')}
+              </div>
+            )}
+
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-4 left-4 border-t-2 border-l-2 border-accent w-8 h-8 rounded-tl-lg" />
               <div className="absolute top-4 right-4 border-t-2 border-r-2 border-accent w-8 h-8 rounded-tr-lg" />
@@ -154,19 +239,40 @@ export default function ScanPage() {
 
           <canvas ref={canvasRef} className="hidden" />
 
-          <Button 
-            className="w-full h-20 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-bold text-xl shadow-[0_0_30px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02]"
-            onClick={capturePhoto}
-            disabled={hasCameraPermission === false}
-          >
-            <Camera className="h-8 w-8 mr-3" /> {t('scan.analyzeBtn')}
-          </Button>
+          {scanMode === 'photo' ? (
+            <Button 
+              className="w-full h-20 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-bold text-xl shadow-[0_0_30px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02]"
+              onClick={capturePhoto}
+              disabled={hasCameraPermission === false}
+            >
+              <Camera className="h-8 w-8 mr-3" /> {t('scan.analyzeBtn')}
+            </Button>
+          ) : (
+            <Button 
+              className={cn(
+                "w-full h-20 rounded-[2rem] font-bold text-xl shadow-xl transition-all hover:scale-[1.02]",
+                isRecording ? "bg-red-500 hover:bg-red-600" : "bg-secondary hover:bg-secondary/90"
+              )}
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={hasCameraPermission === false}
+            >
+              {isRecording ? (
+                <><StopCircle className="h-8 w-8 mr-3" /> DETENER Y ANALIZAR</>
+              ) : (
+                <><Video className="h-8 w-8 mr-3" /> EMPEZAR GRABACIÓN</>
+              )}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-6">
           <Card className="overflow-hidden border-none shadow-2xl glass relative">
             <div className="relative h-72 w-full bg-black">
-              <Image src={preview} alt="Captured" fill className="object-contain" />
+              {preview.startsWith('data:video') ? (
+                <video src={preview} controls className="w-full h-full object-contain" />
+              ) : (
+                <Image src={preview} alt="Captured" fill className="object-contain" />
+              )}
               
               {loading && (
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white gap-4">
@@ -176,7 +282,7 @@ export default function ScanPage() {
                   </div>
                   <div className="text-center space-y-1">
                     <p className="text-xl font-bold tracking-tighter animate-pulse text-accent">{t('scan.identifying')}</p>
-                    <p className="text-[10px] uppercase tracking-[0.3em] opacity-60">IA de Visión Activa</p>
+                    <p className="text-[10px] uppercase tracking-[0.3em] opacity-60">Visión FoodAI Avanzada</p>
                   </div>
                   <div className="absolute left-0 right-0 h-1 bg-accent/50 shadow-[0_0_15px_rgba(var(--accent),0.8)] animate-[scan_2s_infinite]" />
                 </div>
@@ -208,7 +314,7 @@ export default function ScanPage() {
                        <div key={idx} className="flex justify-between items-center bg-white/10 p-4 rounded-2xl border border-white/5 backdrop-blur-sm group hover:bg-white/20 transition-all">
                          <div className="flex flex-col">
                             <p className="font-bold text-lg leading-tight">{ing.name}</p>
-                            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{ing.quantity || 'Cantidad aproximada'}</p>
+                            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{ing.quantity || 'Cantidad estimada'}</p>
                          </div>
                          <div className="flex flex-col items-end gap-1">
                            <Badge variant="outline" className="text-[10px] bg-accent/10 border-accent/20 text-accent">
@@ -244,9 +350,9 @@ export default function ScanPage() {
           <Refrigerator className="h-6 w-6 text-accent" />
         </div>
         <div>
-          <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Modo Laboratorio</h3>
+          <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Laboratorio de Visión</h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            La IA de FoodAI analiza texturas, formas y etiquetas para mantener tu inventario actualizado sin que tengas que escribir nada.
+            Nuestra IA analiza texturas y formas para mantener tu inventario al día. El modo video permite capturar múltiples ángulos de tu nevera.
           </p>
         </div>
       </div>
