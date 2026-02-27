@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function Header() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { language, setLanguage, t } = useTranslation();
   const { guideStep, setGuideStep } = useTour();
 
@@ -74,20 +74,22 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Botón de Tour: Solo Icono */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={cn(
-              "rounded-full h-10 w-10 transition-all shadow-sm border",
-              guideStep > 0 
-                ? "bg-primary text-white border-primary" 
-                : "bg-secondary/10 text-primary border-transparent hover:bg-secondary/20"
-            )}
-            onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
-          >
-            <HelpCircle className={cn("h-5 w-5", guideStep === 0 && "animate-bounce")} />
-          </Button>
+          {/* Botón de Tour: Solo aparece si hay usuario logeado */}
+          {!isUserLoading && user && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={cn(
+                "rounded-full h-10 w-10 transition-all shadow-sm border",
+                guideStep > 0 
+                  ? "bg-primary text-white border-primary" 
+                  : "bg-secondary/10 text-primary border-transparent hover:bg-secondary/20"
+              )}
+              onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
+            >
+              <HelpCircle className={cn("h-5 w-5", guideStep === 0 && "animate-bounce")} />
+            </Button>
+          )}
           
           <ThemeToggle />
         </div>
