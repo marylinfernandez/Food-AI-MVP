@@ -52,28 +52,28 @@ export default function PantryPage() {
       </header>
 
       {/* Calendario con Paisaje Natural Real Ajustado */}
-      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] max-w-sm mx-auto">
+      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] max-w-[320px] mx-auto group">
         {dateSeed && (
           <div className="absolute inset-0 z-0">
             <Image
               src={`https://picsum.photos/seed/${dateSeed}/800/600`}
               alt="Daily Landscape"
               fill
-              className="object-cover transition-opacity duration-1000"
+              className="object-cover transition-transform duration-1000 group-hover:scale-110"
               data-ai-hint="nature landscape"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/40 to-background/90 backdrop-blur-[2px]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/20 to-background/80 backdrop-blur-[1px]" />
           </div>
         )}
-        <CardContent className="relative z-10 p-3 glass bg-white/10 dark:bg-black/20 backdrop-blur-md">
-          <div className="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-white/20 w-fit mx-auto border border-white/10">
-            <MapPin className="h-3 w-3 text-primary" />
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/80">
+        <CardContent className="relative z-10 p-2 glass bg-white/10 dark:bg-black/20 backdrop-blur-md">
+          <div className="flex items-center gap-2 mb-1 px-3 py-1 rounded-full bg-white/20 w-fit mx-auto border border-white/10">
+            <MapPin className="h-2.5 w-2.5 text-primary" />
+            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-foreground/80">
               {language === 'english' ? 'Global Inspiration' : 'Inspiración Global'}
             </span>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center scale-95 origin-top">
             <Calendar
               mode="single"
               selected={date}
