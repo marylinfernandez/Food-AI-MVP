@@ -26,7 +26,7 @@ function Calendar({
     <DayPicker
       locale={currentLocale}
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-2", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4 w-full",
@@ -42,17 +42,17 @@ function Calendar({
         table: "w-full border-collapse space-y-1",
         head_row: "flex w-full mb-2",
         head_cell:
-          "text-muted-foreground rounded-md font-bold text-[0.7rem] uppercase tracking-tighter flex-1 text-center py-2",
+          "text-muted-foreground rounded-md font-bold text-[0.65rem] uppercase tracking-tighter flex-1 text-center py-2",
         row: "flex w-full mt-1",
         cell: cn(
-          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/10 flex-1 flex justify-center items-center h-10",
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/10 flex-1 flex justify-center items-center h-9",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
             : "[&:has([aria-selected])]:rounded-md"
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-primary/20 hover:text-primary transition-all rounded-full"
+          "h-8 w-8 p-0 font-medium aria-selected:opacity-100 hover:bg-primary/20 hover:text-primary transition-all rounded-full"
         ),
         day_range_start: "day-range-start",
         day_range_end: "day-range-end",
