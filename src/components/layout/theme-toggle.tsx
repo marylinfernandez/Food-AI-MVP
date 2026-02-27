@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Moon, Sun } from "lucide-react";
@@ -6,13 +7,12 @@ import { Button } from "@/components/ui/button";
 
 /**
  * @fileOverview Un componente de toggle para cambiar entre modo claro y oscuro.
- * Utiliza localStorage para persistir la preferencia y evita errores de hidratación.
+ * Sincronizado en tamaño (h-8 w-8) con los otros iconos del Header.
  */
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Detectar el tema inicial
     const isDarkStored = localStorage.getItem('theme') === 'dark' || 
       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
     
@@ -41,12 +41,12 @@ export function ThemeToggle() {
       variant="ghost" 
       size="icon" 
       onClick={toggleTheme} 
-      className="rounded-full bg-secondary/10 hover:bg-secondary/20 transition-all duration-300 active:scale-90"
+      className="rounded-full h-8 w-8 hover:bg-white/30 transition-all duration-300 active:scale-90"
     >
       {isDark ? (
-        <Sun className="h-5 w-5 text-accent animate-in spin-in-180 duration-500" />
+        <Sun className="h-4 w-4 text-accent animate-in spin-in-180 duration-500" />
       ) : (
-        <Moon className="h-5 w-5 text-primary animate-in spin-in-180 duration-500" />
+        <Moon className="h-4 w-4 text-primary animate-in spin-in-180 duration-500" />
       )}
     </Button>
   );
