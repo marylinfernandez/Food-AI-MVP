@@ -44,8 +44,8 @@ const RecipeSchema = z.object({
   instructions: z
     .array(z.string())
     .describe('Step-by-step instructions.'),
-  prepTimeMinutes: z.number().int().positive(),
-  cookTimeMinutes: z.number().int().positive(),
+  prepTimeMinutes: z.number().int().nonnegative(),
+  cookTimeMinutes: z.number().int().nonnegative(),
   servings: z.number().int().positive(),
   imageSearchTerm: z.string().describe('English search term for the dish image.'),
 });
