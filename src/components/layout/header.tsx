@@ -1,49 +1,60 @@
+
 "use client";
 
 import { useUser } from "@/firebase";
 import { ThemeToggle } from "./theme-toggle";
-import { Settings, Sparkles } from "lucide-react";
+import { Settings, Sparkles, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview Encabezado global persistente que contiene el logo, bienvenida y toggle de tema.
+ * @fileOverview Encabezado global persistente con estética futurista.
  */
 export function Header() {
   const { user } = useUser();
   const pathname = usePathname();
-  
-  // No mostrar el encabezado completo en la página de login si se prefiere una vista limpia
   const isLoginPage = pathname === "/login";
 
+  if (isLoginPage) return null;
+
   return (
-    <header className="flex justify-between items-center mb-6 px-2">
+    <header className="flex justify-between items-center mb-6 px-2 animate-in fade-in slide-in-from-top duration-500">
       <div className="flex flex-col">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg neo-glow group-hover:scale-110 transition-transform">
+          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(var(--primary),0.4)] neo-glow group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-primary tracking-tight">
-            PantryPal <span className="text-secondary">AI</span>
-          </h1>
+          <div className="flex flex-col -space-y-1">
+            <h1 className="text-xl font-bold text-primary tracking-tighter">
+              PantryPal <span className="text-secondary">AI</span>
+            </h1>
+            {user && (
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                Nexus: {user.displayName || "Chef"}
+              </span>
+            )}
+          </div>
         </Link>
-        {user && pathname === "/" && !isLoginPage && (
-          <p className="text-muted-foreground text-[10px] uppercase tracking-widest mt-1 opacity-70">
-            Bienvenido, {user.displayName || user.email?.split('@')[0] || "Chef"}
-          </p>
-        )}
       </div>
       
       <div className="flex items-center gap-2">
         <ThemeToggle />
-        {user && !isLoginPage && (
-          <Link href="/settings">
-            <Button variant="ghost" size="icon" className="rounded-full bg-primary/10 hover:bg-primary/20">
-              <Settings className="h-5 w-5 text-primary" />
-            </Button>
-          </Link>
-        )}
+        <Link href="/settings">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "rounded-full transition-all duration-300",
+              pathname === "/settings" 
+                ? "bg-primary text-white shadow-lg" 
+                : "bg-secondary/10 hover:bg-secondary/20 text-secondary"
+            )}
+          >
+            <Languages className="h-5 w-5" />
+          </Button>
+        </Link>
       </div>
     </header>
   );
