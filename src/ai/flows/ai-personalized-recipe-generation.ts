@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow that generates personalized recipe suggestions based on available ingredients and user preferences.
+ * @fileOverview A Genkit flow that generates personalized recipe suggestions based on available ingredients, user preferences, and specific meal types.
  *
  * - personalizedRecipeGeneration - A function that handles the recipe generation process.
  * - PersonalizedRecipeGenerationInput - The input type for the personalizedRecipeGeneration function.
@@ -19,6 +19,10 @@ const PersonalizedRecipeGenerationInputSchema = z.object({
     .int()
     .positive()
     .describe('The number of people the recipe should serve.'),
+  mealType: z
+    .string()
+    .optional()
+    .describe('The type of dish requested (e.g., "Main Dish", "Dessert", "Alcoholic Drink", "Juice").'),
   allergies: z
     .array(z.string())
     .optional()
@@ -90,7 +94,43 @@ const personalizedRecipePrompt = ai.definePrompt({
   name: 'personalizedRecipePrompt',
   input: { schema: PersonalizedRecipeGenerationInputSchema },
   output: { schema: PersonalizedRecipeGenerationOutputSchema },
-  prompt: `Eres un asistente de cocina experto y creativo, especializado en generar recetas personalizadas para minimizar el desperdicio de alimentos y la fatiga de decisión.\nTu objetivo es proponer una o más recetas prácticas y deliciosas utilizando exclusivamente los ingredientes disponibles del usuario.\n\nConsidera los siguientes detalles para personalizar las recetas:\n\nIngredientes disponibles: {{{ingredients}}}\nNúmero de personas: {{{numberOfPeople}}}\n\n{{#if allergies}}\nAlergias a considerar: {{{allergies}}}\n{{/if}}\n\n{{#if tastePreferences}}\nPreferencias de sabor/tipo de comida: {{{tastePreferences}}}\n{{/if}}\n\n{{#if cookingAppliances}}\nElectrodomésticos disponibles: {{{cookingAppliances}}}\n{{/if}}\n\n{{#if availableTimeMinutes}}\nTiempo máximo disponible (en minutos, para preparación y cocción): {{{availableTimeMinutes}}}\n{{/if}}\n\n{{#if cookingSkillLevel}}\nNivel de habilidad culinaria: {{{cookingSkillLevel}}}\n{{/if}}\n\nNivel de complejidad de la receta deseado (priorizando la practicidad): {{{complexityLevel}}}\n\nGenera una o más recetas que cumplan con todos estos criterios. Asegúrate de que las recetas sean prácticas y no requieran un esfuerzo cognitivo excesivo para el usuario.\nLas instrucciones deben ser claras y concisas. Solo utiliza los ingredientes disponibles.`,
+  prompt: `Eres un asistente de cocina experto y creativo, especializado en generar recetas personalizadas para minimizar el desperdicio de alimentos y la fatiga de decisión.
+Tu objetivo es proponer una o más recetas prácticas y deliciosas utilizando exclusivamente los ingredientes disponibles del usuario.
+
+{{#if mealType}}
+IMPORTANTE: El usuario quiere específicamente un platillo de tipo: {{{mealType}}}. 
+Si es una bebida, puede ser jugo, cóctel con alcohol, cóctel sin alcohol o batido. Si es postre, debe ser dulce. Si es plato principal, debe ser nutritivo.
+{{/if}}
+
+Considera los siguientes detalles para personalizar las recetas:
+
+Ingredientes disponibles: {{{ingredients}}}
+Número de personas: {{{numberOfPeople}}}
+
+{{#if allergies}}
+Alergias a considerar: {{{allergies}}}
+{{/if}}
+
+{{#if tastePreferences}}
+Preferencias de sabor/tipo de comida: {{{tastePreferences}}}
+{{/if}}
+
+{{#if cookingAppliances}}
+Electrodomésticos disponibles: {{{cookingAppliances}}}
+{{/if}}
+
+{{#if availableTimeMinutes}}
+Tiempo máximo disponible (en minutos, para preparación y cocción): {{{availableTimeMinutes}}}
+{{/if}}
+
+{{#if cookingSkillLevel}}
+Nivel de habilidad culinaria: {{{cookingSkillLevel}}}
+{{/if}}
+
+Nivel de complejidad de la receta deseado (priorizando la practicidad): {{{complexityLevel}}}
+
+Genera una o más recetas que cumplan con todos estos criterios. Asegúrate de que las recetas sean prácticas y no requieran un esfuerzo cognitivo excesivo para el usuario.
+Las instrucciones deben ser claras y concisas. Solo utiliza los ingredientes disponibles.`,
 });
 
 const personalizedRecipeGenerationFlow = ai.defineFlow(
