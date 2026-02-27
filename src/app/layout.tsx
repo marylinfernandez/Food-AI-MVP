@@ -6,6 +6,8 @@ import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageProvider } from '@/context/language-context';
+import { TourProvider } from '@/context/tour-context';
+import { TourOverlay } from '@/components/layout/tour-overlay';
 
 export const metadata: Metadata = {
   title: 'FoodAI - Tu Asistente de Cocina Inteligente',
@@ -40,12 +42,15 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background pb-20 transition-colors duration-300">
         <FirebaseClientProvider>
           <LanguageProvider>
-            <main className="min-h-screen max-w-lg mx-auto relative px-4 pt-6">
-              <Header />
-              {children}
-            </main>
-            <BottomNav />
-            <Toaster />
+            <TourProvider>
+              <main className="min-h-screen max-w-lg mx-auto relative px-4 pt-6">
+                <Header />
+                <TourOverlay />
+                {children}
+              </main>
+              <BottomNav />
+              <Toaster />
+            </TourProvider>
           </LanguageProvider>
         </FirebaseClientProvider>
       </body>

@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, ChefHat, Refrigerator, ArrowRight, Sparkles, HelpCircle, ChevronRight, X } from "lucide-react";
+import { Camera, ChefHat, Refrigerator, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePantry } from "@/lib/pantry-store";
 import { Badge } from "@/components/ui/badge";
@@ -11,21 +11,18 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "@/context/language-context";
 import { cn } from "@/lib/utils";
+import { useTour } from "@/context/tour-context";
 
-/**
- * @fileOverview Página principal de FoodAI.
- * Incluye el Tour Interactivo que guía al usuario por las funcionalidades.
- */
 export default function HomePage() {
   const { items } = usePantry();
   const { user, isUserLoading } = useUser();
   const { t, language } = useTranslation();
   const router = useRouter();
+  const { guideStep } = useTour();
   const fridgeHero = PlaceHolderImages.find(img => img.id === "hero-fridge");
-  const [guideStep, setGuideStep] = useState<number>(0);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -35,59 +32,13 @@ export default function HomePage() {
 
   if (isUserLoading) return null;
 
-  const nextStep = () => {
-    if (guideStep === 5) {
-      setGuideStep(0);
-      return;
-    }
-    setGuideStep(prev => prev + 1);
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-10">
-      {/* HEADER DE BIENVENIDA Y BOTÓN DE TOUR */}
       <div className="flex justify-between items-center px-1">
         <div>
           <p className="text-muted-foreground text-sm font-medium">{t('home.title')}</p>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={cn(
-            "rounded-full h-9 gap-2 transition-all shadow-sm border",
-            guideStep > 0 
-              ? "bg-primary text-white border-primary" 
-              : "bg-background text-primary border-primary/20 hover:bg-primary/5"
-          )}
-          onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
-        >
-          <HelpCircle className={cn("h-4 w-4", guideStep === 0 && "animate-bounce")} />
-          <span className="text-xs font-bold uppercase tracking-wider">{t('home.guide')}</span>
-        </Button>
       </div>
-
-      {/* TARJETA DEL TOUR INTERACTIVO (Pop-up dinámico) */}
-      {guideStep > 0 && (
-        <Card className="glass border-primary/40 bg-primary/10 animate-in slide-in-from-top duration-500 overflow-hidden relative shadow-2xl border-2">
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 rounded-full hover:bg-primary/20" onClick={() => setGuideStep(0)}>
-            <X className="h-3 w-3" />
-          </Button>
-          <CardHeader className="pb-2 bg-primary/20">
-            <CardTitle className="text-lg flex items-center gap-2 text-primary font-black uppercase tracking-tight">
-              <Sparkles className="h-5 w-5 animate-pulse" /> {t(`guide.step${guideStep}.title`)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-4 pt-4">
-            <p className="leading-relaxed font-medium italic text-foreground/90">"{t(`guide.step${guideStep}.desc`)}"</p>
-            <div className="flex justify-between items-center pt-2">
-               <span className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em]">{guideStep} / 5</span>
-               <Button size="sm" className="rounded-xl px-6 bg-primary font-bold shadow-lg hover:scale-105 transition-transform" onClick={nextStep}>
-                 {guideStep === 5 ? t('guide.finish') : t('guide.next')} <ChevronRight className="h-3 w-3 ml-1" />
-               </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* SECCIÓN 2: DESPENSA (Resaltada en Paso 2) */}
       <section className={cn(
@@ -131,7 +82,7 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* SECCIÓN 3: RECETAS (Resaltada en Paso 3 y 4) */}
+      {/* SECCIÓN 3: RECETAS (Resaltada en Paso 3) */}
       <section className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <h3 className="text-lg font-bold flex items-center gap-2">
@@ -144,7 +95,7 @@ export default function HomePage() {
 
         <Card className={cn(
           "overflow-hidden glass border-none group relative transition-all duration-500",
-          (guideStep === 3 || guideStep === 4) && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.01]"
+          guideStep === 3 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.01]"
         )}>
           <CardContent className="p-0 flex items-center">
             <div className="relative w-28 h-28 flex-shrink-0">
@@ -169,15 +120,15 @@ export default function HomePage() {
               </Link>
             </div>
           </CardContent>
-          {(guideStep === 3 || guideStep === 4) && (
+          {guideStep === 3 && (
             <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white">
-              {guideStep}
+              3
             </div>
           )}
         </Card>
       </section>
 
-      {/* SECCIÓN 5: HISTORIAL/PERFIL (Resaltada en Paso 5) */}
+      {/* SECCIÓN 5: PERFIL */}
       <section className={cn(
         "bg-gradient-to-r from-primary/90 to-secondary/90 backdrop-blur-md rounded-[2rem] p-6 text-white space-y-4 shadow-xl neo-glow relative overflow-hidden transition-all duration-500",
         guideStep === 5 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]"

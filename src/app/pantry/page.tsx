@@ -1,6 +1,7 @@
+
 "use client";
 
-import { usePantry, HistoryRecipe } from "@/lib/pantry-store";
+import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Package, ChefHat, Timer, Trash2, History, Sparkles } from "lucide-react";
@@ -9,10 +10,13 @@ import { useTranslation } from "@/context/language-context";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { useTour } from "@/context/tour-context";
+import { cn } from "@/lib/utils";
 
 export default function PantryPage() {
   const { items, historyRecipes, removeItem } = usePantry();
   const { t, language } = useTranslation();
+  const { guideStep } = useTour();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [dateSeed, setDateSeed] = useState<string>("");
 
@@ -28,7 +32,6 @@ export default function PantryPage() {
     return itemDate.toDateString() === date.toDateString();
   });
 
-  // Deduplicación de recetas por nombre para el día seleccionado
   const dayRecipes = historyRecipes
     .filter(recipe => {
       if (!date) return false;
@@ -53,7 +56,10 @@ export default function PantryPage() {
         </div>
       </header>
 
-      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-md">
+      <Card className={cn(
+        "relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-md transition-all duration-500",
+        guideStep === 5 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]"
+      )}>
         {dateSeed && (
           <div className="absolute inset-0 z-0">
             <Image
@@ -75,6 +81,9 @@ export default function PantryPage() {
             className="w-full"
           />
         </CardContent>
+        {guideStep === 5 && (
+          <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white z-50">5</div>
+        )}
       </Card>
 
       <div className="space-y-8 px-1">

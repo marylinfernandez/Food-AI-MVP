@@ -3,42 +3,28 @@
 
 import { useUser } from "@/firebase";
 import { ThemeToggle } from "./theme-toggle";
-import { Sparkles, Languages, Check } from "lucide-react";
+import { Sparkles, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/language-context";
 import { Language } from "@/lib/i18n";
+import { useTour } from "@/context/tour-context";
 
 export function Header() {
   const { user } = useUser();
-  const { toast } = useToast();
   const { language, setLanguage, t } = useTranslation();
-
-  const changeLanguage = (langId: Language, label: string) => {
-    setLanguage(langId);
-    toast({
-      title: t('header.langUpdated'),
-      description: t('header.langDesc'),
-    });
-  };
+  const { guideStep, setGuideStep } = useTour();
 
   const languages = [
-    { id: "english" as Language, label: "English", flag: "🇺🇸" },
-    { id: "spanish-es" as Language, label: "Español (ES)", flag: "🇪🇸" },
-    { id: "spanish-la" as Language, label: "Español (LATAM)", flag: "🌎" }
+    { id: "english" as Language, label: "EN", flag: "🇺🇸" },
+    { id: "spanish-es" as Language, label: "ES", flag: "🇪🇸" },
+    { id: "spanish-la" as Language, label: "LA", flag: "🌎" }
   ];
 
   return (
-    <header className="flex justify-between items-center mb-6 px-2 animate-in fade-in slide-in-from-top duration-500 relative z-50">
-      <div className="flex flex-col">
+    <header className="flex flex-col gap-4 mb-6 px-2 animate-in fade-in slide-in-from-top duration-500 relative z-50">
+      <div className="flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(var(--primary),0.4)] neo-glow group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
             <Sparkles className="h-5 w-5 text-white" />
@@ -48,53 +34,49 @@ export function Header() {
               Food<span className="text-secondary">AI</span>
             </h1>
             {user && (
-              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                {t('header.nexus')}: {user.displayName || "Chef"}
+              <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                {user.displayName || "Chef"}
               </span>
             )}
           </div>
         </Link>
+        <div className="flex items-center gap-2">
+           <Button 
+            variant="ghost" 
+            size="sm" 
+            className={cn(
+              "rounded-full h-9 gap-2 transition-all shadow-sm border px-3",
+              guideStep > 0 
+                ? "bg-primary text-white border-primary" 
+                : "bg-background text-primary border-primary/20 hover:bg-primary/5"
+            )}
+            onClick={() => setGuideStep(guideStep === 0 ? 1 : 0)}
+          >
+            <HelpCircle className={cn("h-4 w-4", guideStep === 0 && "animate-bounce")} />
+            <span className="text-[10px] font-black uppercase tracking-wider hidden xs:inline">{t('home.guide')}</span>
+          </Button>
+          <ThemeToggle />
+        </div>
       </div>
       
-      <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full bg-secondary/10 hover:bg-secondary/20 text-secondary transition-all duration-300"
-            >
-              <Languages className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 glass border-white/10 rounded-2xl p-2">
-            {languages.map((lang) => (
-              <DropdownMenuItem 
-                key={lang.id} 
-                onClick={() => changeLanguage(lang.id, lang.label)}
-                className={cn(
-                  "flex items-center justify-between rounded-xl cursor-pointer p-3 transition-colors",
-                  language === lang.id ? "bg-primary/20 text-primary" : "hover:bg-white/5"
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{lang.flag}</span>
-                  <span className="font-bold text-xs uppercase tracking-wider">{lang.label}</span>
-                </div>
-                {language === lang.id && <Check className="h-3 w-3" />}
-              </DropdownMenuItem>
-            ))}
-            <div className="pt-2 mt-2 border-t border-white/10">
-              <Link href="/settings" className="w-full">
-                <DropdownMenuItem className="text-[10px] text-center w-full justify-center opacity-60 uppercase font-bold hover:opacity-100">
-                  Settings
-                </DropdownMenuItem>
-              </Link>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <ThemeToggle />
+      <div className="flex items-center justify-center gap-1 bg-secondary/5 p-1 rounded-2xl border border-white/10">
+        {languages.map((lang) => (
+          <Button
+            key={lang.id}
+            variant="ghost"
+            size="sm"
+            onClick={() => setLanguage(lang.id)}
+            className={cn(
+              "flex-1 h-8 rounded-xl text-[9px] font-bold transition-all gap-1",
+              language === lang.id 
+                ? "bg-white dark:bg-primary/20 text-primary shadow-sm" 
+                : "text-muted-foreground hover:bg-white/5"
+            )}
+          >
+            <span>{lang.flag}</span>
+            <span>{lang.label}</span>
+          </Button>
+        ))}
       </div>
     </header>
   );
