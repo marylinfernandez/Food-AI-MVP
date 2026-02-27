@@ -10,14 +10,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn } from "lucide-react";
+import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, QrCode, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
+import Image from "next/image";
 
 /**
- * @fileOverview Pantalla de inicio de sesión simplificada: Exclusivamente Correo y Contraseña.
+ * @fileOverview Pantalla de inicio de sesión con acceso por correo, contraseña y sección para compartir mediante QR.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -43,14 +44,13 @@ export default function LoginPage() {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
         try {
-          // Generar mensaje de bienvenida con Gemini 2.5 Flash
           const welcomeMsg = await generateWelcomeEmail({
             email: email,
             language: language
           });
           toast({ 
             title: "¡Cuenta creada!", 
-            description: `Bienvenido Chef. Hemos preparado una sorpresa: "${welcomeMsg.subject}"`,
+            description: `Bienvenido Chef. Revisa tu correo: "${welcomeMsg.subject}"`,
           });
         } catch (aiErr) {
           toast({ title: "¡Cuenta creada!", description: "Bienvenido a FoodAI." });
@@ -72,7 +72,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] space-y-6 animate-in fade-in duration-1000 px-4">
+    <div className="flex flex-col items-center justify-center min-h-[90vh] space-y-8 animate-in fade-in duration-1000 px-4 pb-20">
       <div className="text-center space-y-2 mb-2">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary neo-glow animate-float mb-4 shadow-[0_0_30px_rgba(var(--primary),0.5)]">
           <Sparkles className="h-8 w-8 text-white" />
@@ -140,6 +140,31 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* SECCIÓN COMPARTIR CON QR */}
+      <div className="w-full max-w-md animate-in slide-in-from-bottom duration-700 delay-300">
+        <Card className="glass border-dashed border-primary/30 p-6 flex flex-col items-center gap-4 text-center">
+          <div className="flex items-center gap-2 mb-2">
+            <Share2 className="h-4 w-4 text-primary" />
+            <h3 className="font-bold text-sm uppercase tracking-widest text-primary">Comparte FoodAI</h3>
+          </div>
+          <div className="relative h-32 w-32 bg-white p-2 rounded-2xl shadow-inner border-4 border-primary/10 group">
+            <Image 
+              src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://food-ai-app.web.app&bgcolor=ffffff&color=2563eb"
+              alt="Compartir App QR"
+              width={120}
+              height={120}
+              className="rounded-lg group-hover:scale-105 transition-transform"
+            />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/40 backdrop-blur-[1px]">
+               <QrCode className="h-8 w-8 text-primary animate-pulse" />
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground font-medium px-4 leading-relaxed uppercase tracking-wider">
+            Escanea este código para invitar a otros chefs al futuro de la cocina inteligente.
+          </p>
+        </Card>
+      </div>
       
       <p className="text-[10px] text-muted-foreground/60 text-center max-w-xs leading-relaxed uppercase tracking-widest px-4">
         {t('login.footer')}
