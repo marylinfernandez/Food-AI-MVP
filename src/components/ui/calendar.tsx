@@ -40,12 +40,12 @@ function Calendar({
           buttonVariants({ variant: "outline" }),
           "h-8 w-8 bg-background/50 p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20 absolute right-4 z-20"
         ),
-        month_grid: "w-full border-collapse block",
+        month_grid: "w-full block",
         weekdays: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900 border-b border-white/10",
-        weekday: "text-white font-bold text-[0.65rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0 flex items-center justify-center h-full",
+        weekday: "text-white font-bold text-[0.65rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0 flex items-center justify-center w-full",
         weeks: "w-full block",
         week: "grid grid-cols-7 w-full border-b border-muted/30 last:border-b-0",
-        day: "relative text-center text-sm h-14 flex items-stretch justify-stretch overflow-hidden border-r border-muted/30 last:border-r-0 p-0",
+        day: "relative text-center text-sm h-14 flex items-stretch justify-stretch overflow-hidden border-r border-muted/30 last:border-r-0 p-0 w-full",
         day_button: cn(
           "h-full w-full flex items-center justify-center p-0 font-medium transition-all hover:bg-primary/10 text-xs",
           "aria-selected:bg-primary/20 aria-selected:text-primary aria-selected:font-bold aria-selected:opacity-100"
