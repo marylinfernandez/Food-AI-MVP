@@ -4,10 +4,11 @@
 import { useState, useRef } from "react";
 import { personalizedRecipeGeneration, PersonalizedRecipeGenerationOutput } from "@/ai/flows/ai-personalized-recipe-generation";
 import { aiRecipeAudio } from "@/ai/flows/ai-recipe-audio-flow";
+import { aiNearbyStores, NearbyStoresOutput } from "@/ai/flows/ai-nearby-stores-flow";
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Timer, Users, Sparkles, Loader2, Play, CheckCircle2, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight, Mic, ShoppingCart, CheckCircle, Search } from "lucide-react";
+import { Timer, Users, Sparkles, Loader2, Play, CheckCircle2, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight, Mic, ShoppingCart, CheckCircle, Search, MapPin, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,8 @@ export default function RecipesPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
   const [subCategory, setSubCategory] = useState<string>("");
   const [specificRequest, setSpecificRequest] = useState("");
+  const [nearbyStores, setNearbyStores] = useState<NearbyStoresOutput | null>(null);
+  const [storesLoading, setStoresLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const categories = [
@@ -48,7 +51,6 @@ export default function RecipesPage() {
   const generateRecipes = async () => {
     if (!selectedCategory) return;
     
-    // El inventario inteligente usa solo los productos del día actual
     const todayStr = new Date().toDateString();
     const todayItems = items.filter(i => new Date(i.scannedAt).toDateString() === todayStr);
 
@@ -63,6 +65,7 @@ export default function RecipesPage() {
 
     setLoading(true);
     setRecipes(null);
+    setNearbyStores(null);
     try {
       let mealTypeLabel = categories.find(c => c.id === selectedCategory)?.label || "";
       if (selectedCategory === 'drink' && subCategory) {
@@ -79,7 +82,6 @@ export default function RecipesPage() {
 
       setRecipes(result);
       
-      // Guardar la primera receta generada en el historial del día
       if (result.recipes.length > 0) {
         addRecipeToHistory({
           name: result.recipes[0].name,
@@ -96,6 +98,37 @@ export default function RecipesPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNearbyStores = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "Error", description: "Geolocalización no soportada", variant: "destructive" });
+      return;
+    }
+
+    setStoresLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const missing = recipes?.recipes[activeRecipe || 0]?.ingredientsMissing || [];
+          const result = await aiNearbyStores({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            missingIngredients: missing,
+            language: language
+          });
+          setNearbyStores(result);
+        } catch (error) {
+          toast({ title: "Error", description: "No se pudieron obtener tiendas", variant: "destructive" });
+        } finally {
+          setStoresLoading(false);
+        }
+      },
+      (error) => {
+        toast({ title: "Error de Ubicación", description: "No se pudo acceder a tu ubicación", variant: "destructive" });
+        setStoresLoading(false);
+      }
+    );
   };
 
   const handleListen = async (idx: number, recipe: any) => {
@@ -151,6 +184,7 @@ export default function RecipesPage() {
     setRecipes(null);
     setActiveRecipe(null);
     setSpecificRequest("");
+    setNearbyStores(null);
   };
 
   return (
@@ -336,6 +370,60 @@ export default function RecipesPage() {
                         </div>
                       </div>
                    </div>
+
+                   {recipe.ingredientsMissing.length > 0 && !nearbyStores && (
+                     <div className="bg-primary/5 rounded-2xl p-6 border border-primary/20 space-y-4 animate-in fade-in">
+                       <div className="flex items-center gap-3">
+                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                           <MapPin className="h-5 w-5 text-primary" />
+                         </div>
+                         <div>
+                           <h4 className="font-bold text-sm">{t('recipes.storesTitle')}</h4>
+                           <p className="text-xs text-muted-foreground">{t('recipes.storesDesc')}</p>
+                         </div>
+                       </div>
+                       <Button 
+                        variant="outline" 
+                        className="w-full rounded-xl border-primary text-primary hover:bg-primary hover:text-white"
+                        onClick={() => { setActiveRecipe(idx); handleNearbyStores(); }}
+                        disabled={storesLoading}
+                       >
+                         {storesLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
+                         {t('recipes.enableLocation')}
+                       </Button>
+                     </div>
+                   )}
+
+                   {nearbyStores && activeRecipe === idx && (
+                     <div className="space-y-4 animate-in slide-in-from-top duration-500">
+                       <h4 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                         <MapPin className="h-4 w-4" /> Tiendas Cercanas
+                       </h4>
+                       <div className="space-y-3">
+                         {nearbyStores.stores.map((store, sIdx) => (
+                           <Card key={sIdx} className="border-none glass bg-white/50 dark:bg-black/20 p-4 rounded-xl">
+                             <div className="flex justify-between items-start">
+                               <div>
+                                 <p className="font-bold text-sm">{store.name}</p>
+                                 <p className="text-[10px] text-muted-foreground">{store.address}</p>
+                               </div>
+                               <Badge className={cn("text-[9px]", store.isOpen ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                                 {store.isOpen ? "Abierto" : "Cerrado"}
+                               </Badge>
+                             </div>
+                             <div className="mt-3 flex items-center gap-4 text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
+                               <div className="flex items-center gap-1">
+                                 <MapPin className="h-3 w-3" /> {store.distance}
+                               </div>
+                               <div className="flex items-center gap-1">
+                                 <Clock className="h-3 w-3" /> {t('recipes.hours')}: {store.hours}
+                               </div>
+                             </div>
+                           </Card>
+                         ))}
+                       </div>
+                     </div>
+                   )}
 
                    {activeRecipe === idx ? (
                       <div className="space-y-6 pt-6 border-t border-white/10 animate-in fade-in duration-500">

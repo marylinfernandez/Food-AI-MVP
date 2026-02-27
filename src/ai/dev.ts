@@ -7,3 +7,4 @@ import '@/ai/flows/ai-personalized-recipe-generation.ts';
 import '@/ai/flows/ai-ingredient-identification.ts';
 import '@/ai/flows/ai-guided-profile-creation.ts';
 import '@/ai/flows/ai-recipe-audio-flow.ts';
+import '@/ai/flows/ai-nearby-stores-flow.ts';
