@@ -20,8 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * @fileOverview Encabezado global con selectores de idioma, tour y tema.
- * Corregido para evitar errores de hidratación mediante el uso de useEffect para el estado del usuario.
+ * @fileOverview Encabezado global con gestión robusta de hidratación.
  */
 export function Header() {
   const { user, isUserLoading } = useUser();

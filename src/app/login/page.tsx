@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -16,15 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, Chrome, Facebook, Instagram, Loader2, Sparkles } from "lucide-react";
+import { Mail, Lock, Chrome, Facebook, Instagram, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión con sincronización social avanzada y bienvenida por IA.
- * Se ha mejorado para asegurar que el usuario sea redirigido a las páginas de inicio de sesión si no tiene sesión activa.
+ * @fileOverview Pantalla de inicio de sesión optimizada con gestión de errores de configuración.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -43,7 +43,6 @@ export default function LoginPage() {
     switch (providerName) {
       case 'google': 
         provider = new GoogleAuthProvider(); 
-        // Forzamos la selección de cuenta o login si no hay sesión activa
         provider.setCustomParameters({ prompt: 'select_account' });
         break;
       case 'facebook': 
@@ -60,12 +59,9 @@ export default function LoginPage() {
     }
 
     try {
-      // signInWithPopup abrirá una ventana del proveedor. Si el usuario no está logueado, 
-      // el proveedor (Google, Facebook, etc.) le pedirá sus credenciales automáticamente.
       const result = await signInWithPopup(auth, provider);
       const additionalInfo = getAdditionalUserInfo(result);
       
-      // Si es un usuario nuevo, enviamos correo de bienvenida generado por IA
       if (additionalInfo?.isNewUser) {
         try {
           const welcomeMsg = await generateWelcomeEmail({
@@ -87,16 +83,18 @@ export default function LoginPage() {
       router.push("/");
     } catch (error: any) {
       console.error("Social Auth Error:", error);
-      let errorDesc = "Por favor, inicia sesión en tu cuenta de " + providerName + " para continuar.";
+      let errorDesc = "Por favor, intenta de nuevo.";
       
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorDesc = "La ventana de acceso se cerró. Por favor, intenta de nuevo y asegúrate de iniciar sesión.";
+      if (error.code === 'auth/operation-not-allowed') {
+        errorDesc = "Este método de inicio de sesión no está habilitado en la consola de Firebase. Contacta al administrador.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorDesc = "La ventana de acceso se cerró. Por favor, intenta de nuevo.";
       } else if (error.code === 'auth/account-exists-with-different-credential') {
-        errorDesc = "Ya existe una cuenta con este correo pero vinculada a otra red social.";
+        errorDesc = "Ya existe una cuenta con este correo vinculada a otra red social.";
       }
 
       toast({ 
-        title: "Sincronización requerida", 
+        title: "Error de Autenticación", 
         description: errorDesc, 
         variant: "destructive" 
       });
@@ -114,7 +112,6 @@ export default function LoginPage() {
     try {
       if (isRegistering) {
         const result = await createUserWithEmailAndPassword(auth, email, password);
-        
         try {
           const welcomeMsg = await generateWelcomeEmail({
             email: email,
@@ -127,7 +124,6 @@ export default function LoginPage() {
         } catch (aiErr) {
           toast({ title: "¡Cuenta creada!", description: "Bienvenido a FoodAI." });
         }
-        
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "¡Hola de nuevo!", description: "Has iniciado sesión correctamente." });
@@ -170,7 +166,7 @@ export default function LoginPage() {
           <CardContent className="p-8">
             <TabsContent value="social" className="space-y-4 mt-0 animate-in slide-in-from-left-4 duration-300">
               <p className="text-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 leading-relaxed">
-                Si no has iniciado sesión en tu cuenta preferida, se te pedirá hacerlo a continuación:
+                Elige tu red social favorita para sincronizar tu cocina inteligente:
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="h-12 rounded-2xl border-2 hover:bg-primary/10 group transition-all text-xs font-bold" onClick={() => handleSocialLogin('google')} disabled={loading}>
