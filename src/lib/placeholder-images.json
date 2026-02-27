@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-fridge",
+      "description": "A well-organized modern refrigerator filled with fresh ingredients.",
+      "imageUrl": "https://images.unsplash.com/photo-1759398430338-8057876edf61?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxvcmdhbml6ZWQlMjByZWZyaWdlcmF0b3J8ZW58MHx8fHwxNzcyMTkzNDU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "organized refrigerator"
+    },
+    {
+      "id": "recipe-pasta",
+      "description": "A delicious bowl of pasta with fresh vegetables.",
+      "imageUrl": "https://images.unsplash.com/photo-1608897013039-887f21d8c804?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwYXN0YSUyMGRpc2h8ZW58MHx8fHwxNzcyMTY5MjkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pasta dish"
+    },
+    {
+      "id": "recipe-salad",
+      "description": "A fresh vibrant salad with varied toppings.",
+      "imageUrl": "https://images.unsplash.com/photo-1692780941487-505d5d908aa6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxoZWFsdGh5JTIwc2FsYWR8ZW58MHx8fHwxNzcyMTM1NTI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "healthy salad"
+    }
+  ]
 }
