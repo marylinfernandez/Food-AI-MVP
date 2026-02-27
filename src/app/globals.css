@@ -1,11 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Tema Futurista Amigable: Deep Space & Neon */
+    /* Tema Futurista Amigable: Light mode */
     --background: 230 40% 98%;
     --foreground: 222 47% 11%;
 
@@ -15,18 +14,15 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primario: Azul Eléctrico Vibrante */
     --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
 
-    /* Secundario: Violeta Tecnológico */
     --secondary: 262 83% 58%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Acento: Cian Neón */
     --accent: 181 84% 45%;
     --accent-foreground: 222 47% 11%;
 
@@ -37,14 +33,15 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 1.5rem;
+    --radius: 1.25rem;
   }
 
   .dark {
+    /* Tema Futurista: Dark mode Profundo */
     --background: 222 47% 4%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 6%;
+    --card: 222 47% 7%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222 47% 4%;
@@ -62,7 +59,7 @@
     --accent: 181 84% 45%;
     --accent-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 25%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
@@ -76,15 +73,25 @@
     @apply bg-background text-foreground font-body selection:bg-primary/30;
     background-image: radial-gradient(at 0% 0%, hsla(221, 83%, 53%, 0.05) 0, transparent 50%),
                       radial-gradient(at 100% 100%, hsla(262, 83%, 58%, 0.05) 0, transparent 50%);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark body {
+    background-image: radial-gradient(at 0% 0%, hsla(217, 91%, 60%, 0.1) 0, transparent 50%),
+                      radial-gradient(at 100% 100%, hsla(263, 70%, 50%, 0.1) 0, transparent 50%);
   }
 }
 
 .glass {
-  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+  @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
 }
 
 .neo-glow {
   box-shadow: 0 0 20px hsla(221, 83%, 53%, 0.2);
+}
+
+.dark .neo-glow {
+  box-shadow: 0 0 30px hsla(217, 91%, 60%, 0.2);
 }
 
 .animate-float {
@@ -95,4 +102,15 @@
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
+}
+
+/* Scrollbar personalizada futurista */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
 }
