@@ -28,7 +28,6 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-0 w-full", className)}
       formatters={{
-        // Forzamos el nombre completo del día (Lunes, Martes, etc.)
         formatWeekdayName: (date, options) => format(date, 'EEEE', options),
       }}
       classNames={{
@@ -45,16 +44,11 @@ function Calendar({
           buttonVariants({ variant: "outline" }),
           "h-8 w-8 bg-background/50 p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20 absolute right-4 z-20"
         ),
-        // Forzamos el contenedor de la tabla a ser un bloque de ancho completo
         month_grid: "w-full border-collapse block space-y-0",
-        // CABECERAS: Grid de 7 columnas idénticas con altura fija
         weekdays: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900 border-b border-white/10",
         weekday: "text-white font-bold text-[0.6rem] uppercase h-14 w-full flex items-center justify-center border-r border-white/10 last:border-r-0 text-center",
-        // CUERPO: Grid de semanas
         weeks: "w-full block",
-        // FILAS: Grid de 7 columnas idénticas que coincide EXACTAMENTE con las cabeceras
         week: "grid grid-cols-7 w-full border-b border-muted/30 last:border-b-0",
-        // CELDAS: Mismas dimensiones (h-14 y ancho proporcional) que las cabeceras
         day: "relative p-0 h-14 w-full flex items-stretch justify-stretch border-r border-muted/30 last:border-r-0",
         day_button: cn(
           "h-full w-full flex items-center justify-center p-0 font-medium transition-all hover:bg-primary/10 text-xs",
