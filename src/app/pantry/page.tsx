@@ -57,10 +57,10 @@ export default function PantryPage() {
               alt="Daily Landscape"
               fill
               className="object-cover transition-transform duration-1000 group-hover:scale-110"
-              data-ai-hint="nature landscape"
+              data-ai-hint="mountain landscape"
               priority
             />
-            <div className="absolute inset-0 bg-white/90 dark:bg-black/90 backdrop-blur-[4px]" />
+            <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-[2px]" />
           </div>
         )}
         <CardContent className="relative z-10 p-0 overflow-hidden">
