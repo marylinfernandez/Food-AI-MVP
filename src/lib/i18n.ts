@@ -75,6 +75,7 @@ export const translations = {
     'recipes.enableLocation': 'Find Stores Nearby',
     'recipes.storesLoading': 'Locating stores...',
     'recipes.hours': 'Hours',
+    'recipes.drinkType': 'Types',
     // Scan
     'scan.title': 'FoodAI Vision',
     'scan.subtitle': 'Real-time scanner',
@@ -170,6 +171,7 @@ export const translations = {
     'recipes.enableLocation': 'Buscar Tiendas Cercanas',
     'recipes.storesLoading': 'Localizando tiendas...',
     'recipes.hours': 'Horario',
+    'recipes.drinkType': 'Tipos',
     // Scan
     'scan.title': 'Visión FoodAI',
     'scan.subtitle': 'Escáner en tiempo real',
@@ -264,6 +266,7 @@ export const translations = {
     'recipes.enableLocation': 'Buscar Tiendas Cercanas',
     'recipes.storesLoading': 'Localizando tiendas...',
     'recipes.hours': 'Horario',
+    'recipes.drinkType': 'Tipos',
     // Scan
     'scan.title': 'Visión FoodAI',
     'scan.subtitle': 'Escáner en tiempo real',
