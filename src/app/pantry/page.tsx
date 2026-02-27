@@ -3,7 +3,7 @@
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Package, ChefHat, Timer, Sparkles, Trash2, History, MapPin } from "lucide-react";
+import { Package, ChefHat, Timer, Sparkles, Trash2, History } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/context/language-context";
 import { Calendar } from "@/components/ui/calendar";
@@ -40,7 +40,7 @@ export default function PantryPage() {
   const isToday = date?.toDateString() === new Date().toDateString();
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-24">
       <header className="px-2 space-y-1">
         <h1 className="text-3xl font-bold text-primary tracking-tight">{t('pantry.title')}</h1>
         <div className="flex items-center gap-2">
@@ -51,19 +51,19 @@ export default function PantryPage() {
         </div>
       </header>
 
-      {/* Calendario con Estilo de Rejilla y Fondo Paisajístico */}
-      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-sm">
+      {/* Calendario con Estilo de Rejilla y Fondo Paisajístico Real */}
+      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full">
         {dateSeed && (
           <div className="absolute inset-0 z-0">
             <Image
-              src={`https://picsum.photos/seed/${dateSeed}/800/600`}
+              src={`https://picsum.photos/seed/${dateSeed}/1000/800`}
               alt="Daily Landscape"
               fill
               className="object-cover transition-transform duration-1000 group-hover:scale-110"
               data-ai-hint="nature landscape"
               priority
             />
-            <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-[2px]" />
+            <div className="absolute inset-0 bg-white/90 dark:bg-black/90 backdrop-blur-[4px]" />
           </div>
         )}
         <CardContent className="relative z-10 p-0 overflow-hidden">
@@ -129,7 +129,7 @@ export default function PantryPage() {
             </h2>
             <Badge variant="outline" className="rounded-full border-secondary/30 text-[10px] font-bold bg-secondary/5">
               {dayRecipes.length}
-            </Badge>
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 gap-3">
