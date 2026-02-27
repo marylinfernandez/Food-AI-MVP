@@ -3,6 +3,8 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
+import { es, enUS } from "date-fns/locale"
+import { useTranslation } from "@/context/language-context"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -15,8 +17,14 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const { language } = useTranslation();
+  
+  // Mapear el idioma de la app a los locales de date-fns
+  const currentLocale = language === 'english' ? enUS : es;
+
   return (
     <DayPicker
+      locale={currentLocale}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -32,12 +40,12 @@ function Calendar({
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
-        head_row: "flex w-full justify-between mb-2",
+        head_row: "flex w-full mb-2",
         head_cell:
-          "text-muted-foreground rounded-md w-9 font-bold text-[0.7rem] uppercase tracking-tighter flex-1 text-center",
-        row: "flex w-full mt-2 justify-between",
+          "text-muted-foreground rounded-md font-bold text-[0.7rem] uppercase tracking-tighter flex-1 text-center py-2",
+        row: "flex w-full mt-1",
         cell: cn(
-          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/10 flex-1 flex justify-center items-center",
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/10 flex-1 flex justify-center items-center h-10",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
             : "[&:has([aria-selected])]:rounded-md"
