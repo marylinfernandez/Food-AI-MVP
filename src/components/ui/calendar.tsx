@@ -40,11 +40,11 @@ function Calendar({
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse table-fixed",
-        head_row: "grid grid-cols-7 w-full bg-black dark:bg-zinc-900",
+        head_row: "flex w-full bg-black dark:bg-zinc-900",
         head_cell:
-          "text-white font-bold text-[0.6rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
-        row: "grid grid-cols-7 w-full border-b border-muted/30",
-        cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 h-16 border-r border-muted/30 last:border-r-0",
+          "flex-1 text-white font-bold text-[0.6rem] uppercase tracking-widest text-center py-4 border-r border-white/10 last:border-r-0",
+        row: "flex w-full border-b border-muted/30",
+        cell: "flex-1 relative p-0 text-center text-sm focus-within:relative focus-within:z-20 h-16 border-r border-muted/30 last:border-r-0",
         day: cn(
           "h-full w-full p-2 font-medium aria-selected:opacity-100 hover:bg-primary/10 transition-all rounded-none text-xs flex items-start justify-start"
         ),
