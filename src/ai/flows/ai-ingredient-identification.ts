@@ -70,7 +70,7 @@ const identifyIngredientsPrompt = ai.definePrompt({
   name: 'identifyIngredientsPrompt',
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash-lite',
   prompt: `You are an AI assistant specialized in identifying food ingredients from photos and videos of fridges and pantries.
     Your goal is to meticulously examine the provided media and list all discernable food items.
     For each item, try to estimate its quantity if possible, and provide a confidence score for its identification.
