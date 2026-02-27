@@ -51,8 +51,8 @@ export default function PantryPage() {
         </div>
       </header>
 
-      {/* Calendario con Paisaje Natural Real Ajustado */}
-      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] max-w-[320px] mx-auto group">
+      {/* Calendario con Estilo de Rejilla y Fondo Paisajístico */}
+      <Card className="relative border-none overflow-hidden shadow-2xl rounded-[2rem] mx-auto group w-full max-w-sm">
         {dateSeed && (
           <div className="absolute inset-0 z-0">
             <Image
@@ -63,24 +63,16 @@ export default function PantryPage() {
               data-ai-hint="nature landscape"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/20 to-background/80 backdrop-blur-[1px]" />
+            <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-[2px]" />
           </div>
         )}
-        <CardContent className="relative z-10 p-2 glass bg-white/10 dark:bg-black/20 backdrop-blur-md">
-          <div className="flex items-center gap-2 mb-1 px-3 py-1 rounded-full bg-white/20 w-fit mx-auto border border-white/10">
-            <MapPin className="h-2.5 w-2.5 text-primary" />
-            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-foreground/80">
-              {language === 'english' ? 'Global Inspiration' : 'Inspiración Global'}
-            </span>
-          </div>
-          <div className="flex justify-center scale-95 origin-top">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-xl"
-            />
-          </div>
+        <CardContent className="relative z-10 p-0 overflow-hidden">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="w-full"
+          />
         </CardContent>
       </Card>
 

@@ -26,41 +26,40 @@ function Calendar({
     <DayPicker
       locale={currentLocale}
       showOutsideDays={showOutsideDays}
-      className={cn("p-1", className)}
+      className={cn("p-0", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-3 w-full",
-        caption: "flex justify-center pt-1 relative items-center mb-2",
-        caption_label: "text-sm font-bold tracking-tight text-primary uppercase",
+        months: "flex flex-col space-y-4",
+        month: "space-y-4 w-full",
+        caption: "flex justify-center pt-2 relative items-center mb-4",
+        caption_label: "text-2xl font-bold tracking-tighter text-foreground uppercase",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20"
+          "h-8 w-8 bg-background/50 p-0 opacity-50 hover:opacity-100 rounded-full border-primary/20"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
-        table: "w-full border-collapse",
-        head_row: "flex w-full mb-1",
+        table: "w-full border-collapse table-fixed border-t border-l border-muted/30",
+        head_row: "flex w-full bg-black dark:bg-zinc-900",
         head_cell:
-          "text-muted-foreground rounded-md font-bold text-[0.6rem] uppercase tracking-tighter flex-1 text-center py-2",
-        row: "flex w-full mt-0.5",
+          "text-white rounded-none font-bold text-[0.6rem] uppercase tracking-widest flex-1 text-center py-3 border-r border-muted/20",
+        row: "flex w-full",
         cell: cn(
-          "relative p-0 text-center text-xs focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/10 flex-1 flex justify-center items-center h-8",
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 flex-1 flex justify-center items-center h-14 border-r border-b border-muted/30",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
-            : "[&:has([aria-selected])]:rounded-md"
+            : ""
         ),
         day: cn(
-          buttonVariants({ variant: "ghost" }),
-          "h-7 w-7 p-0 font-medium aria-selected:opacity-100 hover:bg-primary/20 hover:text-primary transition-all rounded-full text-[10px]"
+          "h-full w-full p-0 font-medium aria-selected:opacity-100 hover:bg-primary/10 transition-all rounded-none text-xs flex items-start p-2 justify-start"
         ),
         day_range_start: "day-range-start",
         day_range_end: "day-range-end",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground shadow-lg shadow-primary/30",
-        day_today: "bg-accent/20 text-accent font-bold border border-accent/30",
+          "bg-primary/20 text-primary font-bold hover:bg-primary/30 focus:bg-primary/20",
+        day_today: "bg-accent/10 text-accent font-bold",
         day_outside:
-          "day-outside text-muted-foreground opacity-30 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+          "day-outside text-muted-foreground/30 bg-muted/5 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
         day_disabled: "text-muted-foreground opacity-50",
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
