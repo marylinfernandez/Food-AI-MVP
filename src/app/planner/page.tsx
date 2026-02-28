@@ -65,7 +65,7 @@ export default function PlannerPage() {
                <Bell className="h-5 w-5 text-primary" />
              </div>
              <div>
-               <CardTitle className="text-xl">Notificaciones</CardTitle>
+               <CardTitle className="text-xl">{t('planner.notifications')}</CardTitle>
                <CardDescription className="text-xs">
                  {t('planner.desc')}
                </CardDescription>
@@ -140,9 +140,9 @@ export default function PlannerPage() {
          <div className="bg-accent/10 rounded-[2rem] p-6 border border-accent/20 flex items-start gap-4 glass">
             <AlertCircle className="h-6 w-6 text-accent mt-1" />
             <div>
-              <h3 className="font-bold text-sm text-accent uppercase tracking-wider">Centro de Notificaciones</h3>
+              <h3 className="font-bold text-sm text-accent uppercase tracking-wider">{t('planner.notifTitle')}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                FoodAI te enviará una notificación tipo mensaje a la hora exacta que elijas. Así nunca olvidarás escanear tu nevera antes de empezar a cocinar.
+                {t('planner.notifDesc')}
               </p>
             </div>
          </div>
