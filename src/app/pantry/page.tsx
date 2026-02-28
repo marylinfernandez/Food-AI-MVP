@@ -32,7 +32,7 @@ export default function PantryPage() {
     return itemDate.toDateString() === date.toDateString();
   });
 
-  // Deduplicación de recetas por nombre para el historial diario
+  // Deduplicación estricta de recetas por nombre para el historial diario
   const dayRecipes = historyRecipes
     .filter(recipe => {
       if (!date) return false;
@@ -40,7 +40,7 @@ export default function PantryPage() {
       return recipeDate.toDateString() === date.toDateString();
     })
     .filter((recipe, index, self) => 
-      index === self.findIndex((t) => t.name === recipe.name)
+      index === self.findIndex((t) => t.name.toLowerCase() === recipe.name.toLowerCase())
     );
 
   const isToday = date?.toDateString() === new Date().toDateString();

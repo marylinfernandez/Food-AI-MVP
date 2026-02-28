@@ -76,6 +76,16 @@ export function usePantry() {
   };
 
   const addRecipeToHistory = (recipe: { name: string, prepTime: number }) => {
+    const today = new Date().toDateString();
+    
+    // Evitar duplicados para el mismo día
+    const alreadyExists = historyRecipes.some(r => 
+      r.name.toLowerCase() === recipe.name.toLowerCase() && 
+      new Date(r.scannedAt).toDateString() === today
+    );
+
+    if (alreadyExists) return;
+
     const newRecipe: HistoryRecipe = {
       id: Math.random().toString(36).substr(2, 9),
       name: recipe.name,
