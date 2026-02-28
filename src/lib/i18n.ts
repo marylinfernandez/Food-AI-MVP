@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Diccionario de traducciones exhaustivo para FoodAI.
  */
@@ -88,6 +89,7 @@ export const translations = {
     'planner.reminderTime': 'Reminder Time',
     'planner.save': 'Save Schedule',
     'planner.saved': 'Schedule updated successfully!',
+    'planner.savedDesc': 'Your cooking schedule has been updated.',
     'planner.notCooking': 'Not using the app today',
     'planner.monday': 'Monday',
     'planner.tuesday': 'Tuesday',
@@ -219,6 +221,7 @@ export const translations = {
     'planner.reminderTime': 'Hora del Recordatorio',
     'planner.save': 'Guardar Agenda',
     'planner.saved': '¡Agenda actualizada correctamente!',
+    'planner.savedDesc': 'Tu plan de cocina ha sido actualizado.',
     'planner.notCooking': 'No usaré la app hoy',
     'planner.monday': 'Lunes',
     'planner.tuesday': 'Martes',
@@ -349,6 +352,7 @@ export const translations = {
     'planner.reminderTime': 'Hora del Recordatorio',
     'planner.save': 'Guardar Agenda',
     'planner.saved': '¡Agenda actualizada con éxito!',
+    'planner.savedDesc': 'Tu horario de cocina ha sido actualizado.',
     'planner.notCooking': 'No usaré la app hoy',
     'planner.monday': 'Lunes',
     'planner.tuesday': 'Martes',

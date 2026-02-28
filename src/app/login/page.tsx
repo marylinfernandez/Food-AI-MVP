@@ -10,14 +10,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn } from "lucide-react";
+import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión simplificada centrada en correo y contraseña.
+ * @fileOverview Pantalla de inicio de sesión optimizada con validación de correo y bienvenida por IA.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -29,15 +29,33 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
 
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
+
   const handleEmailAuth = async () => {
     if (!email || !password) {
       toast({ 
-        title: "Datos incompletos", 
-        description: "Por favor llena todos los campos.", 
+        title: language === 'english' ? "Incomplete data" : "Datos incompletos", 
+        description: language === 'english' ? "Please fill in all fields." : "Por favor llena todos los campos.", 
         variant: "destructive" 
       });
       return;
     }
+
+    if (!validateEmail(email)) {
+      toast({ 
+        title: language === 'english' ? "Invalid Email" : "Correo Inválido", 
+        description: language === 'english' ? "Please enter a valid email address." : "Por favor ingresa un correo electrónico válido.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       if (isRegistering) {
@@ -48,21 +66,32 @@ export default function LoginPage() {
             language: language
           });
           toast({ 
-            title: "¡Cuenta creada!", 
-            description: `Bienvenido Chef. Revisa tu correo: "${welcomeMsg.subject}"`,
+            title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
+            description: `${language === 'english' ? 'Welcome Chef. Check your email' : 'Bienvenido Chef. Revisa tu correo'}: "${welcomeMsg.subject}"`,
           });
         } catch (aiErr) {
-          toast({ title: "¡Cuenta creada!", description: "Bienvenido a FoodAI." });
+          toast({ 
+            title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
+            description: language === 'english' ? "Welcome to FoodAI." : "Bienvenido a FoodAI." 
+          });
         }
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: "¡Hola de nuevo!", description: "Has iniciado sesión correctamente." });
+        toast({ 
+          title: language === 'english' ? "Welcome back!" : "¡Hola de nuevo!", 
+          description: language === 'english' ? "Logged in successfully." : "Has iniciado sesión correctamente." 
+        });
       }
       router.push("/");
     } catch (error: any) {
       let message = error.message;
-      if (error.code === 'auth/invalid-credential') message = "Correo o contraseña incorrectos.";
-      if (error.code === 'auth/email-already-in-use') message = "Este correo ya está registrado.";
+      if (error.code === 'auth/invalid-credential') {
+        message = language === 'english' ? "Incorrect email or password." : "Correo o contraseña incorrectos.";
+      } else if (error.code === 'auth/email-already-in-use') {
+        message = language === 'english' ? "This email is already registered." : "Este correo ya está registrado.";
+      } else if (error.code === 'auth/weak-password') {
+        message = language === 'english' ? "Password should be at least 6 characters." : "La contraseña debe tener al menos 6 caracteres.";
+      }
       
       toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
@@ -89,10 +118,10 @@ export default function LoginPage() {
         
         <CardHeader className="p-8 pb-4 text-center">
           <CardTitle className="text-2xl font-bold text-primary">
-            {isRegistering ? "Crear Cuenta" : "Iniciar Sesión"}
+            {isRegistering ? (language === 'english' ? "Create Account" : "Crear Cuenta") : (language === 'english' ? "Login" : "Iniciar Sesión")}
           </CardTitle>
           <CardDescription className="text-xs uppercase tracking-widest font-bold opacity-60">
-            {isRegistering ? "Únete al futuro de la cocina" : "Gestiona tu despensa inteligente"}
+            {isRegistering ? (language === 'english' ? "Join the future of cooking" : "Únete al futuro de la cocina") : (language === 'english' ? "Manage your smart pantry" : "Gestiona tu despensa inteligente")}
           </CardDescription>
         </CardHeader>
 

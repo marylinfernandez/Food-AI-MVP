@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePantry, DaySchedule } from "@/lib/pantry-store";
@@ -13,6 +14,9 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTour } from "@/context/tour-context";
 
+/**
+ * @fileOverview Página del planificador semanal con recordatorios localizados.
+ */
 export default function PlannerPage() {
   const { schedule, saveSchedule } = usePantry();
   const { t } = useTranslation();
@@ -42,7 +46,7 @@ export default function PlannerPage() {
     saveSchedule(localSchedule);
     toast({
       title: t('planner.saved'),
-      description: "Recibirás una notificación en los días seleccionados.",
+      description: t('planner.savedDesc') || "Agenda actualizada correctamente.",
     });
   };
 
@@ -56,7 +60,7 @@ export default function PlannerPage() {
       </header>
 
       <Card className={cn(
-        "glass border-none shadow-xl mx-2 transition-all duration-500",
+        "glass border-none shadow-xl mx-2 transition-all duration-500 relative",
         guideStep === 6 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.01]"
       )}>
         <CardHeader>
