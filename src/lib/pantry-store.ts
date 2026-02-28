@@ -1,7 +1,7 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import { normalizeText } from "./utils";
 
 export interface PantryItem {
   id: string;
@@ -77,10 +77,12 @@ export function usePantry() {
 
   const addRecipeToHistory = (recipe: { name: string, prepTime: number }) => {
     const today = new Date().toDateString();
+    const normalizedNewName = normalizeText(recipe.name);
     
-    // Evitar duplicados para el mismo día
+    // Evitar duplicados para el mismo día (independiente de mayúsculas, tildes o espacios)
+    // La IA entiende que son lo mismo gracias a la normalización estricta.
     const alreadyExists = historyRecipes.some(r => 
-      r.name.toLowerCase() === recipe.name.toLowerCase() && 
+      normalizeText(r.name) === normalizedNewName && 
       new Date(r.scannedAt).toDateString() === today
     );
 

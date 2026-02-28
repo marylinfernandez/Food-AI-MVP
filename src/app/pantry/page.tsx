@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePantry } from "@/lib/pantry-store";
@@ -11,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useTour } from "@/context/tour-context";
-import { cn } from "@/lib/utils";
+import { cn, normalizeText } from "@/lib/utils";
 
 export default function PantryPage() {
   const { items, historyRecipes, removeItem } = usePantry();
@@ -32,7 +31,8 @@ export default function PantryPage() {
     return itemDate.toDateString() === date.toDateString();
   });
 
-  // Deduplicación estricta de recetas por nombre para el historial diario
+  // Deduplicación estricta de recetas por nombre normalizado para el historial diario
+  // Comparamos sin tildes, mayúsculas ni espacios extra.
   const dayRecipes = historyRecipes
     .filter(recipe => {
       if (!date) return false;
@@ -40,7 +40,7 @@ export default function PantryPage() {
       return recipeDate.toDateString() === date.toDateString();
     })
     .filter((recipe, index, self) => 
-      index === self.findIndex((t) => t.name.toLowerCase() === recipe.name.toLowerCase())
+      index === self.findIndex((t) => normalizeText(t.name) === normalizeText(recipe.name))
     );
 
   const isToday = date?.toDateString() === new Date().toDateString();
