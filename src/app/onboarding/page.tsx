@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -9,10 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/firebase";
 
+/**
+ * @fileOverview Pantalla de onboarding guiada por voz. Protegida por autenticación.
+ */
 export default function OnboardingPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, isUserLoading } = useUser();
   const [isCalling, setIsCalling] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({});
@@ -20,6 +26,14 @@ export default function OnboardingPage() {
   const [latestUserInput, setLatestUserInput] = useState("");
   const [aiResponseText, setAiResponseText] = useState("Hola, soy FoodAI. Hagamos tu perfil familiar rápidamente por voz.");
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || !user) return null;
 
   const startCall = () => {
     setIsCalling(true);

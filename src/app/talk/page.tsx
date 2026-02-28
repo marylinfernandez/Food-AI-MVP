@@ -11,15 +11,30 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
+import { useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
 
+/**
+ * @fileOverview Página de actualización de inventario por voz. Protegida por autenticación.
+ */
 export default function TalkPage() {
   const { toast } = useToast();
   const { items, updateItem, addItem, removeItem } = usePantry();
   const { t, language } = useTranslation();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
   const [isListening, setIsListening] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [command, setCommand] = useState("");
   const [updates, setUpdates] = useState<VoiceInventoryUpdateOutput | null>(null);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || !user) return null;
 
   const startListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
