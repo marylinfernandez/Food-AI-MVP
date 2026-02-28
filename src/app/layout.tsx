@@ -12,6 +12,7 @@ import { TourOverlay } from '@/components/layout/tour-overlay';
 export const metadata: Metadata = {
   title: 'FoodAI - Tu Asistente de Cocina Inteligente',
   description: 'Gestión de despensa impulsada por IA y generación de recetas personalizadas.',
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

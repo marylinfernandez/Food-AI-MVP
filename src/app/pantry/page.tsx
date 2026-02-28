@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useTour } from "@/context/tour-context";
 import { cn, normalizeText } from "@/lib/utils";
+import { useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
 import {
   Accordion,
   AccordionContent,
@@ -19,16 +21,20 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-/**
- * @fileOverview Página de la despensa optimizada con listas desplegables (Accordions)
- * para evitar el desorden visual cuando hay muchos elementos.
- */
 export default function PantryPage() {
   const { items, historyRecipes, removeItem } = usePantry();
   const { t, language } = useTranslation();
   const { guideStep } = useTour();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [dateSeed, setDateSeed] = useState<string>("");
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     const today = new Date();
@@ -36,13 +42,14 @@ export default function PantryPage() {
     setDateSeed(seed);
   }, []);
 
+  if (isUserLoading || !user) return null;
+
   const dayItems = items.filter(item => {
     if (!date) return false;
     const itemDate = new Date(item.scannedAt);
     return itemDate.toDateString() === date.toDateString();
   });
 
-  // Deduplicación estricta de recetas por nombre normalizado para el historial diario
   const dayRecipes = historyRecipes
     .filter(recipe => {
       if (!date) return false;
@@ -67,7 +74,6 @@ export default function PantryPage() {
         </div>
       </header>
 
-      {/* Calendario Diario */}
       <div className={cn(
         "relative rounded-[2rem] overflow-hidden shadow-2xl glass transition-all duration-500",
         guideStep === 5 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]"
@@ -94,16 +100,11 @@ export default function PantryPage() {
               className="w-full"
             />
           </CardContent>
-          {guideStep === 5 && (
-            <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white z-50">5</div>
-          )}
         </Card>
       </div>
 
       <div className="px-1">
         <Accordion type="multiple" defaultValue={["ingredients", "recipes"]} className="w-full space-y-4 border-none">
-          
-          {/* SECCIÓN: INGREDIENTES ESCANEADOS */}
           <AccordionItem value="ingredients" className="border-none glass rounded-[2rem] overflow-hidden px-4">
             <AccordionTrigger className="hover:no-underline py-6">
               <div className="flex items-center justify-between w-full pr-4">
@@ -152,7 +153,6 @@ export default function PantryPage() {
             </AccordionContent>
           </AccordionItem>
 
-          {/* SECCIÓN: RECETAS DEL DÍA */}
           <AccordionItem value="recipes" className="border-none glass rounded-[2rem] overflow-hidden px-4">
             <AccordionTrigger className="hover:no-underline py-6">
               <div className="flex items-center justify-between w-full pr-4">
@@ -193,25 +193,8 @@ export default function PantryPage() {
               </div>
             </AccordionContent>
           </AccordionItem>
-
         </Accordion>
       </div>
-
-      {/* Insight IA Sugerido */}
-      {isToday && dayItems.length > 0 && (
-        <section className="px-1 pt-4 pb-4">
-          <div className="glass border-primary/20 rounded-[2rem] p-6 flex items-center gap-4 relative overflow-hidden neo-glow-primary/20 shadow-xl">
-             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 blur-2xl rounded-full -mr-12 -mt-12"></div>
-             <div className="h-14 w-14 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-               <Sparkles className="h-8 w-8 text-primary animate-pulse" />
-             </div>
-             <div>
-               <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">{t('pantry.aiInsight')}</p>
-               <p className="text-sm font-bold leading-tight">{t('pantry.readyToCook')}</p>
-             </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

@@ -7,22 +7,27 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, Bell, CheckCircle2, AlertCircle } from "lucide-react";
+import { Bell, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslation } from "@/context/language-context";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useTour } from "@/context/tour-context";
+import { useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
 
-/**
- * @fileOverview Página del planificador semanal con recordatorios localizados.
- */
 export default function PlannerPage() {
   const { schedule, saveSchedule } = usePantry();
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { guideStep } = useTour();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
   const [localSchedule, setLocalSchedule] = useState<DaySchedule[]>([]);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     if (schedule.length > 0) {
@@ -30,126 +35,55 @@ export default function PlannerPage() {
     }
   }, [schedule]);
 
+  if (isUserLoading || !user) return null;
+
   const toggleDay = (day: string) => {
-    setLocalSchedule(prev => prev.map(s => 
-      s.day === day ? { ...s, isCooking: !s.isCooking } : s
-    ));
+    setLocalSchedule(prev => prev.map(s => s.day === day ? { ...s, isCooking: !s.isCooking } : s));
   };
 
   const updateTime = (day: string, time: string) => {
-    setLocalSchedule(prev => prev.map(s => 
-      s.day === day ? { ...s, reminderTime: time } : s
-    ));
+    setLocalSchedule(prev => prev.map(s => s.day === day ? { ...s, reminderTime: time } : s));
   };
 
   const handleSave = () => {
     saveSchedule(localSchedule);
-    toast({
-      title: t('planner.saved'),
-      description: t('planner.savedDesc') || "Agenda actualizada correctamente.",
-    });
+    toast({ title: t('planner.saved') });
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24">
-      <header className="px-2 space-y-1">
-        <h1 className="text-3xl font-bold text-primary tracking-tight">{t('planner.title')}</h1>
-        <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest opacity-70">
-          {t('planner.subtitle')}
-        </p>
+      <header className="px-2">
+        <h1 className="text-3xl font-bold text-primary">{t('planner.title')}</h1>
+        <p className="text-muted-foreground text-sm uppercase tracking-widest">{t('planner.subtitle')}</p>
       </header>
 
-      <Card className={cn(
-        "glass border-none shadow-xl mx-2 transition-all duration-500 relative",
-        guideStep === 6 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.01]"
-      )}>
+      <Card className="glass border-none shadow-xl mx-2">
         <CardHeader>
           <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-               <Bell className="h-5 w-5 text-primary" />
-             </div>
-             <div>
-               <CardTitle className="text-xl">{t('planner.notifications')}</CardTitle>
-               <CardDescription className="text-xs">
-                 {t('planner.desc')}
-               </CardDescription>
-             </div>
+            <Bell className="text-primary" />
+            <CardTitle>{t('planner.notifications')}</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
-            {localSchedule.map((s) => (
-              <div 
-                key={s.day} 
-                className={cn(
-                  "p-4 rounded-2xl border-2 transition-all flex flex-col gap-3",
-                  s.isCooking 
-                    ? "border-primary bg-primary/5 shadow-sm" 
-                    : "border-transparent bg-secondary/5 opacity-70"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold",
-                      s.isCooking ? "bg-primary text-white" : "bg-muted text-muted-foreground"
-                    )}>
-                      {t(`planner.${s.day}`).charAt(0)}
-                    </div>
-                    <Label className="font-bold text-sm cursor-pointer" onClick={() => toggleDay(s.day)}>
-                      {t(`planner.${s.day}`)}
-                    </Label>
-                  </div>
-                  <Switch 
-                    checked={s.isCooking} 
-                    onCheckedChange={() => toggleDay(s.day)}
-                  />
-                </div>
-
-                {s.isCooking && (
-                  <div className="flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">{t('planner.reminderTime')}:</span>
-                    <Input 
-                      type="time" 
-                      className="h-9 w-28 rounded-xl glass border-white/20 text-xs"
-                      value={s.reminderTime}
-                      onChange={(e) => updateTime(s.day, e.target.value)}
-                    />
-                  </div>
-                )}
-                
-                {!s.isCooking && (
-                   <p className="text-[10px] italic text-muted-foreground ml-11">
-                     {t('planner.notCooking')}
-                   </p>
-                )}
+        <CardContent className="space-y-4">
+          {localSchedule.map((s) => (
+            <div key={s.day} className={cn("p-4 rounded-2xl flex items-center justify-between", s.isCooking ? "bg-primary/5 border border-primary" : "opacity-60")}>
+              <Label className="font-bold">{t(`planner.${s.day}`)}</Label>
+              <div className="flex items-center gap-3">
+                {s.isCooking && <Input type="time" value={s.reminderTime} onChange={(e) => updateTime(s.day, e.target.value)} className="w-24 h-8" />}
+                <Switch checked={s.isCooking} onCheckedChange={() => toggleDay(s.day)} />
               </div>
-            ))}
-          </div>
-
-          <Button 
-            className="w-full h-14 rounded-2xl font-bold text-lg shadow-lg bg-primary mt-4" 
-            onClick={handleSave}
-          >
-            <CheckCircle2 className="h-5 w-5 mr-2" /> {t('planner.save')}
-          </Button>
-        </CardContent>
-        {guideStep === 6 && (
-          <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white z-50">6</div>
-        )}
-      </Card>
-      
-      <div className="px-4 py-2">
-         <div className="bg-accent/10 rounded-[2rem] p-6 border border-accent/20 flex items-start gap-4 glass">
-            <AlertCircle className="h-6 w-6 text-accent mt-1" />
-            <div>
-              <h3 className="font-bold text-sm text-accent uppercase tracking-wider">{t('planner.notifTitle')}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                {t('planner.notifDesc')}
-              </p>
             </div>
-         </div>
+          ))}
+          <Button className="w-full h-14 mt-4" onClick={handleSave}><CheckCircle2 className="mr-2" /> {t('planner.save')}</Button>
+        </CardContent>
+      </Card>
+
+      <div className="mx-2 p-6 glass rounded-[2rem] flex items-start gap-4">
+        <AlertCircle className="text-accent" />
+        <div>
+          <h3 className="font-bold text-sm text-accent">{t('planner.notifTitle')}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{t('planner.notifDesc')}</p>
+        </div>
       </div>
     </div>
   );
