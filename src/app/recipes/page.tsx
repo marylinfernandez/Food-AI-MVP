@@ -54,7 +54,7 @@ export default function RecipesPage() {
   const startDictation = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ title: "No soportado", description: "Tu navegador no soporta reconocimiento de voz.", variant: "destructive" });
+      toast({ title: t('Error'), description: language === 'english' ? "Your browser does not support voice recognition." : "Tu navegador no soporta reconocimiento de voz.", variant: "destructive" });
       return;
     }
     const recognition = new SpeechRecognition();
@@ -75,10 +75,19 @@ export default function RecipesPage() {
     if (!selectedCategory) return;
     const todayStr = new Date().toDateString();
     const todayItems = items.filter(i => new Date(i.scannedAt).toDateString() === todayStr);
-    if (todayItems.length === 0) {
-      toast({ title: t('Error'), description: language === 'english' ? "Please scan your ingredients for today first!" : "¡Por favor, escanea tus ingredientes de hoy primero!", variant: "destructive" });
+
+    // Solo obligamos a escanear si NO es un pedido específico (custom)
+    if (selectedCategory !== 'custom' && todayItems.length === 0) {
+      toast({ 
+        title: t('Error'), 
+        description: language === 'english' 
+          ? "Please scan your ingredients for today first to use standard categories!" 
+          : "¡Por favor, escanea tus ingredientes de hoy primero para usar categorías estándar!", 
+        variant: "destructive" 
+      });
       return;
     }
+
     setLoading(true);
     setRecipes(null);
     setNearbyStores(null);
@@ -108,7 +117,11 @@ export default function RecipesPage() {
 
   const handleNearbyStores = () => {
     if (!navigator.geolocation) {
-      toast({ title: "Error", description: "Geolocalización no soportada", variant: "destructive" });
+      toast({ 
+        title: t('Error'), 
+        description: language === 'english' ? "Geolocation not supported" : "Geolocalización no soportada", 
+        variant: "destructive" 
+      });
       return;
     }
     setStoresLoading(true);
@@ -116,18 +129,31 @@ export default function RecipesPage() {
       async (position) => {
         try {
           const missing = recipes?.recipes[activeRecipe || 0]?.ingredientsMissing || [];
-          const result = await aiNearbyStores({ latitude: position.coords.latitude, longitude: position.coords.longitude, missingIngredients: missing, language: language });
+          const result = await aiNearbyStores({ 
+            latitude: position.coords.latitude, 
+            longitude: position.coords.longitude, 
+            missingIngredients: missing, 
+            language: language 
+          });
           setNearbyStores(result);
         } catch (error) {
-          toast({ title: "Error", description: "No se pudieron obtener tiendas", variant: "destructive" });
+          toast({ 
+            title: t('Error'), 
+            description: language === 'english' ? "Could not retrieve store information" : "No se pudieron obtener datos de tiendas", 
+            variant: "destructive" 
+          });
         } finally {
           setStoresLoading(false);
         }
       },
       (error) => {
-        toast({ title: "Error de Ubicación", description: "No se pudo acceder a tu ubicación", variant: "destructive" });
+        let msg = language === 'english' ? "Location access denied" : "Acceso a ubicación denegado";
+        if (error.code === error.TIMEOUT) msg = language === 'english' ? "Location request timed out" : "Tiempo de espera de ubicación agotado";
+        
+        toast({ title: t('Error'), description: msg, variant: "destructive" });
         setStoresLoading(false);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
@@ -230,7 +256,10 @@ export default function RecipesPage() {
             <CardContent className="space-y-6 p-6">
               <div className="space-y-6">
                 <p className="text-center text-xs text-muted-foreground leading-relaxed italic">
-                  {language === 'english' ? 'FoodAI will use your real-time pantry to suggest the best option.' : 'FoodAI usará tu despensa en tiempo real para sugerirte la mejor opción.'}
+                  {selectedCategory === 'custom' 
+                    ? (language === 'english' ? 'FoodAI will find the best recipe even if you need to buy something.' : 'FoodAI encontrará la mejor receta incluso si necesitas comprar algo.')
+                    : (language === 'english' ? 'FoodAI will use your real-time pantry to suggest the best option.' : 'FoodAI usará tu despensa en tiempo real para sugerirte la mejor opción.')
+                  }
                 </p>
                 {selectedCategory === 'drink' && (
                   <div className="space-y-3 pt-2">
@@ -330,13 +359,13 @@ export default function RecipesPage() {
                      <div className="flex items-center gap-3">
                        <MapPin className="h-8 w-8 text-primary" />
                        <div>
-                         <h4 className="font-bold text-sm">¿Te falta algo para esta receta?</h4>
-                         <p className="text-xs text-muted-foreground">Compara precios y disponibilidad en tiendas cercanas.</p>
+                         <h4 className="font-bold text-sm">{t('recipes.storesTitle')}</h4>
+                         <p className="text-xs text-muted-foreground">{t('recipes.storesDesc')}</p>
                        </div>
                      </div>
                      <Button variant="outline" className="w-full rounded-xl border-primary text-primary" onClick={() => { setActiveRecipe(idx); handleNearbyStores(); }} disabled={storesLoading}>
                        {storesLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <TrendingUp className="h-4 w-4 mr-2" />}
-                       Comparar Precios y Disponibilidad
+                       {t('recipes.enableLocation')}
                      </Button>
                    </div>
                  )}
@@ -344,25 +373,43 @@ export default function RecipesPage() {
                  {nearbyStores && activeRecipe === idx && (
                    <div className="space-y-4 animate-in slide-in-from-top duration-500">
                      <div className="flex items-center justify-between">
-                       <h4 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Comparativa de Tiendas</h4>
-                       <Button variant="ghost" size="sm" className="h-8 text-[10px]" onClick={() => setNearbyStores(null)}>Cerrar</Button>
+                       <h4 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                         <TrendingUp className="h-4 w-4" /> 
+                         {language === 'english' ? 'Store Comparison' : 'Comparativa de Tiendas'}
+                       </h4>
+                       <Button variant="ghost" size="sm" className="h-8 text-[10px]" onClick={() => setNearbyStores(null)}>
+                         {language === 'english' ? 'Close' : 'Cerrar'}
+                       </Button>
                      </div>
                      <div className="space-y-4">
                        {nearbyStores.stores.map((store, sIdx) => (
                          <Card key={sIdx} className="border-none glass bg-white/40 dark:bg-black/20 p-4 rounded-xl relative overflow-hidden">
                            <div className="flex justify-between items-start relative z-10">
-                             <div><p className="font-bold text-sm">{store.name}</p><p className="text-[10px] text-muted-foreground">{store.address} • {store.distance}</p></div>
-                             <Badge className="bg-primary/20 text-primary border-none text-[10px] font-bold">Total: {store.totalEstimatedPrice}</Badge>
+                             <div>
+                               <p className="font-bold text-sm">{store.name}</p>
+                               <p className="text-[10px] text-muted-foreground">{store.address} • {store.distance}</p>
+                             </div>
+                             <Badge className="bg-primary/20 text-primary border-none text-[10px] font-bold">
+                               Total: {store.totalEstimatedPrice}
+                             </Badge>
                            </div>
                            <div className="mt-4 grid grid-cols-1 gap-2 relative z-10">
                               {store.availability.map((prod, pIdx) => (
                                 <div key={pIdx} className="flex justify-between items-center text-[10px] bg-white/20 p-2 rounded-lg">
-                                  <span className="flex items-center gap-1.5">{prod.inStock ? <CheckCircle className="h-3 w-3 text-green-500" /> : <Tag className="h-3 w-3 text-red-400" />}{prod.product}</span>
+                                  <span className="flex items-center gap-1.5">
+                                    {prod.inStock ? <CheckCircle className="h-3 w-3 text-green-500" /> : <Tag className="h-3 w-3 text-red-400" />}
+                                    {prod.product}
+                                  </span>
                                   <span className="font-bold">{prod.estimatedPrice}</span>
                                 </div>
                               ))}
                            </div>
-                           <Button className="w-full mt-4 h-10 rounded-xl bg-primary text-white font-bold text-xs gap-2 shadow-lg" onClick={() => window.open(store.websiteSearchUrl, '_blank')}>Ver en la Tienda <ExternalLink className="h-3 w-3" /></Button>
+                           <Button 
+                             className="w-full mt-4 h-10 rounded-xl bg-primary text-white font-bold text-xs gap-2 shadow-lg" 
+                             onClick={() => window.open(store.websiteSearchUrl, '_blank')}
+                           >
+                             {language === 'english' ? 'View in Store' : 'Ver en la Tienda'} <ExternalLink className="h-3 w-3" />
+                           </Button>
                          </Card>
                        ))}
                      </div>
@@ -379,13 +426,13 @@ export default function RecipesPage() {
                           </li>
                         ))}
                       </ol>
-                      <Button className="w-full h-14 bg-green-500 hover:bg-green-600 rounded-2xl font-bold text-white shadow-lg" onClick={() => { toast({ title: '¡Buen provecho!', description: 'Receta completada y guardada.' }); setRecipes(null); }}>
-                        <CheckCircle2 className="h-5 w-5 mr-2" /> FINALIZAR RECETA
+                      <Button className="w-full h-14 bg-green-500 hover:bg-green-600 rounded-2xl font-bold text-white shadow-lg" onClick={() => { toast({ title: language === 'english' ? 'Enjoy!' : '¡Buen provecho!', description: language === 'english' ? 'Recipe completed and saved.' : 'Receta completada y guardada.' }); setRecipes(null); }}>
+                        <CheckCircle2 className="h-5 w-5 mr-2" /> {t('recipes.finish').toUpperCase()}
                       </Button>
                     </div>
                  ) : (
                     <Button className="w-full h-14 rounded-2xl bg-primary shadow-lg font-bold text-white" onClick={() => setActiveRecipe(idx)}>
-                      <Play className="h-5 w-5 mr-2" /> EMPEZAR A COCINAR
+                      <Play className="h-5 w-5 mr-2" /> {t('recipes.start').toUpperCase()}
                     </Button>
                  )}
               </CardContent>
