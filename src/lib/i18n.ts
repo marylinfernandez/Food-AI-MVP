@@ -65,7 +65,7 @@ export const translations = {
     'recipes.dessert': 'Desserts',
     'recipes.snack': 'Snacks/Apps',
     'recipes.custom': 'Specific Request',
-    'recipes.customLabel': 'Escribe lo que deseas preparar',
+    'recipes.customLabel': 'Type what you want to prepare',
     'recipes.dictation': 'Listening...',
     'recipes.owned': 'You have',
     'recipes.missing': 'Missing',

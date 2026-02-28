@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for finding nearby stores with product availability and price comparison.
@@ -30,8 +29,8 @@ const StoreSchema = z.object({
   hours: z.string().describe('Opening hours today'),
   isOpen: z.boolean(),
   type: z.string().describe('Category: Supermarket, Convenience Store, etc.'),
-  availability: z.array(ProductInfoSchema).describe('Stock analysis for missing products.'),
-  totalEstimatedPrice: z.string().describe('Total estimated sum of missing products at this store.'),
+  availability: z.array(ProductInfoSchema).describe('Stock analysis for the most relevant missing products available at this store.'),
+  totalEstimatedPrice: z.string().describe('Total estimated sum of available missing products at this store.'),
   websiteSearchUrl: z.string().describe('Direct link to the store website or a search results page for the products.'),
 });
 
@@ -54,10 +53,11 @@ const storesPrompt = ai.definePrompt({
 
 Based on location (Lat: {{latitude}}, Lon: {{longitude}}), suggest 3 real or highly plausible local stores.
 For each store:
-1. Evaluate likely stock for each missing item (availability).
-2. Estimate a realistic price based on store type.
-3. Calculate a "Total Estimated Price".
-4. Provide a direct website URL or a helpful Google Search/Maps link specifically for that store's inventory.
+1. Identify which of the missing ingredients are likely available there.
+2. Even if the store does not have ALL the missing items, show the most important ones it DOES have.
+3. Estimate a realistic price based on store type.
+4. Calculate a "Total Estimated Price" based on available items.
+5. Provide a direct website URL or a helpful Google Search/Maps link specifically for that store's inventory.
 
 Response Language: {{{language}}}.`,
 });
