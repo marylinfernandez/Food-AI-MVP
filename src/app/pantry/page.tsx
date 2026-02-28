@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePantry } from "@/lib/pantry-store";
@@ -11,7 +12,17 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useTour } from "@/context/tour-context";
 import { cn, normalizeText } from "@/lib/utils";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
+/**
+ * @fileOverview Página de la despensa optimizada con listas desplegables (Accordions)
+ * para evitar el desorden visual cuando hay muchos elementos.
+ */
 export default function PantryPage() {
   const { items, historyRecipes, removeItem } = usePantry();
   const { t, language } = useTranslation();
@@ -32,7 +43,6 @@ export default function PantryPage() {
   });
 
   // Deduplicación estricta de recetas por nombre normalizado para el historial diario
-  // Comparamos sin tildes, mayúsculas ni espacios extra.
   const dayRecipes = historyRecipes
     .filter(recipe => {
       if (!date) return false;
@@ -57,6 +67,7 @@ export default function PantryPage() {
         </div>
       </header>
 
+      {/* Calendario Diario */}
       <div className={cn(
         "relative rounded-[2rem] overflow-hidden shadow-2xl glass transition-all duration-500",
         guideStep === 5 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]"
@@ -89,88 +100,104 @@ export default function PantryPage() {
         </Card>
       </div>
 
-      <div className="space-y-8 px-1">
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
-              {t('pantry.dailyIngredients')}
-            </h2>
-            <Badge variant="outline" className="rounded-full border-primary/30 text-[10px] font-bold bg-primary/5">
-              {dayItems.length} {t('home.ingredients')}
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {dayItems.length === 0 ? (
-              <div className="py-12 text-center glass rounded-[2rem] border-white/5 flex flex-col items-center justify-center space-y-2 opacity-50">
-                <Package className="h-8 w-8 text-muted-foreground" />
-                <p className="text-[10px] font-bold uppercase tracking-widest">{t('pantry.emptyDay')}</p>
+      <div className="px-1">
+        <Accordion type="multiple" defaultValue={["ingredients", "recipes"]} className="w-full space-y-4 border-none">
+          
+          {/* SECCIÓN: INGREDIENTES ESCANEADOS */}
+          <AccordionItem value="ingredients" className="border-none glass rounded-[2rem] overflow-hidden px-4">
+            <AccordionTrigger className="hover:no-underline py-6">
+              <div className="flex items-center justify-between w-full pr-4">
+                <div className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-bold">{t('pantry.dailyIngredients')}</h2>
+                </div>
+                <Badge variant="outline" className="rounded-full border-primary/30 text-[10px] font-bold bg-primary/5">
+                  {dayItems.length}
+                </Badge>
               </div>
-            ) : (
-              dayItems.map((item) => (
-                <Card key={item.id} className="border-none glass group hover:scale-[1.01] transition-all rounded-2xl overflow-hidden shadow-md">
-                  <CardContent className="p-4 flex justify-between items-center">
-                    <div>
-                      <p className="font-bold text-lg text-foreground/90">{t(item.name)}</p>
-                      <p className="text-[10px] uppercase font-bold text-primary tracking-wider">{t(item.quantity)}</p>
-                    </div>
-                    {isToday && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <ChefHat className="h-5 w-5 text-secondary" />
-              {t('pantry.dailyRecipes')}
-            </h2>
-            <Badge variant="outline" className="rounded-full border-secondary/30 text-[10px] font-bold bg-secondary/5">
-              {dayRecipes.length}
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {dayRecipes.length === 0 ? (
-              <div className="py-12 text-center glass rounded-[2rem] border-white/5 flex flex-col items-center justify-center space-y-2 opacity-50">
-                <ChefHat className="h-8 w-8 text-muted-foreground" />
-                <p className="text-[10px] font-bold uppercase tracking-widest">{t('pantry.noRecipesDay')}</p>
+            </AccordionTrigger>
+            <AccordionContent className="pb-6">
+              <div className="grid grid-cols-1 gap-3 pt-2">
+                {dayItems.length === 0 ? (
+                  <div className="py-8 text-center bg-primary/5 rounded-2xl flex flex-col items-center justify-center space-y-2 opacity-50">
+                    <Package className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest">{t('pantry.emptyDay')}</p>
+                  </div>
+                ) : (
+                  dayItems.map((item) => (
+                    <Card key={item.id} className="border-none bg-white/40 dark:bg-black/20 group hover:scale-[1.01] transition-all rounded-2xl overflow-hidden shadow-sm">
+                      <CardContent className="p-4 flex justify-between items-center">
+                        <div>
+                          <p className="font-bold text-lg text-foreground/90">{t(item.name)}</p>
+                          <p className="text-[10px] uppercase font-bold text-primary tracking-wider">{t(item.quantity)}</p>
+                        </div>
+                        {isToday && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeItem(item.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
-            ) : (
-              dayRecipes.map((recipe) => (
-                <Card key={recipe.id} className="border-none glass bg-secondary/5 group transition-all rounded-2xl overflow-hidden shadow-sm">
-                  <CardContent className="p-4 flex justify-between items-center">
-                    <div className="flex-1">
-                      <p className="font-bold text-base leading-tight group-hover:text-secondary transition-colors">{recipe.name}</p>
-                      <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1">
-                        {language === 'english' ? 'Generated by FoodAI' : 'Generada por FoodAI'}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="bg-secondary/20 text-secondary border-none flex items-center gap-1.5 h-8 px-3 rounded-full">
-                      <Timer className="h-3.5 w-3.5" />
-                      <span className="text-xs font-bold">{recipe.prepTime} min</span>
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </section>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* SECCIÓN: RECETAS DEL DÍA */}
+          <AccordionItem value="recipes" className="border-none glass rounded-[2rem] overflow-hidden px-4">
+            <AccordionTrigger className="hover:no-underline py-6">
+              <div className="flex items-center justify-between w-full pr-4">
+                <div className="flex items-center gap-2">
+                  <ChefHat className="h-5 w-5 text-secondary" />
+                  <h2 className="text-lg font-bold">{t('pantry.dailyRecipes')}</h2>
+                </div>
+                <Badge variant="outline" className="rounded-full border-secondary/30 text-[10px] font-bold bg-secondary/5">
+                  {dayRecipes.length}
+                </Badge>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pb-6">
+              <div className="grid grid-cols-1 gap-3 pt-2">
+                {dayRecipes.length === 0 ? (
+                  <div className="py-8 text-center bg-secondary/5 rounded-2xl flex flex-col items-center justify-center space-y-2 opacity-50">
+                    <ChefHat className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest">{t('pantry.noRecipesDay')}</p>
+                  </div>
+                ) : (
+                  dayRecipes.map((recipe) => (
+                    <Card key={recipe.id} className="border-none bg-secondary/5 group transition-all rounded-2xl overflow-hidden shadow-sm">
+                      <CardContent className="p-4 flex justify-between items-center">
+                        <div className="flex-1">
+                          <p className="font-bold text-base leading-tight group-hover:text-secondary transition-colors">{recipe.name}</p>
+                          <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1">
+                            {language === 'english' ? 'Generated by FoodAI' : 'Generada por FoodAI'}
+                          </p>
+                        </div>
+                        <Badge variant="secondary" className="bg-secondary/20 text-secondary border-none flex items-center gap-1.5 h-8 px-3 rounded-full">
+                          <Timer className="h-3.5 w-3.5" />
+                          <span className="text-xs font-bold">{recipe.prepTime} min</span>
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+        </Accordion>
       </div>
 
+      {/* Insight IA Sugerido */}
       {isToday && dayItems.length > 0 && (
         <section className="px-1 pt-4 pb-4">
           <div className="glass border-primary/20 rounded-[2rem] p-6 flex items-center gap-4 relative overflow-hidden neo-glow-primary/20 shadow-xl">
