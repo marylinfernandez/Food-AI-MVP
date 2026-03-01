@@ -127,27 +127,6 @@ export default function HomePage() {
           )}
         </Card>
       </section>
-
-      {/* SECCIÓN 5: PERFIL */}
-      <section className={cn(
-        "bg-gradient-to-r from-primary/90 to-secondary/90 backdrop-blur-md rounded-[2rem] p-6 text-white space-y-4 shadow-xl neo-glow relative overflow-hidden transition-all duration-500",
-        guideStep === 5 && "ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]"
-      )}>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[40px] rounded-full -mr-16 -mt-16"></div>
-        <div className="space-y-1 relative z-10">
-          <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-70">Perfil Inteligente</p>
-          <h3 className="text-xl font-bold">{t('home.profileTitle')}</h3>
-          <p className="text-xs opacity-90 leading-relaxed font-medium">{t('home.profileDesc')}</p>
-        </div>
-        <Link href="/onboarding" className="block relative z-10">
-          <Button className="w-full rounded-xl bg-white text-primary hover:bg-white/90 font-bold h-10 text-xs shadow-lg uppercase tracking-wider">
-            {t('home.setupBtn')} <ArrowRight className="h-3 w-3 ml-2" />
-          </Button>
-        </Link>
-        {guideStep === 5 && (
-          <div className="absolute -top-3 -right-3 h-10 w-10 bg-primary text-white rounded-full flex items-center justify-center font-black shadow-xl animate-bounce border-2 border-white">5</div>
-        )}
-      </section>
     </div>
   );
 }
