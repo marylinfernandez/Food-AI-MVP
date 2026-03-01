@@ -1,14 +1,12 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Loader2, Refrigerator, ChefHat, Video, StopCircle, Radio, RefreshCw, X, AlertCircle } from "lucide-react";
+import { Camera, Loader2, Refrigerator, ChefHat, Video, StopCircle, Radio, RefreshCw, X, AlertCircle, Sparkles } from "lucide-react";
 import { aiIngredientIdentification, IngredientIdentificationOutput } from "@/ai/flows/ai-ingredient-identification";
 import { usePantry } from "@/lib/pantry-store";
 import { useToast } from "@/hooks/use-toast";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
@@ -51,6 +49,8 @@ export default function ScanPage() {
   useEffect(() => {
     if (isUserLoading || !user) return;
 
+    let currentStream: MediaStream | null = null;
+
     const getCameraPermission = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -61,9 +61,13 @@ export default function ScanPage() {
           },
           audio: false
         });
+        currentStream = stream;
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(err => console.error("Video play error:", err));
+          };
         }
       } catch (error) {
         console.error('Error accessing camera:', error);
@@ -76,9 +80,8 @@ export default function ScanPage() {
     }
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
       }
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -90,21 +93,40 @@ export default function ScanPage() {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
+
+      // Check if video is actually ready and has dimensions
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        toast({ 
+          title: "Cámara no lista", 
+          description: "Por favor espera a que la imagen de la cámara se vea correctamente.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUri = canvas.toDataURL('image/jpeg', 0.8);
-        setPreview(dataUri);
-        identify(dataUri);
+        try {
+          const dataUri = canvas.toDataURL('image/jpeg', 0.8);
+          setPreview(dataUri);
+          identify(dataUri);
+        } catch (e) {
+          console.error("Canvas toDataURL Error:", e);
+          toast({ title: "Error de captura", description: "No se pudo procesar la foto.", variant: "destructive" });
+        }
       }
     }
   };
 
   const getSupportedMimeType = () => {
-    const types = ['video/mp4', 'video/webm', 'video/ogg'];
-    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+    const types = ['video/mp4', 'video/webm;codecs=vp8', 'video/webm', 'video/ogg'];
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    }
+    return '';
   };
 
   const startRecording = () => {
@@ -120,32 +142,36 @@ export default function ScanPage() {
           if (e.data.size > 0) chunksRef.current.push(e.data);
         };
 
-        mediaRecorder.onstop = async () => {
+        mediaRecorder.onstop = () => {
           const blob = new Blob(chunksRef.current, { type: mimeType });
           const reader = new FileReader();
-          reader.readAsDataURL(blob);
           reader.onloadend = () => {
             const dataUri = reader.result as string;
             setPreview(dataUri);
             identify(dataUri);
           };
+          reader.readAsDataURL(blob);
         };
 
         mediaRecorderRef.current = mediaRecorder;
         mediaRecorder.start();
         setIsRecording(true);
         setRecordingTime(0);
+
+        if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
-          setRecordingTime(prev => prev + 1);
+          setRecordingTime(prev => {
+            if (prev >= 9) { // Max 10 seconds recording
+              stopRecording();
+              return 10;
+            }
+            return prev + 1;
+          });
         }, 1000);
 
-        // Auto stop tras 10 segundos para optimizar el análisis de IA
-        setTimeout(() => {
-          if (mediaRecorder.state === 'recording') stopRecording();
-        }, 10000);
       } catch (e) {
         console.error("Error starting recorder:", e);
-        toast({ title: "Error", description: "No se pudo iniciar la grabación.", variant: "destructive" });
+        toast({ title: "Error", description: "No se pudo iniciar la grabación de video.", variant: "destructive" });
       }
     }
   };
@@ -168,10 +194,10 @@ export default function ScanPage() {
       });
       setResults(output);
     } catch (error) {
-      console.error(error);
+      console.error("AI identification error:", error);
       toast({
         title: "Error de Escaneo",
-        description: "No se pudo identificar el contenido. Intenta con una imagen más clara.",
+        description: "No se pudo identificar el contenido. Intenta con una toma más clara o mejor iluminación.",
         variant: "destructive"
       });
       setPreview(null);
@@ -266,7 +292,7 @@ export default function ScanPage() {
             <Button 
               className="w-full h-20 rounded-[2rem] bg-primary text-white font-black text-xl shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all" 
               onClick={capturePhoto} 
-              disabled={hasCameraPermission === false}
+              disabled={hasCameraPermission === false || loading}
             >
               <Camera className="h-8 w-8 mr-3" /> ANALIZAR AHORA
             </Button>
@@ -277,7 +303,7 @@ export default function ScanPage() {
                 isRecording ? "bg-red-500 text-white" : "bg-secondary text-white"
               )} 
               onClick={isRecording ? stopRecording : startRecording} 
-              disabled={hasCameraPermission === false}
+              disabled={hasCameraPermission === false || loading}
             >
               {isRecording ? <><StopCircle className="h-8 w-8 mr-3" /> DETENER</> : <><Radio className="h-8 w-8 mr-3 animate-pulse" /> GRABAR VIDEO</>}
             </Button>
@@ -295,7 +321,7 @@ export default function ScanPage() {
               {preview.includes('video') ? (
                 <video src={preview} controls className="w-full h-full object-contain" />
               ) : (
-                <Image src={preview} alt="Captured" fill className="object-contain" />
+                <img src={preview} alt="Captured" className="w-full h-full object-contain" />
               )}
               {loading && (
                 <div className="absolute inset-0 bg-primary/40 backdrop-blur-md flex flex-col items-center justify-center text-white space-y-4">
