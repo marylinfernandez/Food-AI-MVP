@@ -1,86 +1,78 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking, setDocumentNonBlocking, useDoc } from "@/firebase";
+import { collection, query, where, orderBy, doc, DocumentReference, CollectionReference } from "firebase/firestore";
 import { normalizeText } from "./utils";
 
 export interface PantryItem {
   id: string;
   name: string;
   quantity: string;
-  scannedAt: string; // ISO String para comparación de fechas
+  scannedAt: string;
+  userId: string;
 }
 
 export interface HistoryRecipe {
   id: string;
   name: string;
   prepTime: number;
-  scannedAt: string; // ISO String
+  scannedAt: string;
+  userId: string;
 }
 
 export interface DaySchedule {
   day: string;
   isCooking: boolean;
-  reminderTime: string; // "HH:mm" format
+  reminderTime: string;
 }
 
-const STORAGE_ITEMS_KEY = "foodai_pantry_items_v2";
-const STORAGE_RECIPES_KEY = "foodai_recipes_history_v2";
-const STORAGE_PLANNER_KEY = "foodai_planner_schedule_v2";
-
 export function usePantry() {
-  const [items, setItems] = useState<PantryItem[]>([]);
-  const [historyRecipes, setHistoryRecipes] = useState<HistoryRecipe[]>([]);
-  const [schedule, setSchedule] = useState<DaySchedule[]>([]);
+  const { user } = useUser();
+  const db = useFirestore();
 
-  useEffect(() => {
-    const storedItems = localStorage.getItem(STORAGE_ITEMS_KEY);
-    const storedRecipes = localStorage.getItem(STORAGE_RECIPES_KEY);
-    const storedSchedule = localStorage.getItem(STORAGE_PLANNER_KEY);
-    
-    if (storedItems) setItems(JSON.parse(storedItems));
-    if (storedRecipes) setHistoryRecipes(JSON.parse(storedRecipes));
-    
-    if (storedSchedule) {
-      setSchedule(JSON.parse(storedSchedule));
-    } else {
-      // Default empty schedule
-      const defaultSchedule = [
-        "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
-      ].map(day => ({ day, isCooking: false, reminderTime: "09:00" }));
-      setSchedule(defaultSchedule);
-    }
-  }, []);
+  // --- Pantry Items ---
+  const pantryItemsRef = useMemoFirebase(() => 
+    user ? query(collection(db, `users/${user.uid}/pantryItems`), orderBy("scannedAt", "desc")) : null
+  , [user, db]);
+  
+  const { data: items = [], isLoading: itemsLoading } = useCollection<PantryItem>(pantryItemsRef);
 
-  const saveItems = (newItems: PantryItem[]) => {
-    setItems(newItems);
-    localStorage.setItem(STORAGE_ITEMS_KEY, JSON.stringify(newItems));
-  };
+  // --- Recipe History ---
+  const recipesRef = useMemoFirebase(() => 
+    user ? query(collection(db, `users/${user.uid}/recipeInteractions`), orderBy("scannedAt", "desc")) : null
+  , [user, db]);
+  
+  const { data: historyRecipes = [], isLoading: recipesLoading } = useCollection<HistoryRecipe>(recipesRef);
 
-  const saveRecipes = (newRecipes: HistoryRecipe[]) => {
-    setHistoryRecipes(newRecipes);
-    localStorage.setItem(STORAGE_RECIPES_KEY, JSON.stringify(newRecipes));
-  };
+  // --- Planner Schedule ---
+  const scheduleDocRef = useMemoFirebase(() => 
+    user ? doc(db, `users/${user.uid}/recipeInteractions/planner_settings`) : null
+  , [user, db]);
 
-  const saveSchedule = (newSchedule: DaySchedule[]) => {
-    setSchedule(newSchedule);
-    localStorage.setItem(STORAGE_PLANNER_KEY, JSON.stringify(newSchedule));
-  };
+  const { data: scheduleData, isLoading: scheduleLoading } = useDoc<any>(scheduleDocRef);
 
-  const addItem = (item: Omit<PantryItem, "id" | "scannedAt">) => {
-    const newItem: PantryItem = {
+  const defaultSchedule: DaySchedule[] = [
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+  ].map(day => ({ day, isCooking: false, reminderTime: "09:00" }));
+
+  const currentSchedule: DaySchedule[] = scheduleData?.days || defaultSchedule;
+
+  const addItem = (item: Omit<PantryItem, "id" | "scannedAt" | "userId">) => {
+    if (!user) return;
+    const colRef = collection(db, `users/${user.uid}/pantryItems`);
+    addDocumentNonBlocking(colRef, {
       ...item,
-      id: Math.random().toString(36).substr(2, 9),
+      userId: user.uid,
       scannedAt: new Date().toISOString(),
-    };
-    saveItems([newItem, ...items]);
+    });
   };
 
   const addRecipeToHistory = (recipe: { name: string, prepTime: number }) => {
+    if (!user) return;
     const today = new Date().toDateString();
     const normalizedNewName = normalizeText(recipe.name);
     
-    // Evitar duplicados para el mismo día (independiente de mayúsculas, tildes o espacios)
-    // La IA entiende que son lo mismo gracias a la normalización estricta.
     const alreadyExists = historyRecipes.some(r => 
       normalizeText(r.name) === normalizedNewName && 
       new Date(r.scannedAt).toDateString() === today
@@ -88,26 +80,41 @@ export function usePantry() {
 
     if (alreadyExists) return;
 
-    const newRecipe: HistoryRecipe = {
-      id: Math.random().toString(36).substr(2, 9),
+    const colRef = collection(db, `users/${user.uid}/recipeInteractions`);
+    addDocumentNonBlocking(colRef, {
       name: recipe.name,
       prepTime: recipe.prepTime,
+      userId: user.uid,
       scannedAt: new Date().toISOString(),
-    };
-    saveRecipes([newRecipe, ...historyRecipes]);
+    });
   };
 
   const removeItem = (id: string) => {
-    saveItems(items.filter(i => i.id !== id));
+    if (!user) return;
+    const docRef = doc(db, `users/${user.uid}/pantryItems`, id);
+    deleteDocumentNonBlocking(docRef);
+  };
+
+  const updateItem = (id: string, data: Partial<PantryItem>) => {
+    if (!user) return;
+    const docRef = doc(db, `users/${user.uid}/pantryItems`, id);
+    updateDocumentNonBlocking(docRef, data);
+  };
+
+  const saveSchedule = (newSchedule: DaySchedule[]) => {
+    if (!user || !scheduleDocRef) return;
+    setDocumentNonBlocking(scheduleDocRef, { days: newSchedule, userId: user.uid }, { merge: true });
   };
 
   return { 
-    items, 
-    historyRecipes, 
-    schedule, 
+    items: items || [], 
+    historyRecipes: historyRecipes || [], 
+    schedule: currentSchedule, 
+    isLoading: itemsLoading || recipesLoading || scheduleLoading,
     addItem, 
     addRecipeToHistory, 
     removeItem, 
+    updateItem,
     saveSchedule 
   };
 }

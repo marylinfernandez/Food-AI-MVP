@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageProvider } from '@/context/language-context';
 import { TourProvider } from '@/context/tour-context';
 import { TourOverlay } from '@/components/layout/tour-overlay';
+import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
 
 export const metadata: Metadata = {
   title: 'FoodAI - Tu Asistente de Cocina Inteligente',
@@ -47,6 +48,7 @@ export default function RootLayout({
               <main className="min-h-screen max-w-lg mx-auto relative px-4 pt-6">
                 <Header />
                 <TourOverlay />
+                <PWAInstallPrompt />
                 {children}
               </main>
               <BottomNav />
