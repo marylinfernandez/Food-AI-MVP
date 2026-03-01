@@ -94,11 +94,11 @@ export default function ScanPage() {
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
-      // Check if video is actually ready and has dimensions
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
+      // Asegurar que el video está listo antes de capturar
+      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
         toast({ 
           title: "Cámara no lista", 
-          description: "Por favor espera a que la imagen de la cámara se vea correctamente.", 
+          description: "Por favor espera un segundo a que la imagen se estabilice.", 
           variant: "destructive" 
         });
         return;
@@ -161,7 +161,7 @@ export default function ScanPage() {
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
           setRecordingTime(prev => {
-            if (prev >= 9) { // Max 10 seconds recording
+            if (prev >= 9) { // Máximo 10 segundos
               stopRecording();
               return 10;
             }
