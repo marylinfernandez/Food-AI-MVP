@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Loader2, Refrigerator, ChefHat, Video, StopCircle, Radio, RefreshCw, X, AlertCircle, Sparkles } from "lucide-react";
+import { Camera, Loader2, Video, StopCircle, Radio, RefreshCw, X, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import { aiIngredientIdentification, IngredientIdentificationOutput } from "@/ai/flows/ai-ingredient-identification";
 import { usePantry } from "@/lib/pantry-store";
 import { useToast } from "@/hooks/use-toast";
@@ -118,13 +119,19 @@ export default function ScanPage() {
           toast({ title: "Error de captura", description: "No se pudo procesar la foto.", variant: "destructive" });
         }
       }
+    } else {
+      toast({ 
+        title: "Error de hardware", 
+        description: "No se encontró el dispositivo de captura.", 
+        variant: "destructive" 
+      });
     }
   };
 
   const getSupportedMimeType = () => {
     const types = ['video/mp4', 'video/webm;codecs=vp8', 'video/webm', 'video/ogg'];
     for (const type of types) {
-      if (MediaRecorder.isTypeSupported(type)) return type;
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type)) return type;
     }
     return '';
   };
@@ -339,7 +346,7 @@ export default function ScanPage() {
             <Card className="glass border-accent/20 animate-in slide-in-from-bottom duration-500">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl font-bold flex items-center gap-2">
-                  <ChefHat className="text-accent h-6 w-6" /> {t('scan.completed')}
+                  <Sparkles className="text-accent h-6 w-6" /> {t('scan.completed')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -379,3 +386,4 @@ export default function ScanPage() {
     </div>
   );
 }
+    
