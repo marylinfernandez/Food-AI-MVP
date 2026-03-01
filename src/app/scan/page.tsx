@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Loader2, Refrigerator, ChefHat, Video, StopCircle, Radio, RefreshCw, X } from "lucide-react";
+import { Camera, Loader2, Refrigerator, ChefHat, Video, StopCircle, Radio, RefreshCw, X, AlertCircle } from "lucide-react";
 import { aiIngredientIdentification, IngredientIdentificationOutput } from "@/ai/flows/ai-ingredient-identification";
 import { usePantry } from "@/lib/pantry-store";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,10 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
+/**
+ * @fileOverview Pantalla de escaneo optimizada para móviles. 
+ * Usa cámara trasera por defecto y soporta foto/video con compatibilidad multiplataforma.
+ */
 export default function ScanPage() {
   const { toast } = useToast();
   const { addItem } = usePantry();
@@ -50,7 +54,11 @@ export default function ScanPage() {
     const getCameraPermission = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: { ideal: "environment" } },
+          video: { 
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
           audio: false
         });
         setHasCameraPermission(true);
@@ -87,45 +95,58 @@ export default function ScanPage() {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUri = canvas.toDataURL('image/jpeg');
+        const dataUri = canvas.toDataURL('image/jpeg', 0.8);
         setPreview(dataUri);
         identify(dataUri);
       }
     }
   };
 
+  const getSupportedMimeType = () => {
+    const types = ['video/mp4', 'video/webm', 'video/ogg'];
+    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+  };
+
   const startRecording = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       chunksRef.current = [];
       const stream = videoRef.current.srcObject as MediaStream;
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      const mimeType = getSupportedMimeType();
       
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = () => {
-          const dataUri = reader.result as string;
-          setPreview(dataUri);
-          identify(dataUri);
+      try {
+        const mediaRecorder = new MediaRecorder(stream, { mimeType });
+        
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
         };
-      };
 
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(chunksRef.current, { type: mimeType });
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = () => {
+            const dataUri = reader.result as string;
+            setPreview(dataUri);
+            identify(dataUri);
+          };
+        };
 
-      setTimeout(() => {
-        if (mediaRecorder.state === 'recording') stopRecording();
-      }, 10000);
+        mediaRecorderRef.current = mediaRecorder;
+        mediaRecorder.start();
+        setIsRecording(true);
+        setRecordingTime(0);
+        timerRef.current = setInterval(() => {
+          setRecordingTime(prev => prev + 1);
+        }, 1000);
+
+        // Auto stop tras 10 segundos para optimizar el análisis de IA
+        setTimeout(() => {
+          if (mediaRecorder.state === 'recording') stopRecording();
+        }, 10000);
+      } catch (e) {
+        console.error("Error starting recorder:", e);
+        toast({ title: "Error", description: "No se pudo iniciar la grabación.", variant: "destructive" });
+      }
     }
   };
 
@@ -143,14 +164,14 @@ export default function ScanPage() {
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: `Análisis de ${scanMode} de nevera/despensa`
+        description: `Análisis de ${scanMode === 'photo' ? 'foto' : 'video'} de nevera/despensa`
       });
       setResults(output);
     } catch (error) {
       console.error(error);
       toast({
         title: "Error de Escaneo",
-        description: "No se pudo identificar el contenido.",
+        description: "No se pudo identificar el contenido. Intenta con una imagen más clara.",
         variant: "destructive"
       });
       setPreview(null);
@@ -166,7 +187,7 @@ export default function ScanPage() {
     });
     toast({
       title: "Despensa Actualizada",
-      description: `Se han añadido ${results.identifiedIngredients.length} ingredientes.`,
+      description: `Se han añadido ${results.identifiedIngredients.length} ingredientes correctamente.`,
     });
     resetScanner();
   };
@@ -176,6 +197,7 @@ export default function ScanPage() {
     setPreview(null);
     setIsRecording(false);
     setRecordingTime(0);
+    if (timerRef.current) clearInterval(timerRef.current);
   };
 
   return (
@@ -184,77 +206,145 @@ export default function ScanPage() {
         <h1 className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
           <Camera className="h-8 w-8 text-accent" /> {t('scan.title')}
         </h1>
-        <p className="text-sm text-muted-foreground uppercase tracking-widest opacity-70">{t('scan.subtitle')}</p>
+        <p className="text-sm text-muted-foreground uppercase tracking-widest opacity-70 font-bold">{t('scan.subtitle')}</p>
       </div>
 
       {!preview ? (
         <div className="space-y-6">
-          <div className="flex p-1 bg-secondary/10 rounded-2xl max-w-xs mx-auto">
+          <div className="flex p-1 bg-secondary/10 rounded-2xl max-w-xs mx-auto backdrop-blur-sm border border-white/10">
             <Button 
               variant="ghost" 
-              className={cn("flex-1 rounded-xl h-10 gap-2", scanMode === 'photo' ? "bg-white text-primary" : "text-muted-foreground")}
+              className={cn(
+                "flex-1 rounded-xl h-10 gap-2 transition-all font-bold text-xs uppercase tracking-tighter", 
+                scanMode === 'photo' ? "bg-white text-primary shadow-sm" : "text-muted-foreground"
+              )}
               onClick={() => setScanMode('photo')}
             >
               <Camera className="h-4 w-4" /> Foto
             </Button>
             <Button 
               variant="ghost" 
-              className={cn("flex-1 rounded-xl h-10 gap-2", scanMode === 'video' ? "bg-white text-secondary" : "text-muted-foreground")}
+              className={cn(
+                "flex-1 rounded-xl h-10 gap-2 transition-all font-bold text-xs uppercase tracking-tighter", 
+                scanMode === 'video' ? "bg-white text-secondary shadow-sm" : "text-muted-foreground"
+              )}
               onClick={() => setScanMode('video')}
             >
               <Video className="h-4 w-4" /> Video
             </Button>
           </div>
 
-          <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-black">
-            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+          <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-black group">
+            <video 
+              ref={videoRef} 
+              className="w-full h-full object-cover" 
+              autoPlay 
+              muted 
+              playsInline 
+            />
+            <canvas ref={canvasRef} className="hidden" />
+            
             {isRecording && (
-              <div className="absolute top-4 left-4 bg-red-500/80 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+              <div className="absolute top-6 left-6 flex items-center gap-2 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg animate-pulse">
+                <div className="h-2 w-2 bg-white rounded-full animate-ping" />
                 REC 00:{recordingTime.toString().padStart(2, '0')}
               </div>
             )}
+
             {hasCameraPermission === false && (
-              <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/80">
-                <Alert variant="destructive">
-                  <AlertTitle>Cámara Bloqueada</AlertTitle>
-                  <AlertDescription>Por favor activa los permisos de cámara.</AlertDescription>
+              <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
+                <Alert variant="destructive" className="border-none bg-red-500/20 text-white">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                  <AlertTitle className="font-black uppercase tracking-tighter">Cámara Bloqueada</AlertTitle>
+                  <AlertDescription className="text-xs opacity-90">Por favor, activa los permisos de cámara en tu navegador para usar la visión IA.</AlertDescription>
                 </Alert>
               </div>
             )}
           </div>
 
           {scanMode === 'photo' ? (
-            <Button className="w-full h-20 rounded-[2rem] bg-primary text-white font-bold text-xl" onClick={capturePhoto} disabled={hasCameraPermission === false}>
+            <Button 
+              className="w-full h-20 rounded-[2rem] bg-primary text-white font-black text-xl shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all" 
+              onClick={capturePhoto} 
+              disabled={hasCameraPermission === false}
+            >
               <Camera className="h-8 w-8 mr-3" /> ANALIZAR AHORA
             </Button>
           ) : (
-            <Button className={cn("w-full h-20 rounded-[2rem] font-bold text-xl", isRecording ? "bg-red-500" : "bg-secondary")} onClick={isRecording ? stopRecording : startRecording} disabled={hasCameraPermission === false}>
-              {isRecording ? "DETENER" : "GRABAR"}
+            <Button 
+              className={cn(
+                "w-full h-20 rounded-[2rem] font-black text-xl shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all", 
+                isRecording ? "bg-red-500 text-white" : "bg-secondary text-white"
+              )} 
+              onClick={isRecording ? stopRecording : startRecording} 
+              disabled={hasCameraPermission === false}
+            >
+              {isRecording ? <><StopCircle className="h-8 w-8 mr-3" /> DETENER</> : <><Radio className="h-8 w-8 mr-3 animate-pulse" /> GRABAR VIDEO</>}
             </Button>
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          <Card className="overflow-hidden border-none shadow-2xl glass">
-            <div className="relative h-72 w-full bg-black">
-              {preview.startsWith('data:video') ? <video src={preview} controls className="w-full h-full" /> : <Image src={preview} alt="Captured" fill className="object-contain" />}
-              {loading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white"><Loader2 className="h-12 w-12 animate-spin" /></div>}
+        <div className="space-y-6 animate-in zoom-in duration-300">
+          <Card className="overflow-hidden border-none shadow-2xl glass relative">
+            <div className="absolute top-4 right-4 z-20">
+               <Button size="icon" variant="destructive" className="rounded-full h-10 w-10 shadow-xl" onClick={resetScanner}>
+                 <X className="h-5 w-5" />
+               </Button>
+            </div>
+            <div className="relative h-72 w-full bg-black/20 flex items-center justify-center">
+              {preview.includes('video') ? (
+                <video src={preview} controls className="w-full h-full object-contain" />
+              ) : (
+                <Image src={preview} alt="Captured" fill className="object-contain" />
+              )}
+              {loading && (
+                <div className="absolute inset-0 bg-primary/40 backdrop-blur-md flex flex-col items-center justify-center text-white space-y-4">
+                  <div className="relative">
+                    <Loader2 className="h-16 w-16 animate-spin" />
+                    <Sparkles className="absolute -top-2 -right-2 h-6 w-6 animate-pulse" />
+                  </div>
+                  <p className="font-black uppercase tracking-widest text-xs">{t('scan.identifying')}</p>
+                </div>
+              )}
             </div>
           </Card>
+
           {results && (
-            <Card className="glass border-accent/20">
-              <CardHeader><CardTitle>{t('scan.completed')}</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
+            <Card className="glass border-accent/20 animate-in slide-in-from-bottom duration-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <ChefHat className="text-accent h-6 w-6" /> {t('scan.completed')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-muted-foreground italic mb-2">"{results.summary}"</p>
                 {results.identifiedIngredients.map((ing, i) => (
-                  <div key={i} className="flex justify-between items-center bg-white/10 p-4 rounded-xl">
-                    <span>{ing.name} ({ing.quantity})</span>
-                    <Badge>{Math.round(ing.confidence * 100)}%</Badge>
+                  <div key={i} className="flex justify-between items-center bg-white/10 p-4 rounded-2xl border border-white/10 shadow-inner group">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-foreground group-hover:text-primary transition-colors">{ing.name}</span>
+                      <span className="text-[10px] uppercase font-black text-muted-foreground">{ing.quantity || '1 unidad'}</span>
+                    </div>
+                    <Badge className={cn(
+                      "rounded-lg border-none",
+                      ing.confidence > 0.8 ? "bg-green-500/20 text-green-500" : "bg-orange-500/20 text-orange-500"
+                    )}>
+                      {Math.round(ing.confidence * 100)}%
+                    </Badge>
                   </div>
                 ))}
               </CardContent>
-              <CardFooter className="flex flex-col gap-2">
-                <Button className="w-full" onClick={addAllToPantry}>{t('scan.saveBtn')}</Button>
-                <Button variant="ghost" onClick={resetScanner}>{t('scan.retry')}</Button>
+              <CardFooter className="flex flex-col gap-3">
+                <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-lg" onClick={addAllToPantry}>
+                  <CheckCircle2 className="mr-2 h-5 w-5" /> {t('scan.saveBtn')}
+                </Button>
+                <Link href="/recipes" className="w-full">
+                  <Button variant="outline" className="w-full h-12 rounded-2xl border-2 border-accent text-accent font-bold">
+                    {t('scan.suggestBtn')}
+                  </Button>
+                </Link>
+                <Button variant="ghost" className="w-full font-bold text-muted-foreground uppercase tracking-widest text-[10px]" onClick={resetScanner}>
+                  <RefreshCw className="mr-2 h-3 w-3" /> {t('scan.retry')}
+                </Button>
               </CardFooter>
             </Card>
           )}
