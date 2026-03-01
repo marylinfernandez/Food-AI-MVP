@@ -6,15 +6,13 @@ import { aiRecipeAudio } from "@/ai/flows/ai-recipe-audio-flow";
 import { aiNearbyStores, NearbyStoresOutput } from "@/ai/flows/ai-nearby-stores-flow";
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Timer, Sparkles, Loader2, Play, CheckCircle2, Volume2, Beer, Utensils, IceCream, Coffee, ArrowLeft, ChevronRight, Mic, ShoppingCart, CheckCircle, Search, MapPin, ExternalLink, Tag, TrendingUp, MicOff, X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Timer, Sparkles, Loader2, Volume2, Utensils, Beer, IceCream, Coffee, ArrowLeft, ShoppingCart, CheckCircle, MapPin, ExternalLink, X, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "@/context/language-context";
 import { Textarea } from "@/components/ui/textarea";
-import { useTour } from "@/context/tour-context";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
@@ -24,7 +22,6 @@ export default function RecipesPage() {
   const { items, addRecipeToHistory } = usePantry();
   const { toast } = useToast();
   const { t, language } = useTranslation();
-  const { guideStep } = useTour();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
 
@@ -33,7 +30,6 @@ export default function RecipesPage() {
   const [recipes, setRecipes] = useState<PersonalizedRecipeGenerationOutput | null>(null);
   const [activeRecipe, setActiveRecipe] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category>(null);
-  const [subCategory, setSubCategory] = useState<string>("");
   const [specificRequest, setSpecificRequest] = useState("");
   const [nearbyStores, setNearbyStores] = useState<NearbyStoresOutput | null>(null);
   const [storesLoading, setStoresLoading] = useState(false);
@@ -87,7 +83,6 @@ export default function RecipesPage() {
   const generateRecipes = async () => {
     if (!selectedCategory) return;
     
-    // Solo las categorías que no son 'custom' requieren escaneo del día
     const todayStr = new Date().toDateString();
     const todayItems = items.filter(i => new Date(i.scannedAt).toDateString() === todayStr);
 
@@ -136,7 +131,9 @@ export default function RecipesPage() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const missing = recipes?.recipes[activeRecipe || 0]?.ingredientsMissing || [];
+          const recipeIdx = activeRecipe !== null ? activeRecipe : 0;
+          const missing = recipes?.recipes?.[recipeIdx]?.ingredientsMissing || [];
+          
           const result = await aiNearbyStores({ 
             latitude: pos.coords.latitude, 
             longitude: pos.coords.longitude, 
@@ -196,12 +193,12 @@ export default function RecipesPage() {
               "glass border-none cursor-pointer group hover:scale-[1.02] transition-all duration-300",
               cat.id === 'custom' && "col-span-2"
             )} onClick={() => setSelectedCategory(cat.id as Category)}>
-              <CardContent className="p-6 flex flex-col items-center gap-3">
+              <div className="p-6 flex flex-col items-center gap-3">
                 <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center text-white shadow-lg", cat.color)}>
                   <cat.icon className="h-7 w-7" />
                 </div>
                 <span className="font-bold text-sm uppercase tracking-wider">{cat.label}</span>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
@@ -270,7 +267,7 @@ export default function RecipesPage() {
                   <h3 className="text-xl font-bold leading-tight">{recipe.name}</h3>
                 </div>
               </div>
-              <CardContent className="p-6 space-y-6">
+              <div className="p-6 space-y-6">
                 <p className="text-sm text-muted-foreground italic leading-relaxed">"{recipe.description}"</p>
                 
                 <div className="space-y-3">
@@ -299,7 +296,7 @@ export default function RecipesPage() {
 
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-secondary flex items-center gap-2">
-                    <ChefHat className="h-4 w-4" /> {t('recipes.start')}
+                    <Utensils className="h-4 w-4" /> {t('recipes.start')}
                   </h4>
                   <div className="space-y-4">
                     {recipe.instructions.map((step, i) => (
@@ -373,7 +370,7 @@ export default function RecipesPage() {
                     </div>
                   </div>
                 )}
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
