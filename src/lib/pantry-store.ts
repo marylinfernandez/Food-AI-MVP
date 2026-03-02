@@ -4,6 +4,7 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking, setDocumentNonBlocking, useDoc } from "@/firebase";
 import { collection, query, where, orderBy, doc, DocumentReference, CollectionReference } from "firebase/firestore";
 import { normalizeText } from "./utils";
+import { useMemo } from "react";
 
 export interface PantryItem {
   id: string;
@@ -27,6 +28,15 @@ export interface DaySchedule {
   reminderTime: string;
 }
 
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const DEFAULT_SCHEDULE: DaySchedule[] = DAYS.map(day => ({ 
+  day, 
+  isCooking: false, 
+  reminderTime: "09:00" 
+}));
+
+const EMPTY_ARRAY: any[] = [];
+
 export function usePantry() {
   const { user } = useUser();
   const db = useFirestore();
@@ -36,14 +46,14 @@ export function usePantry() {
     user ? query(collection(db, `users/${user.uid}/pantryItems`), orderBy("scannedAt", "desc")) : null
   , [user, db]);
   
-  const { data: items = [], isLoading: itemsLoading } = useCollection<PantryItem>(pantryItemsRef);
+  const { data: items, isLoading: itemsLoading } = useCollection<PantryItem>(pantryItemsRef);
 
   // --- Recipe History ---
   const recipesRef = useMemoFirebase(() => 
     user ? query(collection(db, `users/${user.uid}/recipeInteractions`), orderBy("scannedAt", "desc")) : null
   , [user, db]);
   
-  const { data: historyRecipes = [], isLoading: recipesLoading } = useCollection<HistoryRecipe>(recipesRef);
+  const { data: historyRecipes, isLoading: recipesLoading } = useCollection<HistoryRecipe>(recipesRef);
 
   // --- Planner Schedule ---
   const scheduleDocRef = useMemoFirebase(() => 
@@ -52,11 +62,11 @@ export function usePantry() {
 
   const { data: scheduleData, isLoading: scheduleLoading } = useDoc<any>(scheduleDocRef);
 
-  const defaultSchedule: DaySchedule[] = [
-    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
-  ].map(day => ({ day, isCooking: false, reminderTime: "09:00" }));
-
-  const currentSchedule: DaySchedule[] = scheduleData?.days || defaultSchedule;
+  // Memoizar el horario para evitar bucles de renderizado
+  const currentSchedule = useMemo(() => {
+    if (!scheduleData?.days) return DEFAULT_SCHEDULE;
+    return scheduleData.days;
+  }, [scheduleData]);
 
   const addItem = (item: Omit<PantryItem, "id" | "scannedAt" | "userId">) => {
     if (!user) return;
@@ -73,10 +83,9 @@ export function usePantry() {
     const today = new Date().toDateString();
     const normalizedNewName = normalizeText(recipe.name);
     
-    const alreadyExists = historyRecipes.some(r => 
-      normalizeText(r.name) === normalizedNewName && 
-      new Date(r.scannedAt).toDateString() === today
-    );
+    // Evitar duplicados basados en nombre normalizado y fecha
+    const recipesForToday = (historyRecipes || []).filter(r => new Date(r.scannedAt).toDateString() === today);
+    const alreadyExists = recipesForToday.some(r => normalizeText(r.name) === normalizedNewName);
 
     if (alreadyExists) return;
 
@@ -107,8 +116,8 @@ export function usePantry() {
   };
 
   return { 
-    items: items || [], 
-    historyRecipes: historyRecipes || [], 
+    items: items || EMPTY_ARRAY, 
+    historyRecipes: historyRecipes || EMPTY_ARRAY, 
     schedule: currentSchedule, 
     isLoading: itemsLoading || recipesLoading || scheduleLoading,
     addItem, 
