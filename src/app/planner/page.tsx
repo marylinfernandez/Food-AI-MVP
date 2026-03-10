@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePantry, DaySchedule } from "@/lib/pantry-store";
@@ -10,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Bell, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslation } from "@/context/language-context";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Página de planificación semanal.
- * Corregido: Se eliminan bucles infinitos de actualización de estado.
+ * Corregido: Se eliminan bucles infinitos de actualización de estado mediante refs y sincronización controlada.
  */
 export default function PlannerPage() {
   const { schedule, saveSchedule } = usePantry();
@@ -25,7 +24,9 @@ export default function PlannerPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  
   const [localSchedule, setLocalSchedule] = useState<DaySchedule[]>([]);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -33,10 +34,11 @@ export default function PlannerPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // Solo sincronizar con el servidor cuando los datos de schedule cambien realmente
+  // Sincronizar solo una vez cuando los datos del servidor estén listos
   useEffect(() => {
-    if (schedule && schedule.length > 0) {
+    if (schedule && schedule.length > 0 && !hasInitialized.current) {
       setLocalSchedule(schedule);
+      hasInitialized.current = true;
     }
   }, [schedule]);
 
