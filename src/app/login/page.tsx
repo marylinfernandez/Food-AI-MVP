@@ -5,19 +5,21 @@ import { useState } from "react";
 import { useAuth } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, AlertCircle } from "lucide-react";
+import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, Chrome } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada con validación de correo y bienvenida por IA.
+ * @fileOverview Pantalla de inicio de sesión optimizada con Google Sign-In y bienvenida por IA.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -25,6 +27,7 @@ export default function LoginPage() {
   const { t, language } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -35,6 +38,23 @@ export default function LoginPage() {
       .match(
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       );
+  };
+
+  const handleGoogleAuth = async () => {
+    setGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast({ 
+        title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
+        description: language === 'english' ? "Logged in with Google successfully." : "Iniciaste sesión con Google correctamente." 
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   const handleEmailAuth = async () => {
@@ -61,20 +81,17 @@ export default function LoginPage() {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
         try {
-          const welcomeMsg = await generateWelcomeEmail({
+          await generateWelcomeEmail({
             email: email,
             language: language
           });
-          toast({ 
-            title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
-            description: `${language === 'english' ? 'Welcome Chef. Check your email' : 'Bienvenido Chef. Revisa tu correo'}: "${welcomeMsg.subject}"`,
-          });
         } catch (aiErr) {
-          toast({ 
-            title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
-            description: language === 'english' ? "Welcome to FoodAI." : "Bienvenido a FoodAI." 
-          });
+          console.error("Welcome email failed", aiErr);
         }
+        toast({ 
+          title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
+          description: language === 'english' ? "Welcome to FoodAI." : "Bienvenido a FoodAI." 
+        });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ 
@@ -127,6 +144,25 @@ export default function LoginPage() {
 
         <CardContent className="p-8 pt-4 space-y-6">
           <div className="space-y-4">
+            <Button 
+              variant="outline" 
+              className="w-full h-12 rounded-2xl border-2 font-bold flex items-center justify-center gap-3 hover:bg-primary/5 transition-all"
+              onClick={handleGoogleAuth}
+              disabled={googleLoading || loading}
+            >
+              {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Chrome className="h-5 w-5 text-primary" />}
+              {language === 'english' ? "Continue with Google" : "Continuar con Google"}
+            </Button>
+
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted-foreground/20"></span>
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold text-muted-foreground/60 bg-transparent px-2">
+                <span className="bg-background px-2">{language === 'english' ? "Or use email" : "O usa tu correo"}</span>
+              </div>
+            </div>
+
             <div className="relative group">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input 
@@ -150,7 +186,7 @@ export default function LoginPage() {
           </div>
           
           <div className="flex flex-col gap-3">
-            <Button className="w-full h-14 rounded-2xl font-bold text-base shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary" onClick={handleEmailAuth} disabled={loading}>
+            <Button className="w-full h-14 rounded-2xl font-bold text-base shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary" onClick={handleEmailAuth} disabled={loading || googleLoading}>
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (

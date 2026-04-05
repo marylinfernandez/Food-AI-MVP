@@ -4,22 +4,27 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@/firebase";
 import { Button } from "@/components/ui/button";
-import { Download, X, Sparkles } from "lucide-react";
+import { Download, X, Sparkles, Share, PlusSquare } from "lucide-react";
 import { useTranslation } from "@/context/language-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 /**
  * @fileOverview Componente para gestionar la instalación de la PWA.
- * Aparece después del login si el navegador detecta que la app es instalable.
+ * Optimizado para Android (nativo), iOS (instrucciones) y Laptops.
  */
 export function PWAInstallPrompt() {
   const { user } = useUser();
   const { language } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    // Detectar si es iOS
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(isIOSDevice);
+
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -31,10 +36,20 @@ export function PWAInstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handler);
 
+    // En iOS, como no hay evento, lo mostramos si el usuario está logueado y no está en modo standalone
+    if (isIOSDevice && user && !window.matchMedia('(display-mode: standalone)').matches) {
+      setIsVisible(true);
+    }
+
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, [user]);
 
   const handleInstall = async () => {
+    if (isIOS) {
+      // En iOS no hay prompt programático, se muestran las instrucciones
+      return;
+    }
+    
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -63,22 +78,37 @@ export function PWAInstallPrompt() {
           </div>
           <div className="flex-1 space-y-1">
             <p className="text-xs font-black uppercase tracking-widest text-primary">
-              {language === 'english' ? "App Available" : "App Disponible"}
+              {language === 'english' ? "FoodAI App" : "App de FoodAI"}
             </p>
-            <p className="text-[10px] font-medium text-foreground/80 leading-tight">
-              {language === 'english' 
-                ? "Download FoodAI for a faster, offline experience." 
-                : "Descarga FoodAI para una experiencia más rápida y sin conexión."}
-            </p>
+            {isIOS ? (
+              <div className="flex flex-col gap-1">
+                <p className="text-[10px] font-medium text-foreground/80 leading-tight">
+                  {language === 'english' 
+                    ? "Tap Share and 'Add to Home Screen' to install." 
+                    : "Toca Compartir y 'Añadir a pantalla de inicio' para instalar."}
+                </p>
+                <div className="flex items-center gap-2 opacity-60">
+                  <Share className="h-3 w-3" /> <PlusSquare className="h-3 w-3" />
+                </div>
+              </div>
+            ) : (
+              <p className="text-[10px] font-medium text-foreground/80 leading-tight">
+                {language === 'english' 
+                  ? "Download FoodAI for a faster, offline experience." 
+                  : "Descarga FoodAI para una experiencia más rápida y nativa."}
+              </p>
+            )}
           </div>
-          <Button 
-            size="sm" 
-            className="rounded-xl px-4 bg-primary font-bold shadow-lg hover:scale-105 transition-transform"
-            onClick={handleInstall}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {language === 'english' ? "Install" : "Instalar"}
-          </Button>
+          {!isIOS && (
+            <Button 
+              size="sm" 
+              className="rounded-xl px-4 bg-primary font-bold shadow-lg hover:scale-105 transition-transform"
+              onClick={handleInstall}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {language === 'english' ? "Install" : "Instalar"}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
