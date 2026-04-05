@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/firebase";
+import { useState, useEffect, useRef } from "react";
+import { useAuth, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -20,11 +20,11 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada con Google Redirect para evitar bloqueos de popups.
- * Soporta registro y login 2 en 1.
+ * @fileOverview Pantalla de inicio de sesión optimizada para evitar errores de redireccionamiento en móviles.
  */
 export default function LoginPage() {
   const auth = useAuth();
+  const { user } = useUser();
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const router = useRouter();
@@ -33,14 +33,26 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const hasProcessedRedirect = useRef(false);
 
-  // Manejar el resultado del redireccionamiento de Google al cargar la página
+  // Redirigir si ya está logueado
+  useEffect(() => {
+    if (user) {
+      router.push("/pantry");
+    }
+  }, [user, router]);
+
+  // Manejar el resultado del redireccionamiento de Google de forma única
   useEffect(() => {
     const handleRedirectResult = async () => {
-      setGoogleLoading(true);
+      if (hasProcessedRedirect.current) return;
+      
       try {
         const result = await getRedirectResult(auth);
+        hasProcessedRedirect.current = true;
+        
         if (result) {
+          setGoogleLoading(true);
           const isNewUser = (result as any)._tokenResponse?.isNewUser;
           
           if (isNewUser && result.user.email) {
@@ -62,8 +74,13 @@ export default function LoginPage() {
           router.push("/pantry");
         }
       } catch (error: any) {
+        // Ignorar errores comunes de configuración que no impiden el funcionamiento
         if (error.code !== 'auth/web-storage-unsupported' && error.code !== 'auth/operation-not-allowed') {
-          toast({ title: "Error", description: error.message, variant: "destructive" });
+          console.error("Redirect Auth Error:", error);
+          // Solo mostrar toast si no es un error de cancelación o de parámetros inválidos por reintento
+          if (error.code !== 'auth/argument-error') {
+            toast({ title: "Error de Acceso", description: error.message, variant: "destructive" });
+          }
         }
       } finally {
         setGoogleLoading(false);
@@ -82,12 +99,16 @@ export default function LoginPage() {
   };
 
   const handleGoogleAuth = async () => {
+    if (googleLoading || loading) return;
+    
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
-      // Usamos Redirect en lugar de Popup para evitar el error auth/popup-blocked
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
+      console.error("Google Redirect Error:", error);
       toast({ title: "Error", description: error.message, variant: "destructive" });
       setGoogleLoading(false);
     }
