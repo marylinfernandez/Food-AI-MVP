@@ -20,7 +20,7 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada para evitar errores de redireccionamiento en móviles.
+ * @fileOverview Pantalla de inicio de sesión optimizada con signInWithRedirect para evitar auth/popup-blocked.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -42,7 +42,7 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  // Manejar el resultado del redireccionamiento de Google de forma única
+  // Manejar el resultado del redireccionamiento de Google
   useEffect(() => {
     const handleRedirectResult = async () => {
       if (hasProcessedRedirect.current) return;
@@ -74,10 +74,8 @@ export default function LoginPage() {
           router.push("/pantry");
         }
       } catch (error: any) {
-        // Ignorar errores comunes de configuración que no impiden el funcionamiento
         if (error.code !== 'auth/web-storage-unsupported' && error.code !== 'auth/operation-not-allowed') {
           console.error("Redirect Auth Error:", error);
-          // Solo mostrar toast si no es un error de cancelación o de parámetros inválidos por reintento
           if (error.code !== 'auth/argument-error') {
             toast({ title: "Error de Acceso", description: error.message, variant: "destructive" });
           }
@@ -90,14 +88,6 @@ export default function LoginPage() {
     handleRedirectResult();
   }, [auth, router, language, toast]);
 
-  const validateEmail = (email: string) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
-
   const handleGoogleAuth = async () => {
     if (googleLoading || loading) return;
     
@@ -106,6 +96,7 @@ export default function LoginPage() {
     provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
+      // Usamos Redirect exclusivamente para evitar el bloqueo de popups en móviles y PWAs
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Redirect Error:", error);
@@ -119,15 +110,6 @@ export default function LoginPage() {
       toast({ 
         title: language === 'english' ? "Incomplete data" : "Datos incompletos", 
         description: language === 'english' ? "Please fill in all fields." : "Por favor llena todos los campos.", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      toast({ 
-        title: language === 'english' ? "Invalid Email" : "Correo Inválido", 
-        description: language === 'english' ? "Please enter a valid email address." : "Por favor ingresa un correo electrónico válido.", 
         variant: "destructive" 
       });
       return;
@@ -161,12 +143,7 @@ export default function LoginPage() {
       let message = error.message;
       if (error.code === 'auth/invalid-credential') {
         message = language === 'english' ? "Incorrect email or password." : "Correo o contraseña incorrectos.";
-      } else if (error.code === 'auth/email-already-in-use') {
-        message = language === 'english' ? "This email is already registered." : "Este correo ya está registrado.";
-      } else if (error.code === 'auth/weak-password') {
-        message = language === 'english' ? "Password should be at least 6 characters." : "La contraseña debe tener al menos 6 caracteres.";
       }
-      
       toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setLoading(false);
