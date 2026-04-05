@@ -4,11 +4,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth, useUser } from "@/firebase";
 import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithRedirect,
-  getRedirectResult
+  getRedirectResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
  * @fileOverview Pantalla de inicio de sesión optimizada para móviles.
- * Utiliza exclusivamente Redirect para evitar bloqueos de popups y maneja errores de dominio.
+ * Utiliza Redirect para evitar bloqueos de popups y maneja errores de dominio no autorizado.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -39,12 +39,14 @@ export default function LoginPage() {
   
   const processingRedirect = useRef(false);
 
+  // Redirigir si ya hay un usuario
   useEffect(() => {
     if (user && !googleLoading && !loading) {
       router.push("/pantry");
     }
   }, [user, router, googleLoading, loading]);
 
+  // Manejar el resultado del redireccionamiento de Google
   useEffect(() => {
     if (processingRedirect.current) return;
 
@@ -78,7 +80,9 @@ export default function LoginPage() {
       } catch (error: any) {
         console.error("Auth Redirect Error:", error);
         if (error.code === 'auth/unauthorized-domain') {
-          setAuthError("Este dominio no está autorizado en Firebase. Añádelo en la consola de Firebase > Authentication > Settings.");
+          setAuthError("Este dominio no está autorizado en Firebase. Añádelo en la consola de Firebase > Authentication > Settings > Authorized Domains.");
+        } else if (error.code !== 'auth/popup-closed-by-user') {
+          setAuthError(error.message);
         }
       } finally {
         setGoogleLoading(false);
