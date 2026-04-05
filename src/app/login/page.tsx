@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithRedirect,
+  getRedirectResult
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,8 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada con Google Sign-In (2 en 1) y bienvenida por IA.
+ * @fileOverview Pantalla de inicio de sesión optimizada con Google Redirect para evitar bloqueos de popups.
+ * Soporta registro y login 2 en 1.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -31,6 +33,45 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+
+  // Manejar el resultado del redireccionamiento de Google al cargar la página
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      setGoogleLoading(true);
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          const isNewUser = (result as any)._tokenResponse?.isNewUser;
+          
+          if (isNewUser && result.user.email) {
+            try {
+              await generateWelcomeEmail({
+                email: result.user.email,
+                displayName: result.user.displayName || "Chef",
+                language: language
+              });
+            } catch (aiErr) {
+              console.error("Welcome email failed", aiErr);
+            }
+          }
+
+          toast({ 
+            title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
+            description: language === 'english' ? "Logged in with Google successfully." : "Iniciaste sesión con Google correctamente." 
+          });
+          router.push("/pantry");
+        }
+      } catch (error: any) {
+        if (error.code !== 'auth/web-storage-unsupported' && error.code !== 'auth/operation-not-allowed') {
+          toast({ title: "Error", description: error.message, variant: "destructive" });
+        }
+      } finally {
+        setGoogleLoading(false);
+      }
+    };
+
+    handleRedirectResult();
+  }, [auth, router, language, toast]);
 
   const validateEmail = (email: string) => {
     return String(email)
@@ -44,30 +85,10 @@ export default function LoginPage() {
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      // signInWithPopup funciona tanto para registro (primera vez) como para login.
-      const result = await signInWithPopup(auth, provider);
-      const isNewUser = (result as any)._tokenResponse?.isNewUser;
-      
-      if (isNewUser && result.user.email) {
-        try {
-          await generateWelcomeEmail({
-            email: result.user.email,
-            displayName: result.user.displayName || "Chef",
-            language: language
-          });
-        } catch (aiErr) {
-          console.error("Welcome email failed", aiErr);
-        }
-      }
-
-      toast({ 
-        title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
-        description: language === 'english' ? "Logged in with Google successfully." : "Iniciaste sesión con Google correctamente." 
-      });
-      router.push("/pantry");
+      // Usamos Redirect en lugar de Popup para evitar el error auth/popup-blocked
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
       setGoogleLoading(false);
     }
   };
