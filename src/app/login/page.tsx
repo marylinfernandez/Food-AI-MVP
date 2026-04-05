@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -37,17 +38,18 @@ export default function LoginPage() {
   
   const processingRedirect = useRef(false);
 
-  // Redirigir si el usuario ya está autenticado
+  // Redirigir si el usuario ya está autenticado (Crucial para romper el bucle)
   useEffect(() => {
     if (user && !isUserLoading) {
       router.replace("/pantry");
     }
   }, [user, isUserLoading, router]);
 
-  // Manejar el resultado del redireccionamiento de Google de forma atómica
+  // Manejar el resultado del redireccionamiento de Google
   useEffect(() => {
     const checkRedirectResult = async () => {
-      if (processingRedirect.current) return;
+      // Evitar procesamiento múltiple
+      if (processingRedirect.current || isUserLoading) return;
       
       try {
         const result = await getRedirectResult(auth);
@@ -78,9 +80,9 @@ export default function LoginPage() {
       } catch (error: any) {
         console.error("Auth Redirect Error:", error);
         if (error.code === 'auth/unauthorized-domain') {
-          setAuthError("Este dominio no está autorizado. Añádelo en la consola de Firebase > Authentication > Settings > Authorized Domains.");
+          setAuthError("Dominio no autorizado. Debes añadir este dominio en la consola de Firebase > Authentication > Settings > Authorized Domains.");
         } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-closure-redirect') {
-          toast({ title: "Auth Error", description: error.message, variant: "destructive" });
+          toast({ title: "Error de Autenticación", description: error.message, variant: "destructive" });
         }
       } finally {
         setGoogleLoading(false);
@@ -88,7 +90,7 @@ export default function LoginPage() {
     };
 
     checkRedirectResult();
-  }, [auth, router, language, toast]);
+  }, [auth, router, language, toast, isUserLoading]);
 
   const handleGoogleAuth = async () => {
     if (googleLoading || loading) return;
@@ -130,7 +132,6 @@ export default function LoginPage() {
       } else {
         initiateEmailSignIn(auth, email, password);
       }
-      // El onAuthStateChanged en el Provider manejará la redirección vía el useEffect de arriba
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       setLoading(false);
@@ -159,7 +160,7 @@ export default function LoginPage() {
             <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
           )}
           <p className="text-xs font-bold text-foreground leading-tight">
-            {googleLoading ? "Autenticando con Google..." : authError}
+            {googleLoading ? "Conectando con Google..." : authError}
           </p>
         </Card>
       )}
