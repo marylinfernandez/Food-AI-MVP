@@ -20,8 +20,8 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión robusta.
- * Usa Redirect para evitar bloqueos en móviles y maneja el resultado de forma atómica.
+ * @fileOverview Pantalla de inicio de sesión optimizada para móviles.
+ * Usa Redirect para máxima compatibilidad y maneja el resultado de forma atómica.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -36,29 +36,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   
-  // Ref para evitar que getRedirectResult se ejecute múltiples veces (causa de "request action is invalid")
-  const hasProcessed = useRef(false);
+  // Ref para asegurar que getRedirectResult solo se procese una vez por ciclo de vida
+  const processingRedirect = useRef(false);
 
-  // Redirigir si ya hay sesión
+  // Redirigir si ya hay sesión activa
   useEffect(() => {
     if (user) {
       router.push("/pantry");
     }
   }, [user, router]);
 
-  // Manejar el resultado del redireccionamiento al cargar la página
+  // Procesar el resultado del redireccionamiento de Google de forma segura
   useEffect(() => {
-    const checkRedirect = async () => {
-      if (hasProcessed.current) return;
-      
+    if (processingRedirect.current) return;
+
+    const checkRedirectResult = async () => {
       try {
+        // getRedirectResult debe llamarse incluso si no hubo un redirect previo para limpiar el estado de Firebase
         const result = await getRedirectResult(auth);
-        hasProcessed.current = true; // Bloqueo inmediato
         
-        if (result) {
+        if (result && !processingRedirect.current) {
+          processingRedirect.current = true;
           setGoogleLoading(true);
-          const isNewUser = (result as any)._tokenResponse?.isNewUser;
           
+          const isNewUser = (result as any)._tokenResponse?.isNewUser;
           if (isNewUser && result.user.email) {
             try {
               await generateWelcomeEmail({
@@ -78,21 +79,24 @@ export default function LoginPage() {
           router.push("/pantry");
         }
       } catch (error: any) {
-        // Ignorar errores comunes de inicialización silenciosa
+        // El error 'auth/argument-error' o similares suelen ser benignos si no hubo un redirect previo
         if (error.code !== 'auth/argument-error' && error.code !== 'auth/operation-not-allowed') {
           console.error("Auth Redirect Error:", error);
-          toast({ 
-            title: "Error de Acceso", 
-            description: "No se pudo completar el acceso con Google. Intenta de nuevo.", 
-            variant: "destructive" 
-          });
+          // Solo mostrar toast si el error es realmente crítico para la acción del usuario
+          if (error.code !== 'auth/invalid-credential') {
+            toast({ 
+              title: "Error de Acceso", 
+              description: "No se pudo completar el acceso con Google. Intenta de nuevo.", 
+              variant: "destructive" 
+            });
+          }
         }
       } finally {
         setGoogleLoading(false);
       }
     };
 
-    checkRedirect();
+    checkRedirectResult();
   }, [auth, router, language, toast]);
 
   const handleGoogleAuth = async () => {
@@ -103,7 +107,7 @@ export default function LoginPage() {
     provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
-      // Uso forzado de Redirect para máxima compatibilidad móvil/PWA
+      // Método Redirect: Infalible en móviles y PWAs
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Init Error:", error);
