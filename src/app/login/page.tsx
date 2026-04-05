@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, Chrome } from "lucide-react";
+import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, Chrome, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
@@ -21,7 +21,7 @@ import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
  * @fileOverview Pantalla de inicio de sesión optimizada para móviles.
- * Usa Redirect para máxima compatibilidad y maneja el resultado de forma atómica.
+ * Utiliza exclusivamente Redirect para evitar bloqueos de popups y maneja errores de dominio.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -35,18 +35,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   
-  // Ref para asegurar que getRedirectResult solo se procese una vez por ciclo de vida
   const processingRedirect = useRef(false);
 
-  // Redirigir si ya hay sesión activa
   useEffect(() => {
     if (user && !googleLoading && !loading) {
       router.push("/pantry");
     }
   }, [user, router, googleLoading, loading]);
 
-  // Procesar el resultado del redireccionamiento de Google de forma segura
   useEffect(() => {
     if (processingRedirect.current) return;
 
@@ -79,13 +77,8 @@ export default function LoginPage() {
         }
       } catch (error: any) {
         console.error("Auth Redirect Error:", error);
-        // El error 'auth/argument-error' suele ser benigno si no hubo un redirect previo
-        if (error.code !== 'auth/argument-error' && error.code !== 'auth/operation-not-allowed') {
-          toast({ 
-            title: "Error de Acceso", 
-            description: "No se pudo completar el acceso. Intenta de nuevo.", 
-            variant: "destructive" 
-          });
+        if (error.code === 'auth/unauthorized-domain') {
+          setAuthError("Este dominio no está autorizado en Firebase. Añádelo en la consola de Firebase > Authentication > Settings.");
         }
       } finally {
         setGoogleLoading(false);
@@ -99,15 +92,19 @@ export default function LoginPage() {
     if (googleLoading || loading) return;
     
     setGoogleLoading(true);
+    setAuthError(null);
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
-      // Método Redirect: Infalible en móviles y PWAs
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Init Error:", error);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      if (error.code === 'auth/unauthorized-domain') {
+        setAuthError("Dominio no autorizado. Revisa la consola de Firebase.");
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
       setGoogleLoading(false);
     }
   };
@@ -123,6 +120,7 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    setAuthError(null);
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
@@ -167,6 +165,13 @@ export default function LoginPage() {
           {t('login.subtitle')}
         </p>
       </div>
+
+      {authError && (
+        <Card className="w-full max-w-md bg-destructive/10 border-destructive/20 p-4 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top">
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          <p className="text-xs font-bold text-destructive leading-tight">{authError}</p>
+        </Card>
+      )}
 
       <Card className="w-full max-w-md glass overflow-hidden border-none shadow-2xl relative">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-accent"></div>
