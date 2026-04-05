@@ -41,10 +41,10 @@ export default function LoginPage() {
 
   // Redirigir si ya hay sesión activa
   useEffect(() => {
-    if (user) {
+    if (user && !googleLoading && !loading) {
       router.push("/pantry");
     }
-  }, [user, router]);
+  }, [user, router, googleLoading, loading]);
 
   // Procesar el resultado del redireccionamiento de Google de forma segura
   useEffect(() => {
@@ -52,12 +52,11 @@ export default function LoginPage() {
 
     const checkRedirectResult = async () => {
       try {
-        // getRedirectResult debe llamarse incluso si no hubo un redirect previo para limpiar el estado de Firebase
+        setGoogleLoading(true);
         const result = await getRedirectResult(auth);
         
         if (result && !processingRedirect.current) {
           processingRedirect.current = true;
-          setGoogleLoading(true);
           
           const isNewUser = (result as any)._tokenResponse?.isNewUser;
           if (isNewUser && result.user.email) {
@@ -79,17 +78,14 @@ export default function LoginPage() {
           router.push("/pantry");
         }
       } catch (error: any) {
-        // El error 'auth/argument-error' o similares suelen ser benignos si no hubo un redirect previo
+        console.error("Auth Redirect Error:", error);
+        // El error 'auth/argument-error' suele ser benigno si no hubo un redirect previo
         if (error.code !== 'auth/argument-error' && error.code !== 'auth/operation-not-allowed') {
-          console.error("Auth Redirect Error:", error);
-          // Solo mostrar toast si el error es realmente crítico para la acción del usuario
-          if (error.code !== 'auth/invalid-credential') {
-            toast({ 
-              title: "Error de Acceso", 
-              description: "No se pudo completar el acceso con Google. Intenta de nuevo.", 
-              variant: "destructive" 
-            });
-          }
+          toast({ 
+            title: "Error de Acceso", 
+            description: "No se pudo completar el acceso. Intenta de nuevo.", 
+            variant: "destructive" 
+          });
         }
       } finally {
         setGoogleLoading(false);
