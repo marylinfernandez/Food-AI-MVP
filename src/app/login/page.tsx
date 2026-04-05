@@ -19,7 +19,7 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada con Google Sign-In y bienvenida por IA.
+ * @fileOverview Pantalla de inicio de sesión optimizada con Google Sign-In (2 en 1) y bienvenida por IA.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -44,12 +44,27 @@ export default function LoginPage() {
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      // signInWithPopup funciona tanto para registro (primera vez) como para login.
+      const result = await signInWithPopup(auth, provider);
+      const isNewUser = (result as any)._tokenResponse?.isNewUser;
+      
+      if (isNewUser && result.user.email) {
+        try {
+          await generateWelcomeEmail({
+            email: result.user.email,
+            displayName: result.user.displayName || "Chef",
+            language: language
+          });
+        } catch (aiErr) {
+          console.error("Welcome email failed", aiErr);
+        }
+      }
+
       toast({ 
         title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
         description: language === 'english' ? "Logged in with Google successfully." : "Iniciaste sesión con Google correctamente." 
       });
-      router.push("/");
+      router.push("/pantry");
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -99,7 +114,7 @@ export default function LoginPage() {
           description: language === 'english' ? "Logged in successfully." : "Has iniciado sesión correctamente." 
         });
       }
-      router.push("/");
+      router.push("/pantry");
     } catch (error: any) {
       let message = error.message;
       if (error.code === 'auth/invalid-credential') {

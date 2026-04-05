@@ -17,6 +17,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
+/**
+ * @fileOverview Página de recetas con lógica de descarte automático de ingredientes usados.
+ */
+
 type Category = 'main' | 'drink' | 'dessert' | 'snack' | 'custom' | null;
 
 export default function RecipesPage() {
@@ -77,7 +81,6 @@ export default function RecipesPage() {
 
   const generateRecipes = async () => {
     if (!selectedCategory) return;
-    const todayStr = new Date().toDateString();
     const availableItems = items.map(i => i.name);
 
     if (selectedCategory !== 'custom' && availableItems.length === 0) {
@@ -110,16 +113,20 @@ export default function RecipesPage() {
 
   const handleFinishCooking = (recipe: any) => {
     setIsCleaning(true);
+    
+    // Identificar qué items de la despensa se usaron para eliminarlos
     const ownedNormalized = recipe.ingredientsOwned.map((ing: string) => normalizeText(ing));
     
-    // Identificar qué items de la despensa se usaron
     const itemsToRemove = items.filter(item => {
       const nameNorm = normalizeText(item.name);
+      // Coincidencia inteligente: si el ingrediente de la receta contiene el nombre del item o viceversa
       return ownedNormalized.some((ing: string) => ing.includes(nameNorm) || nameNorm.includes(ing));
     });
 
+    // Eliminar de Firestore
     itemsToRemove.forEach(item => removeItem(item.id));
     
+    // Guardar receta en el historial persistente
     addRecipeToHistory({ 
       name: recipe.name, 
       prepTime: recipe.prepTimeMinutes + recipe.cookTimeMinutes 
@@ -148,7 +155,12 @@ export default function RecipesPage() {
       async (pos) => {
         try {
           const missing = recipes?.recipes?.[idx]?.ingredientsMissing || [];
-          const result = await aiNearbyStores({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, missingIngredients: missing, language: language });
+          const result = await aiNearbyStores({ 
+            latitude: pos.coords.latitude, 
+            longitude: pos.coords.longitude, 
+            missingIngredients: missing, 
+            language: language 
+          });
           setNearbyStores(result);
         } catch (err) {
           toast({ title: "Error de IA", description: "No pudimos localizar tiendas.", variant: "destructive" });
