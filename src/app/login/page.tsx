@@ -20,7 +20,8 @@ import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada con signInWithRedirect para evitar auth/popup-blocked.
+ * @fileOverview Pantalla de inicio de sesión robusta.
+ * Usa Redirect para evitar bloqueos en móviles y maneja el resultado de forma atómica.
  */
 export default function LoginPage() {
   const auth = useAuth();
@@ -28,28 +29,31 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const router = useRouter();
+  
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const hasProcessedRedirect = useRef(false);
+  
+  // Ref para evitar que getRedirectResult se ejecute múltiples veces (causa de "request action is invalid")
+  const hasProcessed = useRef(false);
 
-  // Redirigir si ya está logueado
+  // Redirigir si ya hay sesión
   useEffect(() => {
     if (user) {
       router.push("/pantry");
     }
   }, [user, router]);
 
-  // Manejar el resultado del redireccionamiento de Google
+  // Manejar el resultado del redireccionamiento al cargar la página
   useEffect(() => {
-    const handleRedirectResult = async () => {
-      if (hasProcessedRedirect.current) return;
+    const checkRedirect = async () => {
+      if (hasProcessed.current) return;
       
       try {
         const result = await getRedirectResult(auth);
-        hasProcessedRedirect.current = true;
+        hasProcessed.current = true; // Bloqueo inmediato
         
         if (result) {
           setGoogleLoading(true);
@@ -63,29 +67,32 @@ export default function LoginPage() {
                 language: language
               });
             } catch (aiErr) {
-              console.error("Welcome email failed", aiErr);
+              console.error("Welcome email error:", aiErr);
             }
           }
 
           toast({ 
             title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
-            description: language === 'english' ? "Logged in with Google successfully." : "Iniciaste sesión con Google correctamente." 
+            description: language === 'english' ? "Logged in with Google." : "Iniciaste sesión con Google." 
           });
           router.push("/pantry");
         }
       } catch (error: any) {
-        if (error.code !== 'auth/web-storage-unsupported' && error.code !== 'auth/operation-not-allowed') {
-          console.error("Redirect Auth Error:", error);
-          if (error.code !== 'auth/argument-error') {
-            toast({ title: "Error de Acceso", description: error.message, variant: "destructive" });
-          }
+        // Ignorar errores comunes de inicialización silenciosa
+        if (error.code !== 'auth/argument-error' && error.code !== 'auth/operation-not-allowed') {
+          console.error("Auth Redirect Error:", error);
+          toast({ 
+            title: "Error de Acceso", 
+            description: "No se pudo completar el acceso con Google. Intenta de nuevo.", 
+            variant: "destructive" 
+          });
         }
       } finally {
         setGoogleLoading(false);
       }
     };
 
-    handleRedirectResult();
+    checkRedirect();
   }, [auth, router, language, toast]);
 
   const handleGoogleAuth = async () => {
@@ -96,10 +103,10 @@ export default function LoginPage() {
     provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
-      // Usamos Redirect exclusivamente para evitar el bloqueo de popups en móviles y PWAs
+      // Uso forzado de Redirect para máxima compatibilidad móvil/PWA
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Redirect Error:", error);
+      console.error("Google Init Error:", error);
       toast({ title: "Error", description: error.message, variant: "destructive" });
       setGoogleLoading(false);
     }
@@ -109,7 +116,7 @@ export default function LoginPage() {
     if (!email || !password) {
       toast({ 
         title: language === 'english' ? "Incomplete data" : "Datos incompletos", 
-        description: language === 'english' ? "Please fill in all fields." : "Por favor llena todos los campos.", 
+        description: "Por favor llena todos los campos.", 
         variant: "destructive" 
       });
       return;
@@ -120,29 +127,26 @@ export default function LoginPage() {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
         try {
-          await generateWelcomeEmail({
-            email: email,
-            language: language
-          });
+          await generateWelcomeEmail({ email, language });
         } catch (aiErr) {
-          console.error("Welcome email failed", aiErr);
+          console.error("Welcome email error:", aiErr);
         }
         toast({ 
           title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
-          description: language === 'english' ? "Welcome to FoodAI." : "Bienvenido a FoodAI." 
+          description: "Bienvenido a FoodAI." 
         });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ 
           title: language === 'english' ? "Welcome back!" : "¡Hola de nuevo!", 
-          description: language === 'english' ? "Logged in successfully." : "Has iniciado sesión correctamente." 
+          description: "Has iniciado sesión correctamente." 
         });
       }
       router.push("/pantry");
     } catch (error: any) {
       let message = error.message;
       if (error.code === 'auth/invalid-credential') {
-        message = language === 'english' ? "Incorrect email or password." : "Correo o contraseña incorrectos.";
+        message = "Correo o contraseña incorrectos.";
       }
       toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
@@ -169,10 +173,10 @@ export default function LoginPage() {
         
         <CardHeader className="p-8 pb-4 text-center">
           <CardTitle className="text-2xl font-bold text-primary">
-            {isRegistering ? (language === 'english' ? "Create Account" : "Crear Cuenta") : (language === 'english' ? "Login" : "Iniciar Sesión")}
+            {isRegistering ? "Crear Cuenta" : "Iniciar Sesión"}
           </CardTitle>
           <CardDescription className="text-xs uppercase tracking-widest font-bold opacity-60">
-            {isRegistering ? (language === 'english' ? "Join the future of cooking" : "Únete al futuro de la cocina") : (language === 'english' ? "Manage your smart pantry" : "Gestiona tu despensa inteligente")}
+            {isRegistering ? "Únete al futuro de la cocina" : "Gestiona tu despensa inteligente"}
           </CardDescription>
         </CardHeader>
 
