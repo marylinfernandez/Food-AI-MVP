@@ -20,9 +20,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/**
- * @fileOverview Encabezado global con botones alineados y cierre de sesión condicional.
- */
 export function Header() {
   const { user } = useUser();
   const auth = useAuth();
@@ -47,12 +44,11 @@ export function Header() {
     { id: "spanish-la" as Language, label: "LA", flag: "🌎" }
   ];
 
-  // El tour y el botón de salida solo aparecen tras iniciar sesión y en vistas internas
   const showInternalControls = mounted && user && pathname !== '/login';
 
   return (
     <header className="flex justify-between items-center mb-6 px-2 animate-in fade-in slide-in-from-top duration-500 relative z-[60] w-full">
-      <Link href="/" className="flex items-center gap-2 group">
+      <Link href="/pantry" className="flex items-center gap-2 group">
         <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(var(--primary),0.4)] neo-glow group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
           <Sparkles className="h-5 w-5 text-white" />
         </div>
@@ -69,7 +65,6 @@ export function Header() {
       </Link>
       
       <div className="flex items-center gap-1.5 bg-white/20 dark:bg-black/40 p-1.5 rounded-full backdrop-blur-xl border border-white/20 shadow-lg ml-auto">
-        {/* Idioma - Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 hover:bg-white/30 text-primary">
@@ -94,7 +89,6 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Tour - Solo Icono y Condicional */}
         {showInternalControls && (
           <Button 
             variant="ghost" 
@@ -113,7 +107,6 @@ export function Header() {
         
         <ThemeToggle />
 
-        {/* Cerrar Sesión - Condicional */}
         {showInternalControls && (
           <Button 
             variant="ghost" 

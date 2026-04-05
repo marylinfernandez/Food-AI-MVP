@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -7,10 +8,10 @@ import { aiNearbyStores, NearbyStoresOutput } from "@/ai/flows/ai-nearby-stores-
 import { usePantry } from "@/lib/pantry-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Timer, Sparkles, Loader2, Volume2, Utensils, Beer, IceCream, Coffee, ArrowLeft, ShoppingCart, CheckCircle, MapPin, ExternalLink, X, Search } from "lucide-react";
+import { Timer, Sparkles, Loader2, Volume2, Utensils, Beer, IceCream, Coffee, ArrowLeft, ShoppingCart, CheckCircle, MapPin, ExternalLink, X, Search, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, normalizeText } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/firebase";
@@ -19,7 +20,7 @@ import { useRouter } from "next/navigation";
 type Category = 'main' | 'drink' | 'dessert' | 'snack' | 'custom' | null;
 
 export default function RecipesPage() {
-  const { items, addRecipeToHistory } = usePantry();
+  const { items, addRecipeToHistory, removeItem } = usePantry();
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const { user, isUserLoading } = useUser();
@@ -33,6 +34,7 @@ export default function RecipesPage() {
   const [specificRequest, setSpecificRequest] = useState("");
   const [nearbyStores, setNearbyStores] = useState<NearbyStoresOutput | null>(null);
   const [storesLoading, setStoresLoading] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -55,19 +57,12 @@ export default function RecipesPage() {
     setAudioLoading(index);
     try {
       const textToRead = `${recipe.name}. ${recipe.description}. Instrucciones: ${recipe.instructions.join('. ')}`;
-      
-      const langCodeMap: Record<string, string> = {
-        'english': 'en-US',
-        'spanish-es': 'es-ES',
-        'spanish-la': 'es-LA'
-      };
-
+      const langCodeMap: Record<string, string> = { 'english': 'en-US', 'spanish-es': 'es-ES', 'spanish-la': 'es-LA' };
       const result = await aiRecipeAudio({
         text: textToRead,
         languageCode: langCodeMap[language] || 'es-LA',
         voiceName: localStorage.getItem('foodai_voice') || 'Algenib'
       });
-
       if (audioRef.current) {
         audioRef.current.src = result.audioDataUri;
         audioRef.current.play();
@@ -82,14 +77,13 @@ export default function RecipesPage() {
 
   const generateRecipes = async () => {
     if (!selectedCategory) return;
-    
     const todayStr = new Date().toDateString();
-    const todayItems = items.filter(i => new Date(i.scannedAt).toDateString() === todayStr);
+    const availableItems = items.map(i => i.name);
 
-    if (selectedCategory !== 'custom' && todayItems.length === 0) {
+    if (selectedCategory !== 'custom' && availableItems.length === 0) {
       toast({ 
         title: language === 'english' ? "Ingredients Needed" : "Faltan ingredientes", 
-        description: language === 'english' ? "Please scan your fridge first for this category!" : "¡Por favor escanea tu nevera primero para esta categoría!", 
+        description: language === 'english' ? "Please scan your fridge first!" : "¡Por favor escanea tu nevera primero!", 
         variant: "destructive" 
       });
       return;
@@ -99,16 +93,13 @@ export default function RecipesPage() {
     try {
       let mealTypeLabel = categories.find(c => c.id === selectedCategory)?.label || "";
       const result = await personalizedRecipeGeneration({
-        ingredients: todayItems.map(i => i.name),
+        ingredients: availableItems,
         numberOfPeople: 2,
         mealType: mealTypeLabel,
         specificRequest: selectedCategory === 'custom' ? specificRequest : undefined,
         language: language
       });
       setRecipes(result);
-      if (result.recipes.length > 0) {
-        addRecipeToHistory({ name: result.recipes[0].name, prepTime: result.recipes[0].prepTimeMinutes + result.recipes[0].cookTimeMinutes });
-      }
     } catch (error) {
       console.error(error);
       toast({ title: t('Error'), description: t('recipes.errorGen'), variant: "destructive" });
@@ -117,47 +108,58 @@ export default function RecipesPage() {
     }
   };
 
-  const handleNearbyStores = () => {
+  const handleFinishCooking = (recipe: any) => {
+    setIsCleaning(true);
+    const ownedNormalized = recipe.ingredientsOwned.map((ing: string) => normalizeText(ing));
+    
+    // Identificar qué items de la despensa se usaron
+    const itemsToRemove = items.filter(item => {
+      const nameNorm = normalizeText(item.name);
+      return ownedNormalized.some((ing: string) => ing.includes(nameNorm) || nameNorm.includes(ing));
+    });
+
+    itemsToRemove.forEach(item => removeItem(item.id));
+    
+    addRecipeToHistory({ 
+      name: recipe.name, 
+      prepTime: recipe.prepTimeMinutes + recipe.cookTimeMinutes 
+    });
+
+    toast({
+      title: t('recipes.finishSuccess'),
+      description: language === 'english' 
+        ? `Used ingredients removed. Inventory updated.` 
+        : `Ingredientes usados eliminados. Inventario actualizado.`,
+    });
+
+    setTimeout(() => {
+      resetSelection();
+      setIsCleaning(false);
+    }, 1500);
+  };
+
+  const handleNearbyStores = (idx: number) => {
     if (!navigator.geolocation) {
-      toast({ 
-        title: "GPS no disponible", 
-        description: "Tu navegador no soporta geolocalización.", 
-        variant: "destructive" 
-      });
+      toast({ title: "GPS no disponible", description: "Tu navegador no soporta geolocalización.", variant: "destructive" });
       return;
     }
-
     setStoresLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const recipeIdx = activeRecipe !== null ? activeRecipe : 0;
-          const missing = recipes?.recipes?.[recipeIdx]?.ingredientsMissing || [];
-          
-          const result = await aiNearbyStores({ 
-            latitude: pos.coords.latitude, 
-            longitude: pos.coords.longitude, 
-            missingIngredients: missing, 
-            language: language 
-          });
+          const missing = recipes?.recipes?.[idx]?.ingredientsMissing || [];
+          const result = await aiNearbyStores({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, missingIngredients: missing, language: language });
           setNearbyStores(result);
         } catch (err) {
-          toast({ 
-            title: "Error de IA", 
-            description: "No pudimos localizar tiendas ahora mismo.", 
-            variant: "destructive" 
-          });
+          toast({ title: "Error de IA", description: "No pudimos localizar tiendas.", variant: "destructive" });
         } finally {
           setStoresLoading(false);
         }
       },
       (error) => {
         setStoresLoading(false);
-        let msg = "No se pudo obtener tu ubicación.";
-        if (error.code === 1) msg = "Por favor, permite el acceso a tu ubicación.";
-        toast({ title: "Error de GPS", description: msg, variant: "destructive" });
-      },
-      { timeout: 10000 }
+        toast({ title: "Error de GPS", description: "No se pudo obtener tu ubicación.", variant: "destructive" });
+      }
     );
   };
 
@@ -210,66 +212,49 @@ export default function RecipesPage() {
             <h2 className="text-2xl font-bold text-primary">{categories.find(c => c.id === selectedCategory)?.label}</h2>
             <p className="text-xs text-muted-foreground uppercase tracking-widest">FoodAI está listo para cocinar</p>
           </div>
-          
           {selectedCategory === 'custom' && (
             <div className="space-y-4">
               <label className="text-[10px] font-black uppercase tracking-widest opacity-60 px-1">{t('recipes.customLabel')}</label>
-              <Textarea 
-                value={specificRequest} 
-                onChange={(e) => setSpecificRequest(e.target.value)} 
-                placeholder="Ej: Pasta carbonara para dos..." 
-                className="rounded-2xl border-2 focus:ring-primary min-h-[120px]"
-              />
+              <Textarea value={specificRequest} onChange={(e) => setSpecificRequest(e.target.value)} placeholder="Ej: Pasta carbonara para dos..." className="rounded-2xl border-2 focus:ring-primary min-h-[120px]" />
             </div>
           )}
-          
           <Button className="w-full h-16 rounded-2xl font-bold text-lg shadow-xl neo-glow-primary transition-all" onClick={generateRecipes}>
             <Sparkles className="h-5 w-5 mr-2" /> {t('recipes.generate')}
           </Button>
         </Card>
       )}
 
-      {loading && (
+      {(loading || isCleaning) && (
         <div className="py-20 text-center space-y-6 animate-pulse">
           <div className="relative inline-block">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
             <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-accent animate-bounce" />
           </div>
-          <p className="font-black uppercase tracking-[0.2em] text-sm text-primary">{t('recipes.cooking')}</p>
+          <p className="font-black uppercase tracking-[0.2em] text-sm text-primary">
+            {isCleaning ? t('recipes.finish') : t('recipes.cooking')}
+          </p>
         </div>
       )}
 
-      {recipes && (
+      {recipes && !isCleaning && (
         <div className="space-y-6 animate-in slide-in-from-bottom duration-500">
           {recipes.recipes.map((recipe, idx) => (
             <Card key={idx} className="glass border-none overflow-hidden relative group">
               <div className="h-48 relative">
-                <img 
-                  src={`https://picsum.photos/seed/${recipe.imageSearchTerm}/600/400`} 
-                  alt={recipe.name} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                <img src={`https://picsum.photos/seed/${recipe.imageSearchTerm}/600/400`} alt={recipe.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute top-4 right-4">
-                  <Button 
-                    size="icon" 
-                    className="rounded-full bg-white/20 backdrop-blur-md hover:bg-primary text-white border-white/20"
-                    onClick={() => handleReadRecipe(recipe, idx)}
-                    disabled={audioLoading === idx}
-                  >
+                  <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-md hover:bg-primary text-white border-white/20" onClick={() => handleReadRecipe(recipe, idx)} disabled={audioLoading === idx}>
                     {audioLoading === idx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
                   </Button>
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <Badge className="bg-primary/90 text-white mb-2 h-5 px-2 text-[10px] font-bold border-none uppercase">
-                    {recipe.prepTimeMinutes + recipe.cookTimeMinutes} min
-                  </Badge>
+                  <Badge className="bg-primary/90 text-white mb-2 h-5 px-2 text-[10px] font-bold border-none uppercase">{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</Badge>
                   <h3 className="text-xl font-bold leading-tight">{recipe.name}</h3>
                 </div>
               </div>
               <div className="p-6 space-y-6">
                 <p className="text-sm text-muted-foreground italic leading-relaxed">"{recipe.description}"</p>
-                
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">{t('recipes.owned')}</h4>
                   <div className="flex flex-wrap gap-2">
@@ -280,7 +265,6 @@ export default function RecipesPage() {
                     ))}
                   </div>
                 </div>
-
                 {recipe.ingredientsMissing.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500">{t('recipes.missing')}</h4>
@@ -293,49 +277,36 @@ export default function RecipesPage() {
                     </div>
                   </div>
                 )}
-
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-secondary flex items-center gap-2">
-                    <Utensils className="h-4 w-4" /> {t('recipes.start')}
-                  </h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-secondary flex items-center gap-2"><Utensils className="h-4 w-4" /> {t('recipes.start')}</h4>
                   <div className="space-y-4">
                     {recipe.instructions.map((step, i) => (
                       <div key={i} className="flex gap-4 group/step">
-                        <span className="h-6 w-6 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary font-black text-xs shrink-0 group-hover/step:bg-secondary group-hover/step:text-white transition-colors">
-                          {i + 1}
-                        </span>
+                        <span className="h-6 w-6 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary font-black text-xs shrink-0 group-hover/step:bg-secondary group-hover/step:text-white transition-colors">{i + 1}</span>
                         <p className="text-sm leading-relaxed">{step}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {recipe.ingredientsMissing.length > 0 && !nearbyStores && (
-                  <div className="pt-4 border-t border-dashed">
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-14 rounded-2xl border-2 border-accent text-accent font-bold hover:bg-accent/10" 
-                      onClick={() => {
-                        setActiveRecipe(idx);
-                        handleNearbyStores();
-                      }}
-                      disabled={storesLoading}
-                    >
+                <div className="pt-6 border-t border-dashed flex flex-col gap-3">
+                   <Button className="w-full h-14 rounded-2xl bg-secondary text-white font-bold text-lg shadow-lg" onClick={() => handleFinishCooking(recipe)}>
+                     <CheckCircle2 className="mr-2 h-5 w-5" /> {t('recipes.finishBtn')}
+                   </Button>
+                   
+                   {recipe.ingredientsMissing.length > 0 && !nearbyStores && (
+                    <Button variant="outline" className="w-full h-12 rounded-2xl border-2 border-accent text-accent font-bold hover:bg-accent/10" onClick={() => { setActiveRecipe(idx); handleNearbyStores(idx); }} disabled={storesLoading}>
                       {storesLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <MapPin className="h-5 w-5 mr-2" />}
                       {t('recipes.enableLocation')}
                     </Button>
-                  </div>
-                )}
+                   )}
+                </div>
 
                 {nearbyStores && activeRecipe === idx && (
-                  <div className="space-y-4 animate-in fade-in zoom-in duration-300">
+                  <div className="space-y-4 animate-in fade-in zoom-in duration-300 pt-4">
                     <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-bold flex items-center gap-2">
-                        <ShoppingCart className="h-4 w-4 text-accent" /> {t('recipes.storesTitle')}
-                      </h4>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNearbyStores(null)}>
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <h4 className="text-sm font-bold flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-accent" /> {t('recipes.storesTitle')}</h4>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNearbyStores(null)}><X className="h-4 w-4" /></Button>
                     </div>
                     <div className="grid grid-cols-1 gap-3">
                       {nearbyStores.stores.map((store, i) => (
@@ -347,24 +318,8 @@ export default function RecipesPage() {
                             </div>
                             <Badge className={store.isOpen ? "bg-green-500" : "bg-red-500"}>{store.isOpen ? "OPEN" : "CLOSED"}</Badge>
                           </div>
-                          
-                          <div className="space-y-1">
-                            {store.availability.map((item, j) => (
-                              <div key={j} className="flex justify-between text-[10px] font-bold">
-                                <span>{item.product}</span>
-                                <span className="text-accent">{item.estimatedPrice}</span>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          <div className="pt-2 border-t border-accent/20 flex justify-between items-center">
-                            <p className="text-xs font-black">TOTAL: {store.totalEstimatedPrice}</p>
-                            <a href={store.websiteSearchUrl} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm" variant="ghost" className="h-7 px-3 text-[10px] font-bold text-accent">
-                                {language === 'english' ? 'VISIT STORE' : 'VISITAR TIENDA'} <ExternalLink className="h-3 w-3 ml-1" />
-                              </Button>
-                            </a>
-                          </div>
+                          <div className="space-y-1">{store.availability.map((item, j) => (<div key={j} className="flex justify-between text-[10px] font-bold"><span>{item.product}</span><span className="text-accent">{item.estimatedPrice}</span></div>))}</div>
+                          <div className="pt-2 border-t border-accent/20 flex justify-between items-center"><p className="text-xs font-black">TOTAL: {store.totalEstimatedPrice}</p><a href={store.websiteSearchUrl} target="_blank" rel="noopener noreferrer"><Button size="sm" variant="ghost" className="h-7 px-3 text-[10px] font-bold text-accent">{language === 'english' ? 'VISIT STORE' : 'VISITAR TIENDA'} <ExternalLink className="h-3 w-3 ml-1" /></Button></a></div>
                         </div>
                       ))}
                     </div>

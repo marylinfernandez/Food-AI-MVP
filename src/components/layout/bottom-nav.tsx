@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChefHat, Refrigerator, Camera, LayoutDashboard, CalendarDays } from "lucide-react";
+import { ChefHat, Refrigerator, Camera, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/language-context";
 import { useUser } from "@/firebase";
@@ -13,13 +13,11 @@ export function BottomNav() {
   const { t } = useTranslation();
   const { user, isUserLoading } = useUser();
 
-  // No mostrar la barra de navegación si no hay usuario o si estamos en la pantalla de login
   if (isUserLoading || !user || pathname === '/login') {
     return null;
   }
 
   const navItems = [
-    { label: t('nav.home'), href: "/", icon: LayoutDashboard },
     { label: t('nav.pantry'), href: "/pantry", icon: Refrigerator },
     { label: t('nav.scan'), href: "/scan", icon: Camera },
     { label: t('nav.recipes'), href: "/recipes", icon: ChefHat },
