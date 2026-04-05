@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,25 +9,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview Componente para gestionar la instalación de la PWA.
- * Optimizado para Android (nativo), iOS (instrucciones) y Laptops.
+ * @fileOverview Gestiona la instalación de la PWA.
+ * Se muestra siempre tras el inicio de sesión para asegurar la opción de descarga.
  */
 export function PWAInstallPrompt() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { language } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Detectar si es iOS
+    // Detectar iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
 
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Solo mostramos si el usuario está logueado
+      // Mostrar si el usuario está autenticado
       if (user) {
         setIsVisible(true);
       }
@@ -36,7 +35,7 @@ export function PWAInstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handler);
 
-    // En iOS, como no hay evento, lo mostramos si el usuario está logueado y no está en modo standalone
+    // En iOS, mostrar instrucciones si está autenticado y no está instalado
     if (isIOSDevice && user && !window.matchMedia('(display-mode: standalone)').matches) {
       setIsVisible(true);
     }
@@ -44,11 +43,18 @@ export function PWAInstallPrompt() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, [user]);
 
-  const handleInstall = async () => {
-    if (isIOS) {
-      // En iOS no hay prompt programático, se muestran las instrucciones
-      return;
+  // Asegurar que sea visible cada vez que el usuario se loguea
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      if (!isStandalone) {
+        setIsVisible(true);
+      }
     }
+  }, [user, isUserLoading]);
+
+  const handleInstall = async () => {
+    if (isIOS) return;
     
     if (!deferredPrompt) return;
     deferredPrompt.prompt();

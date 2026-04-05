@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,9 +5,7 @@ import { useAuth, useUser } from "@/firebase";
 import { 
   GoogleAuthProvider,
   signInWithRedirect,
-  getRedirectResult,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  getRedirectResult
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,14 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
+import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
 
 /**
- * @fileOverview Pantalla de inicio de sesión optimizada para móviles.
- * Utiliza Redirect para evitar bloqueos de popups y maneja errores de dominio no autorizado.
+ * @fileOverview Pantalla de inicio de sesión optimizada.
+ * Soluciona el error de redireccionamiento y asegura la entrada a la app.
  */
 export default function LoginPage() {
   const auth = useAuth();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const router = useRouter();
@@ -39,24 +37,23 @@ export default function LoginPage() {
   
   const processingRedirect = useRef(false);
 
-  // Redirigir si ya hay un usuario
+  // Redirigir si el usuario ya está autenticado
   useEffect(() => {
-    if (user && !googleLoading && !loading) {
-      router.push("/pantry");
+    if (user && !isUserLoading) {
+      router.replace("/pantry");
     }
-  }, [user, router, googleLoading, loading]);
+  }, [user, isUserLoading, router]);
 
-  // Manejar el resultado del redireccionamiento de Google
+  // Manejar el resultado del redireccionamiento de Google de forma atómica
   useEffect(() => {
-    if (processingRedirect.current) return;
-
     const checkRedirectResult = async () => {
+      if (processingRedirect.current) return;
+      
       try {
-        setGoogleLoading(true);
         const result = await getRedirectResult(auth);
-        
         if (result && !processingRedirect.current) {
           processingRedirect.current = true;
+          setGoogleLoading(true);
           
           const isNewUser = (result as any)._tokenResponse?.isNewUser;
           if (isNewUser && result.user.email) {
@@ -75,14 +72,15 @@ export default function LoginPage() {
             title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
             description: language === 'english' ? "Logged in with Google." : "Iniciaste sesión con Google." 
           });
-          router.push("/pantry");
+          
+          router.replace("/pantry");
         }
       } catch (error: any) {
         console.error("Auth Redirect Error:", error);
         if (error.code === 'auth/unauthorized-domain') {
-          setAuthError("Este dominio no está autorizado en Firebase. Añádelo en la consola de Firebase > Authentication > Settings > Authorized Domains.");
-        } else if (error.code !== 'auth/popup-closed-by-user') {
-          setAuthError(error.message);
+          setAuthError("Este dominio no está autorizado. Añádelo en la consola de Firebase > Authentication > Settings > Authorized Domains.");
+        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-closure-redirect') {
+          toast({ title: "Auth Error", description: error.message, variant: "destructive" });
         }
       } finally {
         setGoogleLoading(false);
@@ -104,11 +102,7 @@ export default function LoginPage() {
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Init Error:", error);
-      if (error.code === 'auth/unauthorized-domain') {
-        setAuthError("Dominio no autorizado. Revisa la consola de Firebase.");
-      } else {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      }
+      toast({ title: "Error", description: error.message, variant: "destructive" });
       setGoogleLoading(false);
     }
   };
@@ -127,31 +121,18 @@ export default function LoginPage() {
     setAuthError(null);
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        initiateEmailSignUp(auth, email, password);
         try {
           await generateWelcomeEmail({ email, language });
         } catch (aiErr) {
           console.error("Welcome email error:", aiErr);
         }
-        toast({ 
-          title: language === 'english' ? "Account created!" : "¡Cuenta creada!", 
-          description: "Bienvenido a FoodAI." 
-        });
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast({ 
-          title: language === 'english' ? "Welcome back!" : "¡Hola de nuevo!", 
-          description: "Has iniciado sesión correctamente." 
-        });
+        initiateEmailSignIn(auth, email, password);
       }
-      router.push("/pantry");
+      // El onAuthStateChanged en el Provider manejará la redirección vía el useEffect de arriba
     } catch (error: any) {
-      let message = error.message;
-      if (error.code === 'auth/invalid-credential') {
-        message = "Correo o contraseña incorrectos.";
-      }
-      toast({ title: "Error", description: message, variant: "destructive" });
-    } finally {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
       setLoading(false);
     }
   };
@@ -170,10 +151,16 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {authError && (
-        <Card className="w-full max-w-md bg-destructive/10 border-destructive/20 p-4 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top">
-          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-          <p className="text-xs font-bold text-destructive leading-tight">{authError}</p>
+      {(authError || googleLoading) && (
+        <Card className="w-full max-w-md bg-primary/5 border-primary/20 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top">
+          {googleLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
+          ) : (
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          )}
+          <p className="text-xs font-bold text-foreground leading-tight">
+            {googleLoading ? "Autenticando con Google..." : authError}
+          </p>
         </Card>
       )}
 
@@ -205,7 +192,7 @@ export default function LoginPage() {
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-muted-foreground/20"></span>
               </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold text-muted-foreground/60 bg-transparent px-2">
+              <div className="relative flex justify-center text-[10px] uppercase font-bold text-muted-foreground/60 bg-background px-2">
                 <span className="bg-background px-2">{language === 'english' ? "Or use email" : "O usa tu correo"}</span>
               </div>
             </div>
