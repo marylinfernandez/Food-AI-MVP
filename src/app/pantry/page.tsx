@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePantry } from "@/lib/pantry-store";
@@ -32,7 +31,9 @@ export default function PantryPage() {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push("/login");
+      console.log("No hay usuario detectado. El guardia te habría expulsado aquí.");
+      // COMENTAMOS LA REDIRECCIÓN TEMPORALMENTE PARA VER QUÉ PASA
+      // router.push("/login"); 
     }
   }, [user, isUserLoading, router]);
 
@@ -42,7 +43,19 @@ export default function PantryPage() {
     setDateSeed(seed);
   }, []);
 
-  if (isUserLoading || !user) return null;
+  // PANTALLAS DE ESPERA VISUALES PARA DEBUGGEAR
+  if (isUserLoading) {
+    return <div className="flex h-screen items-center justify-center text-primary font-bold">Cargando conexión con Firebase...</div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center space-y-4">
+        <p className="text-destructive font-bold">Sin sesión activa en esta página.</p>
+        <Button onClick={() => router.push("/login")}>Volver al Login manualmente</Button>
+      </div>
+    );
+  }
 
   const dayItems = items.filter(item => {
     if (!date) return false;
