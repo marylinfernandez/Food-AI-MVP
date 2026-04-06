@@ -36,6 +36,34 @@ Para poder ejecutar este proyecto, asegúrate de tener configurado lo siguiente:
 
 **1. Clonar el repositorio**
 Abre tu terminal y descarga el código fuente:
-```bash
-git clone [https://github.com/TU-USUARIO/food-ai.git](https://github.com/TU-USUARIO/food-ai.git)
+
+git clone [https://github.com/marylinfernandez/Food-AI-MVP.git](https://github.com/marylinfernandez/Food-AI-MVP.git)  
+cd Food-AI-MVP
+
 cd food-ai
+
+**2. Instalar las dependencias**
+Instala todos los paquetes necesarios del ecosistema de Next.js y Firebase Genkit:
+
+npm install
+
+**3. Configurar las Variables de Entorno**
+Crea un archivo llamado .env.local en el directorio raíz del proyecto y añade tus credenciales basándote en este formato:
+
+#### Configuración del Cliente de Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=tu_api_key_aqui
+
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
+
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=tu_project_id_aqui
+
+#### Configuración del Motor de IA (Genkit/Gemini)
+GEMINI_API_KEY=tu_api_key_de_gemini_aqui
+
+**4. Iniciar los servidores de desarrollo**
+Para levantar la interfaz de usuario de Next.js, ejecuta:
+
+npm run dev
+
+La aplicación web estará disponible en 
+http://localhost:3000.
