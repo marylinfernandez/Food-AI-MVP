@@ -21,3 +21,21 @@ FoodAI es una Aplicación Web Progresiva (PWA) diseñada para revolucionar la ge
 La plataforma está diseñada con una arquitectura *Serverless* de alta escalabilidad, separando la capa de presentación de los servicios de backend y el motor de inferencia de IA.
 
 ![Diagrama de Arquitectura de FoodAI](./docs/arquitectura.png)
+
+## 🛠️ 2. Instrucciones de Instalación y Ejecución (Reproducibilidad)
+
+Sigue estos pasos para levantar el entorno de desarrollo del MVP de FoodAI en tu máquina local.
+
+### 📋 Requisitos Previos
+Para poder ejecutar este proyecto, asegúrate de tener configurado lo siguiente:
+* **Node.js** (v18.17 o superior recomendado) y el gestor de paquetes `npm`.
+* Un proyecto creado en **Firebase Console** (con Authentication de Google/Email y base de datos Firestore habilitados).
+* Una clave API de Gemini generada desde **Google AI Studio**.
+
+### 🚀 Pasos para la ejecución local
+
+**1. Clonar el repositorio**
+Abre tu terminal y descarga el código fuente:
+```bash
+git clone [https://github.com/TU-USUARIO/food-ai.git](https://github.com/TU-USUARIO/food-ai.git)
+cd food-ai
