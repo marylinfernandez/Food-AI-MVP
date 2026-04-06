@@ -19,3 +19,5 @@ FoodAI es una Aplicación Web Progresiva (PWA) diseñada para revolucionar la ge
 ## 🏗️ 1. Diagrama de Arquitectura y Despliegue
 
 La plataforma está diseñada con una arquitectura *Serverless* de alta escalabilidad, separando la capa de presentación de los servicios de backend y el motor de inferencia de IA.
+
+![Diagrama de Arquitectura de FoodAI](./docs/arquitectura.png)
