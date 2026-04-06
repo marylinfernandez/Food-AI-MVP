@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth, useUser } from "@/firebase";
 import { 
   GoogleAuthProvider,
-  signInWithRedirect,
+  signInWithPopup,
   getRedirectResult
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
@@ -74,6 +73,7 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, isProcessingRedirect, router]);
 
+  // --- FUNCIÓN MODIFICADA A POPUP ---
   const handleGoogleAuth = async () => {
     setGoogleLoading(true);
     setAuthError(null);
@@ -82,7 +82,10 @@ export default function LoginPage() {
     provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
-      await signInWithRedirect(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      if (result?.user) {
+        router.replace("/pantry");
+      }
     } catch (error: any) {
       console.error("Google login error:", error);
       setAuthError(error.message);
