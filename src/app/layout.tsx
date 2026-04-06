@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { BottomNav } from '@/components/layout/bottom-nav';
@@ -13,7 +14,6 @@ import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
 export const metadata: Metadata = {
   title: 'FoodAI - Tu Asistente de Cocina Inteligente',
   description: 'Gestión de despensa impulsada por IA y generación de recetas personalizadas.',
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -44,7 +44,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-        <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="FoodAI" />
