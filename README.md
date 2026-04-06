@@ -33,7 +33,7 @@ Para garantizar iteraciones rápidas y estables durante la fase MVP, el proyecto
 
 ## 🛠️ 3. Instrucciones de Instalación y Ejecución (Reproducibilidad)
 
-Sigue estos pasos para levantar el entorno de desarrollo del MVP de MVPFoodAI en tu máquina local.
+Sigue estos pasos para replicar el entorno de desarrollo de FoodAI en tu máquina local.
 
 ### 🚀 Pasos para la ejecución local
 
