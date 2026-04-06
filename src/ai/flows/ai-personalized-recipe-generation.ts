@@ -1,8 +1,6 @@
-
 'use server';
 /**
- * @fileOverview A Genkit flow that generates personalized recipe suggestions.
- * Uses Gemini 2.5 Flash for high-performance generation.
+ * @fileOverview A Genkit flow that generates personalized recipe suggestions for MVPFoodAI.
  */
 
 import { ai } from '@/ai/genkit';
@@ -47,7 +45,7 @@ const RecipeSchema = z.object({
     .array(z.string())
     .describe('Step-by-step instructions.'),
   prepTimeMinutes: z.number().int().nonnegative(),
-  cookTimeMinutes: z.number().int().nonnegative(), // Corregido: Permite 0 minutos para bebidas/platos fríos
+  cookTimeMinutes: z.number().int().nonnegative(),
   servings: z.number().int().positive(),
   imageSearchTerm: z.string().describe('English search term for the dish image.'),
 });
@@ -64,7 +62,7 @@ const personalizedRecipePrompt = ai.definePrompt({
   input: { schema: PersonalizedRecipeGenerationInputSchema },
   output: { schema: PersonalizedRecipeGenerationOutputSchema },
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are FoodAI, a high-tech cooking assistant.
+  prompt: `You are MVPFoodAI, a high-tech cooking assistant.
 Your goal is to suggest recipes in the following language: {{{language}}}.
 
 USER DATA:

@@ -1,8 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Genkit flow to generate a personalized welcome email content for new users.
- * Uses Gemini 2.5 Flash for warm and engaging copywriting.
+ * @fileOverview Genkit flow to generate a personalized welcome email content for new users of MVPFoodAI.
  */
 
 import { ai } from '@/ai/genkit';
@@ -31,14 +30,14 @@ const welcomeEmailPrompt = ai.definePrompt({
   name: 'welcomeEmailPrompt',
   input: { schema: WelcomeEmailInputSchema },
   output: { schema: WelcomeEmailOutputSchema },
-  prompt: `You are the FoodAI Welcome Assistant. A new chef has just joined our intelligent kitchen ecosystem.
+  prompt: `You are the MVPFoodAI Welcome Assistant. A new chef has just joined our intelligent kitchen ecosystem.
   
   User Email: {{{email}}}
   User Name: {{#if displayName}}{{{displayName}}}{{else}}Chef{{/if}}
   Language: {{{language}}}
 
   Create a warm, futuristic, and inspiring welcome message. 
-  Mention how FoodAI will help them manage their pantry with AI Vision and suggest recipes that save time and reduce waste.
+  Mention how MVPFoodAI will help them manage their pantry with AI Vision and suggest recipes that save time and reduce waste.
   
   The tone should be professional yet friendly. Return a subject and a body.`,
 });

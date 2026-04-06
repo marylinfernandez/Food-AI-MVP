@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth, useUser } from "@/firebase";
 import { 
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithRedirect,
+  getRedirectResult
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,19 +26,56 @@ export default function LoginPage() {
   
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const processingRedirect = useRef(false);
 
-  // 1. Redirección inmediata si el usuario ya existe y ya cargó
+  // 1. Manejar resultado del redireccionamiento de Google al montar
   useEffect(() => {
-    if (user && !isUserLoading) {
+    if (processingRedirect.current) return;
+    processingRedirect.current = true;
+
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          const isNewUser = (result as any)._tokenResponse?.isNewUser;
+          if (isNewUser && result.user.email) {
+            try {
+              await generateWelcomeEmail({
+                email: result.user.email,
+                displayName: result.user.displayName || "Chef",
+                language: language
+              });
+            } catch (e) {
+              console.error("Welcome email error:", e);
+            }
+          }
+          router.replace("/pantry");
+        }
+      } catch (error: any) {
+        console.error("Redirect Auth error:", error);
+        if (error.code === 'auth/unauthorized-domain') {
+          setAuthError("Este dominio no está autorizado en tu consola de Firebase.");
+        }
+      } finally {
+        setIsProcessingRedirect(false);
+      }
+    };
+
+    checkRedirect();
+  }, [auth, router, language]);
+
+  // 2. Redirección si el usuario ya existe
+  useEffect(() => {
+    if (user && !isUserLoading && !isProcessingRedirect) {
       router.replace("/pantry");
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, isProcessingRedirect, router]);
 
-  // 2. Manejar la autenticación con Google usando Popup
   const handleGoogleAuth = async () => {
     if (googleLoading || loading) return;
     setGoogleLoading(true);
@@ -46,44 +84,14 @@ export default function LoginPage() {
     provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
-      const result = await signInWithPopup(auth, provider);
-      
-      if (result?.user) {
-        // Usuario autenticado con éxito
-        const isNewUser = (result as any)._tokenResponse?.isNewUser;
-        if (isNewUser && result.user.email) {
-          try {
-            await generateWelcomeEmail({
-              email: result.user.email,
-              displayName: result.user.displayName || "Chef",
-              language: language
-            });
-          } catch (e) {
-            console.error("Welcome email error:", e);
-          }
-        }
-        
-        toast({ 
-          title: language === 'english' ? "Success!" : "¡Éxito!", 
-          description: language === 'english' ? "Welcome back!" : "¡Bienvenido de nuevo!" 
-        });
-        
-        router.push("/pantry");
-      }
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Auth error:", error);
-      if (error.code === 'auth/unauthorized-domain') {
-        setAuthError("Este dominio no está autorizado en tu consola de Firebase.");
-      } else if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-        setAuthError(error.message);
-      }
-    } finally {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
       setGoogleLoading(false);
     }
   };
 
-  // 3. Manejar la autenticación con Email
   const handleEmailAuth = async () => {
     if (!email || !password) {
       toast({ title: "Datos incompletos", description: "Llena todos los campos.", variant: "destructive" });
@@ -104,8 +112,7 @@ export default function LoginPage() {
     }
   };
 
-  // Mostrar cargador mientras el usuario está cargando
-  if (isUserLoading && !googleLoading) {
+  if ((isUserLoading || isProcessingRedirect) && !googleLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -123,7 +130,7 @@ export default function LoginPage() {
           <Sparkles className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-4xl font-bold tracking-tighter text-primary">
-          Food<span className="text-secondary">AI</span>
+          MVPFood<span className="text-secondary">AI</span>
         </h1>
         <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
           {t('login.subtitle')}

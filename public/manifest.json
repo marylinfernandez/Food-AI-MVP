@@ -1,10 +1,10 @@
 {
-  "name": "FoodAI - Cocina Inteligente",
-  "short_name": "FoodAI",
-  "description": "Gestión de despensa impulsada por IA y generación de recetas personalizadas.",
-  "start_url": "/pantry",
+  "name": "MVPFoodAI - Smart Pantry",
+  "short_name": "MVPFoodAI",
+  "description": "Tu asistente de cocina inteligente con Visión IA.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "icons": [
     {

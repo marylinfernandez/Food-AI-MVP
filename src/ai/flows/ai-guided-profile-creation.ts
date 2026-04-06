@@ -1,11 +1,7 @@
 'use server';
 
 /**
- * @fileOverview A Genkit flow for an AI-guided voice conversation to gather user profile data for FoodAI.
- *
- * - aiGuidedProfileCreation - A function that handles a single turn of the profile creation conversation.
- * - ProfileConversationInput - The input type for the aiGuidedProfileCreation function.
- * - ProfileConversationOutput - The return type for the aiGuidedProfileCreation function.
+ * @fileOverview A Genkit flow for an AI-guided voice conversation to gather user profile data for MVPFoodAI.
  */
 
 import {ai} from '@/ai/genkit';
@@ -81,7 +77,7 @@ const profileConversationPrompt = ai.definePrompt({
   name: 'profileConversationPrompt',
   input: { schema: ProfileConversationInputSchema },
   output: { schema: ProfileConversationOutputSchema },
-  prompt: `You are FoodAI, a friendly and helpful assistant designed to gather user profile information for personalized recipe suggestions.
+  prompt: `You are MVPFoodAI, a friendly and helpful assistant designed to gather user profile information for personalized recipe suggestions.
 Your goal is to have a natural voice conversation with the user to collect the following details, asking one or two questions at a time:
 - Number of people in the household.
 - Ages of the people.

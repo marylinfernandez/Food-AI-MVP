@@ -49,7 +49,7 @@ const storesPrompt = ai.definePrompt({
   input: { schema: NearbyStoresInputSchema },
   output: { schema: NearbyStoresOutputSchema },
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are FoodAI Assistant. Help the user find where to buy these missing ingredients: {{{missingIngredients}}}.
+  prompt: `You are MVPFoodAI Assistant. Help the user find where to buy these missing ingredients: {{{missingIngredients}}}.
 
 Based on location (Lat: {{latitude}}, Lon: {{longitude}}), suggest 3 real or highly plausible local stores.
 For each store:

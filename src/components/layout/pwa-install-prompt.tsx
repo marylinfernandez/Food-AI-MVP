@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 
 /**
  * @fileOverview Gestiona la instalación de la PWA.
- * Se muestra siempre tras el inicio de sesión para asegurar la opción de descarga.
  */
 export function PWAInstallPrompt() {
   const { user, isUserLoading } = useUser();
@@ -20,14 +19,12 @@ export function PWAInstallPrompt() {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Detectar iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
 
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Mostrar si el usuario está autenticado
       if (user) {
         setIsVisible(true);
       }
@@ -35,7 +32,6 @@ export function PWAInstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handler);
 
-    // En iOS, mostrar instrucciones si está autenticado y no está instalado
     if (isIOSDevice && user && !window.matchMedia('(display-mode: standalone)').matches) {
       setIsVisible(true);
     }
@@ -43,7 +39,6 @@ export function PWAInstallPrompt() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, [user]);
 
-  // Asegurar que sea visible cada vez que el usuario se loguea
   useEffect(() => {
     if (user && !isUserLoading) {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -84,7 +79,7 @@ export function PWAInstallPrompt() {
           </div>
           <div className="flex-1 space-y-1">
             <p className="text-xs font-black uppercase tracking-widest text-primary">
-              {language === 'english' ? "FoodAI App" : "App de FoodAI"}
+              {language === 'english' ? "MVPFoodAI App" : "App de MVPFoodAI"}
             </p>
             {isIOS ? (
               <div className="flex flex-col gap-1">
@@ -100,8 +95,8 @@ export function PWAInstallPrompt() {
             ) : (
               <p className="text-[10px] font-medium text-foreground/80 leading-tight">
                 {language === 'english' 
-                  ? "Download FoodAI for a faster, offline experience." 
-                  : "Descarga FoodAI para una experiencia más rápida y nativa."}
+                  ? "Download MVPFoodAI for a faster, offline experience." 
+                  : "Descarga MVPFoodAI para una experiencia más rápida y nativa."}
               </p>
             )}
           </div>
