@@ -10,7 +10,6 @@ import { TourProvider } from '@/context/tour-context';
 import { TourOverlay } from '@/components/layout/tour-overlay';
 import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
 
-
 export const metadata: Metadata = {
   title: 'FoodAI - Tu Asistente de Cocina Inteligente',
   description: 'Gestión de despensa impulsada por IA y generación de recetas personalizadas.',
@@ -18,10 +17,6 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "FoodAI",
-  },
-  icons: {
-    apple: "/icon-192.png",
-    icon: "/icon-192.png",
   },
 };
 
