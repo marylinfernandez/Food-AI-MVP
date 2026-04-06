@@ -1,11 +1,10 @@
-
 {
-  "name": "FoodAI - Tu Asistente de Cocina Inteligente",
+  "name": "FoodAI - Cocina Inteligente",
   "short_name": "FoodAI",
   "description": "Gestión de despensa impulsada por IA y generación de recetas personalizadas.",
-  "start_url": "/",
+  "start_url": "/pantry",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#3b82f6",
   "icons": [
     {
