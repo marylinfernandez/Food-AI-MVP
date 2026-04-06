@@ -9,6 +9,7 @@ import { TourProvider } from '@/context/tour-context';
 import { TourOverlay } from '@/components/layout/tour-overlay';
 import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
 
+
 export const metadata: Metadata = {
   title: 'MVPFoodAI - Tu Asistente de Cocina Inteligente',
   description: 'Gestión de despensa impulsada por IA y generación de recetas personalizadas.',
