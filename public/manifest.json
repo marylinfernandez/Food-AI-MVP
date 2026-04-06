@@ -2,7 +2,7 @@
 {
   "name": "FoodAI",
   "short_name": "FoodAI",
-  "description": "Tu Asistente de Cocina Inteligente",
+  "description": "Tu Despensa Inteligente con IA",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

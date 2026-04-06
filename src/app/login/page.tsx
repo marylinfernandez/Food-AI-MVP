@@ -11,17 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Lock, Loader2, Sparkles, UserPlus, LogIn, Chrome, AlertTriangle } from "lucide-react";
+import { Loader2, Sparkles, Chrome, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/language-context";
 import { generateWelcomeEmail } from "@/ai/flows/ai-welcome-email-flow";
 import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
 
-/**
- * @fileOverview Pantalla de inicio de sesión optimizada.
- * Implementa el método de redirección atómica para evitar bucles en móviles.
- */
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
@@ -36,25 +32,24 @@ export default function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   
-  const hasProcessedRedirect = useRef(false);
+  const hasCheckedRedirect = useRef(false);
 
-  // EFECTO DE REDIRECCIÓN FORZADA: Si hay usuario, vamos a pantry inmediatamente.
+  // REDIRECCIÓN DETERMINISTA: Si el usuario existe, se le envía a /pantry de inmediato
   useEffect(() => {
     if (user && !isUserLoading) {
-      console.log("User detected, redirecting to /pantry...");
       router.replace("/pantry");
     }
   }, [user, isUserLoading, router]);
 
-  // Manejar el resultado del redireccionamiento de Google
+  // Manejar el resultado del redireccionamiento de Google una sola vez
   useEffect(() => {
-    const handleRedirect = async () => {
-      if (hasProcessedRedirect.current) return;
+    const processRedirect = async () => {
+      if (hasCheckedRedirect.current) return;
+      hasCheckedRedirect.current = true;
       
       try {
         setGoogleLoading(true);
         const result = await getRedirectResult(auth);
-        hasProcessedRedirect.current = true;
 
         if (result?.user) {
           const isNewUser = (result as any)._tokenResponse?.isNewUser;
@@ -70,15 +65,15 @@ export default function LoginPage() {
             }
           }
           toast({ 
-            title: language === 'english' ? "Welcome!" : "¡Bienvenido!", 
-            description: language === 'english' ? "Logged in with Google." : "Iniciaste sesión con Google." 
+            title: language === 'english' ? "Success!" : "¡Éxito!", 
+            description: language === 'english' ? "Entering FoodAI..." : "Entrando a FoodAI..." 
           });
-          // La redirección ocurrirá automáticamente por el primer useEffect
+          router.replace("/pantry");
         }
       } catch (error: any) {
         console.error("Auth Redirect Error:", error);
         if (error.code === 'auth/unauthorized-domain') {
-          setAuthError("Dominio no autorizado. Añade este dominio en la Consola de Firebase > Authentication > Settings.");
+          setAuthError("Dominio no autorizado. Por favor añade esta URL en tu Consola de Firebase > Authentication > Settings > Dominios Autorizados.");
         } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-closure-redirect') {
           toast({ title: "Error", description: error.message, variant: "destructive" });
         }
@@ -87,8 +82,8 @@ export default function LoginPage() {
       }
     };
 
-    handleRedirect();
-  }, [auth, language, toast]);
+    processRedirect();
+  }, [auth, language, toast, router]);
 
   const handleGoogleAuth = async () => {
     if (googleLoading || loading) return;
@@ -124,6 +119,14 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (isUserLoading && !googleLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[90vh] space-y-8 animate-in fade-in duration-1000 px-4 pb-20">
