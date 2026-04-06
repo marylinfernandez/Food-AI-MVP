@@ -53,7 +53,7 @@ export function Header() {
         </div>
         <div className="flex flex-col -space-y-1">
           <h1 className="text-xl font-bold text-primary tracking-tighter leading-none">
-            MVPFood<span className="text-secondary">AI</span>
+            Food<span className="text-secondary">AI</span>
           </h1>
           {mounted && user && (
             <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">

@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow that generates personalized recipe suggestions for MVPFoodAI.
+ * @fileOverview A Genkit flow that generates personalized recipe suggestions for FoodAI.
  */
 
 import { ai } from '@/ai/genkit';
@@ -62,7 +62,7 @@ const personalizedRecipePrompt = ai.definePrompt({
   input: { schema: PersonalizedRecipeGenerationInputSchema },
   output: { schema: PersonalizedRecipeGenerationOutputSchema },
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are MVPFoodAI, a high-tech cooking assistant.
+  prompt: `You are FoodAI, a high-tech cooking assistant.
 Your goal is to suggest recipes in the following language: {{{language}}}.
 
 USER DATA:

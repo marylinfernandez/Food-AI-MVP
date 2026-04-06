@@ -79,7 +79,7 @@ export function PWAInstallPrompt() {
           </div>
           <div className="flex-1 space-y-1">
             <p className="text-xs font-black uppercase tracking-widest text-primary">
-              {language === 'english' ? "MVPFoodAI App" : "App de MVPFoodAI"}
+              {language === 'english' ? "FoodAI App" : "App de FoodAI"}
             </p>
             {isIOS ? (
               <div className="flex flex-col gap-1">
@@ -95,8 +95,8 @@ export function PWAInstallPrompt() {
             ) : (
               <p className="text-[10px] font-medium text-foreground/80 leading-tight">
                 {language === 'english' 
-                  ? "Download MVPFoodAI for a faster, offline experience." 
-                  : "Descarga MVPFoodAI para una experiencia más rápida y nativa."}
+                  ? "Download FoodAI for a faster, offline experience." 
+                  : "Descarga FoodAI para una experiencia más rápida y nativa."}
               </p>
             )}
           </div>

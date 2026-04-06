@@ -33,7 +33,6 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const processingRedirect = useRef(false);
 
-  // 1. Manejar resultado del redireccionamiento de Google al montar
   useEffect(() => {
     if (processingRedirect.current) return;
     processingRedirect.current = true;
@@ -69,7 +68,6 @@ export default function LoginPage() {
     checkRedirect();
   }, [auth, router, language]);
 
-  // 2. Redirección si el usuario ya existe
   useEffect(() => {
     if (user && !isUserLoading && !isProcessingRedirect) {
       router.replace("/pantry");
@@ -130,7 +128,7 @@ export default function LoginPage() {
           <Sparkles className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-4xl font-bold tracking-tighter text-primary">
-          MVPFood<span className="text-secondary">AI</span>
+          Food<span className="text-secondary">AI</span>
         </h1>
         <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
           {t('login.subtitle')}

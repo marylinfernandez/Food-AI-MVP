@@ -11,13 +11,13 @@ import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
 
 
 export const metadata: Metadata = {
-  title: 'MVPFoodAI - Tu Asistente de Cocina Inteligente',
+  title: 'FoodAI - Tu Asistente de Cocina Inteligente',
   description: 'Gestión de despensa impulsada por IA y generación de recetas personalizadas.',
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "MVPFoodAI",
+    title: "FoodAI",
   },
   icons: {
     apple: "/icon-192.png",
@@ -47,7 +47,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="MVPFoodAI" />
+        <meta name="apple-mobile-web-app-title" content="FoodAI" />
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {

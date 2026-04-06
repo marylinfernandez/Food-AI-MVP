@@ -1,7 +1,7 @@
 {
-  "name": "MVPFoodAI - Smart Pantry",
-  "short_name": "MVPFoodAI",
-  "description": "Tu asistente de cocina inteligente con Visión IA.",
+  "name": "FoodAI - Tu Asistente de Cocina",
+  "short_name": "FoodAI",
+  "description": "Gestión de despensa inteligente y recetas personalizadas por IA.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -11,13 +11,13 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
