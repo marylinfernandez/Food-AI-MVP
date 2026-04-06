@@ -48,7 +48,6 @@ Abre tu terminal y descarga el código fuente:
 git clone [https://github.com/marylinfernandez/Food-AI-MVP.git](https://github.com/marylinfernandez/Food-AI-MVP.git)  
 cd Food-AI-MVP
 
-cd food-ai
 
 **2. Instalar las dependencias**
 Instala todos los paquetes necesarios del ecosistema de Next.js y Firebase Genkit:
