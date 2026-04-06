@@ -15,6 +15,7 @@ export default function RootPage() {
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
+    // Solo redirigir cuando Firebase haya terminado de cargar el estado inicial
     if (!isUserLoading) {
       if (user) {
         router.replace("/pantry");
@@ -25,8 +26,13 @@ export default function RootPage() {
   }, [user, isUserLoading, router]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+    <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
+      <div className="relative">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-2 w-2 bg-primary rounded-full animate-ping" />
+        </div>
+      </div>
       <div className="animate-pulse text-primary font-bold uppercase tracking-widest text-[10px]">
         Sincronizando con FoodAI...
       </div>

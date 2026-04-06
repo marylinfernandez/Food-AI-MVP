@@ -31,27 +31,27 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
   
-  const hasCheckedRedirect = useRef(false);
+  const redirectProcessed = useRef(false);
 
-  // REDIRECCIÓN DETERMINISTA: Si el usuario existe, se le envía a /pantry de inmediato
+  // 1. Redirección inmediata si el usuario ya existe
   useEffect(() => {
     if (user && !isUserLoading) {
       router.replace("/pantry");
     }
   }, [user, isUserLoading, router]);
 
-  // Manejar el resultado del redireccionamiento de Google una sola vez
+  // 2. Manejar el resultado del redireccionamiento de Google al montar
   useEffect(() => {
-    const processRedirect = async () => {
-      if (hasCheckedRedirect.current) return;
-      hasCheckedRedirect.current = true;
-      
-      try {
-        setGoogleLoading(true);
-        const result = await getRedirectResult(auth);
+    const handleRedirect = async () => {
+      if (redirectProcessed.current) return;
+      redirectProcessed.current = true;
 
+      try {
+        const result = await getRedirectResult(auth);
         if (result?.user) {
+          // Usuario autenticado con éxito tras redirección
           const isNewUser = (result as any)._tokenResponse?.isNewUser;
           if (isNewUser && result.user.email) {
             try {
@@ -60,29 +60,29 @@ export default function LoginPage() {
                 displayName: result.user.displayName || "Chef",
                 language: language
               });
-            } catch (aiErr) {
-              console.error("Welcome email error:", aiErr);
+            } catch (e) {
+              console.error("Welcome email error:", e);
             }
           }
           toast({ 
             title: language === 'english' ? "Success!" : "¡Éxito!", 
-            description: language === 'english' ? "Entering FoodAI..." : "Entrando a FoodAI..." 
+            description: language === 'english' ? "Welcome back!" : "¡Bienvenido de nuevo!" 
           });
           router.replace("/pantry");
         }
       } catch (error: any) {
-        console.error("Auth Redirect Error:", error);
+        console.error("Auth redirect error:", error);
         if (error.code === 'auth/unauthorized-domain') {
-          setAuthError("Dominio no autorizado. Por favor añade esta URL en tu Consola de Firebase > Authentication > Settings > Dominios Autorizados.");
-        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-closure-redirect') {
+          setAuthError("Este dominio no está autorizado en tu consola de Firebase.");
+        } else if (error.code !== 'auth/popup-closed-by-user') {
           toast({ title: "Error", description: error.message, variant: "destructive" });
         }
       } finally {
-        setGoogleLoading(false);
+        setIsProcessingRedirect(false);
       }
     };
 
-    processRedirect();
+    handleRedirect();
   }, [auth, language, toast, router]);
 
   const handleGoogleAuth = async () => {
@@ -94,7 +94,7 @@ export default function LoginPage() {
     try {
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Auth Error:", error);
+      console.error("Google Auth error:", error);
       toast({ title: "Error", description: error.message, variant: "destructive" });
       setGoogleLoading(false);
     }
@@ -120,10 +120,14 @@ export default function LoginPage() {
     }
   };
 
-  if (isUserLoading && !googleLoading) {
+  // Mostrar cargador mientras se procesa la redirección o el usuario está cargando
+  if (isProcessingRedirect || (isUserLoading && !googleLoading)) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-xs font-bold uppercase tracking-widest text-primary animate-pulse">
+          Validando acceso seguro...
+        </p>
       </div>
     );
   }
@@ -150,7 +154,7 @@ export default function LoginPage() {
             <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
           )}
           <p className="text-xs font-bold text-foreground leading-tight">
-            {googleLoading ? "Confirmando identidad..." : authError}
+            {googleLoading ? "Redirigiendo a Google..." : authError}
           </p>
         </Card>
       )}
