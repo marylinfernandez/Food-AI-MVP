@@ -23,11 +23,11 @@ La plataforma está diseñada con una arquitectura *Serverless* de alta escalabi
 ![Diagrama de Arquitectura de FoodAI](./docs/arquitectura.png)
 
 
-## ⚙️ 2. Flujo de Integración y Despliegue Continuo (CI/CD)
+## ⚙️ 2. Flujo de Integración y Despliegue Continuo (CI/CD) 
 
 Para garantizar iteraciones rápidas y estables durante la fase MVP, el proyecto cuenta con un pipeline de automatización completo (GitOps). Todo cambio registrado en el repositorio principal dispara automáticamente una compilación y actualización sin caídas en la red global.
 
-![Flujo de Despliegue CI/CD](./flujo-cicd.png)
+![Flujo de Despliegue CI/CD](./docs/flujo-cicd.png)
 
 
 ## 🛠️ 3. Instrucciones de Instalación y Ejecución (Reproducibilidad)
