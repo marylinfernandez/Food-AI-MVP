@@ -16,13 +16,21 @@ FoodAI es una Aplicación Web Progresiva (PWA) diseñada para revolucionar la ge
 
 ---
 
-## 🏗️ 1. Diagrama de Arquitectura y Despliegue
+## 🏗️ 1. Diagrama de Arquitectura 
 
 La plataforma está diseñada con una arquitectura *Serverless* de alta escalabilidad, separando la capa de presentación de los servicios de backend y el motor de inferencia de IA.
 
 ![Diagrama de Arquitectura de FoodAI](./docs/arquitectura.png)
 
-## 🛠️ 2. Instrucciones de Instalación y Ejecución (Reproducibilidad)
+
+## ⚙️ 2. Flujo de Integración y Despliegue Continuo (CI/CD)
+
+Para garantizar iteraciones rápidas y estables durante la fase MVP, el proyecto cuenta con un pipeline de automatización completo (GitOps). Todo cambio registrado en el repositorio principal dispara automáticamente una compilación y actualización sin caídas en la red global.
+
+![Flujo de Despliegue CI/CD](./flujo-cicd.png)
+
+
+## 🛠️ 3. Instrucciones de Instalación y Ejecución (Reproducibilidad)
 
 Sigue estos pasos para levantar el entorno de desarrollo del MVP de FoodAI en tu máquina local.
 
