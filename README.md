@@ -45,22 +45,53 @@ Sigue estos pasos para replicar el entorno de desarrollo de FoodAI en tu máquin
 
 ### 🚀 Pasos para la ejecución local
 
-**1. Clonar el repositorio**
-Abre tu terminal y descarga el código fuente:
+Requisitos Previos
+Node.js (v18 o superior).
 
-git clone [https://github.com/marylinfernandez/Food-AI-MVP.git](https://github.com/marylinfernandez/Food-AI-MVP.git)  
+Una cuenta y proyecto en Firebase Console.
+
+Git instalado en tu computadora.
+
+Instalación Paso a Paso
+
+**1. Clonar el repositorio:**
+
+git clone [https://github.com/marylinfernandez/Food-AI-MVP.git](https://github.com/marylinfernandez/Food-AI-MVP.git)
 cd Food-AI-MVP
 
-
-**2. Instalar las dependencias**
-Instala todos los paquetes necesarios del ecosistema de Next.js y Firebase Genkit:
-
+**2. Instalar las dependencias:**
 npm install
 
-**3. Iniciar los servidores de desarrollo**
-Para levantar la interfaz de usuario de Next.js, ejecuta:
+**3. Configurar variables de entorno:**
+Crea un archivo llamado .env.local en la raíz del proyecto y añade las credenciales de tu proyecto de Firebase:
+
+NEXT_PUBLIC_FIREBASE_API_KEY=tu_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=tu_proyecto_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=tu_proyecto.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=tu_app_id
+
+(Nota: Asegúrate de habilitar los métodos de autenticación de Google y Correo/Contraseña en tu consola de Firebase, y agregar localhost a tus dominios autorizados en la sección de Authentication).
+
+**4. Ejecutar el servidor de desarrollo:**
 
 npm run dev
+La aplicación estará disponible en http://localhost:3000.
 
-La aplicación web estará disponible en 
-http://localhost:3000.
+**5. Despliegue en Producción (Vercel)**
+Este proyecto está configurado para desplegarse fácilmente en Vercel de forma automática:
+
+Sube tus cambios a GitHub (git push).
+
+Ve a Vercel y haz clic en "Add New Project".
+
+Importa tu repositorio Food-AI-MVP.
+
+En el apartado de Environment Variables, pega las mismas variables de Firebase que pusiste en tu archivo .env.local.
+
+Haz clic en Deploy.
+
+⚠️ IMPORTANTE para Producción: 
+
+Recuerda agregar el dominio generado por Vercel (ej. food-ai-mvp.vercel.app) a los dominios autorizados en la sección de Authentication de tu consola de Firebase. Si no haces esto, el inicio de sesión con Google será bloqueado por seguridad.
