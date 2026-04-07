@@ -40,8 +40,7 @@ Para garantizar iteraciones rápidas y estables durante la fase MVP, el proyecto
 
 Mira el proyecto en acción y el proceso de despliegue aquí:
 
-<video src="https://raw.githubusercontent.com/marylinfernandez/Food-AI-MVP/main/docs/demo.mp4" controls="controls" width="100%">
-</video>
+https://github.com/user-attachments/assets/dccfc0f8-24ee-4a04-ba71-e285b18a2069
 
 ---
 
