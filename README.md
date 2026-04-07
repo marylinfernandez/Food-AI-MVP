@@ -46,11 +46,12 @@ Sigue estos pasos para replicar el entorno de desarrollo de FoodAI en tu máquin
 ### 🚀 Pasos para la ejecución local
 
 Requisitos Previos
-Node.js (v18 o superior).
 
-Una cuenta y proyecto en Firebase Console.
+- Node.js (v18 o superior).
 
-Git instalado en tu computadora.
+- Una cuenta y proyecto en Firebase Console.
+
+- Git instalado en tu computadora.
 
 Instalación Paso a Paso
 
@@ -63,7 +64,9 @@ cd Food-AI-MVP
 npm install
 
 **3. Configurar variables de entorno:**
+
 Crea un archivo llamado .env.local en la raíz del proyecto y añade las credenciales de tu proyecto de Firebase:
+
 
 NEXT_PUBLIC_FIREBASE_API_KEY=tu_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
@@ -77,20 +80,18 @@ NEXT_PUBLIC_FIREBASE_APP_ID=tu_app_id
 **4. Ejecutar el servidor de desarrollo:**
 
 npm run dev
+
 La aplicación estará disponible en http://localhost:3000.
 
 **5. Despliegue en Producción (Vercel)**
+
 Este proyecto está configurado para desplegarse fácilmente en Vercel de forma automática:
 
-Sube tus cambios a GitHub (git push).
-
-Ve a Vercel y haz clic en "Add New Project".
-
-Importa tu repositorio Food-AI-MVP.
-
-En el apartado de Environment Variables, pega las mismas variables de Firebase que pusiste en tu archivo .env.local.
-
-Haz clic en Deploy.
+- Sube tus cambios a GitHub (git push).
+- Ve a Vercel y haz clic en "Add New Project".
+- Importa tu repositorio Food-AI-MVP.
+- En el apartado de Environment Variables, pega las mismas variables de Firebase que pusiste en tu archivo .env.local.
+- Haz clic en Deploy.
 
 ⚠️ IMPORTANTE para Producción: 
 
