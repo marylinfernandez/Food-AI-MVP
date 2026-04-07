@@ -20,6 +20,14 @@ FoodAI es una Aplicación Web Progresiva (PWA) diseñada para revolucionar la ge
 
 La plataforma está diseñada con una arquitectura *Serverless* de alta escalabilidad, separando la capa de presentación de los servicios de backend y el motor de inferencia de IA.
 
+### Componentes Principales:
+* **Frontend (Cliente):** Construido con **Next.js** (App Router) y React. Utiliza Tailwind CSS y shadcn/ui para el diseño de interfaces. Maneja el estado global de la despensa y la internacionalización.
+* **Backend as a Service (BaaS):** **Firebase** gestiona toda la lógica del lado del servidor:
+    * *Firebase Auth:* Manejo de identidades (Google y Correo/Contraseña).
+    * *Firestore:* Base de datos NoSQL en tiempo real para almacenar el inventario de la despensa y el historial de recetas de cada usuario.
+* **Modelos de IA:** Integración de flujos de IA (Genkit/Gemini u otros modelos configurados) para generar ideas de recetas.
+* **Despliegue (Hosting & CI/CD):** Alojado en **Vercel**, conectado a **GitHub** para despliegues automáticos.
+
 ![Diagrama de Arquitectura de FoodAI](./docs/arquitectura.png)
 
 
