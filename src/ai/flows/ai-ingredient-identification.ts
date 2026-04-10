@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Este archivo define un flujo de Genkit para identificar ingredientes desde una foto o video.
- * Optimizado para identificar alimentos sin etiquetas (frutas, verduras, recipientes) usando Gemini 2.5 Flash.
+ * Optimizado para identificar alimentos sin etiquetas usando Gemini 3.0 Flash.
  */
 
 import {ai} from '@/ai/genkit';
@@ -60,7 +60,8 @@ const identifyIngredientsPrompt = ai.definePrompt({
   name: 'identifyIngredientsPrompt',
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
-  model: googleAI.model('gemini-2.5-flash'),
+  // CORRECCIÓN: Cambiado al modelo real y rápido Gemini 3.0 Flash
+  model: googleAI.model('gemini-3.0-flash'), 
   config: {
     safetySettings: [
       {
@@ -91,6 +92,13 @@ Identify all ingredients and respond in a professional tone.`,
 export async function aiIngredientIdentification(
   input: IngredientIdentificationInput
 ): Promise<IngredientIdentificationOutput> {
+  
+  // SEGURO DE VIDA: Si el string de Base64 es exageradamente grande (ej. un video de 1 minuto en alta calidad),
+  // cortamos la petición antes de que colapse la memoria de tu servidor.
+  if (input.mediaDataUri.length > 20000000) { 
+    throw new Error('El archivo es demasiado grande. La app debió detener el video a los 10 segundos o comprimirlo más.');
+  }
+
   const {output} = await identifyIngredientsPrompt(input);
   if (!output) {
     throw new Error('No output received from the vision analysis.');
