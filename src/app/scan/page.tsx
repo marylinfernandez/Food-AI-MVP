@@ -16,8 +16,8 @@ import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview Pantalla de escaneo optimizada con soporte multimodal para Gemini 2.5 Flash Lite.
- * Especialmente ajustada para identificar alimentos sin etiquetas y en condiciones de luz variable.
+ * @fileOverview Pantalla de escaneo optimizada con soporte multimodal.
+ * Incluye corrección de foto negra y límite estricto de 5 segundos para videos.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -56,7 +56,7 @@ export default function ScanPage() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: { ideal: "environment" },
-            // Resolución optimizada para evitar que el Base64 sea demasiado grande
+            // Resolución base para evitar problemas de memoria
             width: { ideal: 640 },
             height: { ideal: 480 }
           },
@@ -91,18 +91,28 @@ export default function ScanPage() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (video && canvas) {
-      // Forzamos el canvas a una resolución ligera
-      canvas.width = 640;
-      canvas.height = 480;
+    // SOLUCIÓN FOTO NEGRA: Validamos que el video esté listo (readyState >= 2)
+    if (video && canvas && video.readyState >= 2) {
+      const realWidth = video.videoWidth;
+      const realHeight = video.videoHeight;
+      
+      // Mantenemos la proporción original pero lo hacemos ligero (máx 800px)
+      const scale = Math.min(800 / realWidth, 800 / realHeight);
+      canvas.width = realWidth * scale;
+      canvas.height = realHeight * scale;
+      
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        // Compresión de JPEG al 70%
-        const dataUri = canvas.toDataURL('image/jpeg', 0.7);
+        const dataUri = canvas.toDataURL('image/jpeg', 0.8);
         setPreview(dataUri);
         identify(dataUri);
       }
+    } else {
+      toast({
+        title: language === 'english' ? "Camera not ready" : "Cámara no lista",
+        description: language === 'english' ? "Wait a second for the camera to focus." : "Espera un segundo a que la cámara enfoque bien.",
+      });
     }
   };
 
@@ -135,12 +145,12 @@ export default function ScanPage() {
       setIsRecording(true);
       setRecordingTime(0);
 
-      // TEMPORIZADOR AUTOMÁTICO DE 10 SEGUNDOS
+      // SOLUCIÓN VIDEO: Temporizador de 5 segundos
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= 9) { // Al llegar al segundo 9 (para mostrar 10 y cortar)
+          if (prev >= 4) { // Al llegar al segundo 4 (para mostrar 5 y cortar)
             stopRecording();
-            return 10;
+            return 5;
           }
           return prev + 1;
         });
@@ -237,7 +247,8 @@ export default function ScanPage() {
             {isRecording && (
               <div className="absolute top-6 left-6 flex items-center gap-2 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg animate-pulse">
                 <div className="h-2 w-2 bg-white rounded-full animate-ping" />
-                REC 00:{recordingTime.toString().padStart(2, '0')} / 00:10
+                {/* SOLUCIÓN INTERFAZ: Mostramos el límite de 00:05 */}
+                REC 00:{recordingTime.toString().padStart(2, '0')} / 00:05
               </div>
             )}
 
