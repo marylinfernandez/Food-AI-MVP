@@ -1,14 +1,12 @@
-
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for identifying ingredients from a photo or video
- * of a fridge or pantry. 
- *
- * - aiIngredientIdentification - A function that initiates the ingredient identification process.
+ * @fileOverview Este file define un flujo de Genkit para identificar ingredientes desde una foto o video.
+ * Utiliza Gemini 2.5 Flash para capacidades multimodales avanzadas.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
+import {googleAI} from '@genkit-ai/google-genai';
 
 const IngredientIdentificationInputSchema = z.object({
   mediaDataUri: z
@@ -58,36 +56,31 @@ export type IngredientIdentificationOutput = z.infer<
   typeof IngredientIdentificationOutputSchema
 >;
 
-export async function aiIngredientIdentification(
-  input: IngredientIdentificationInput
-): Promise<IngredientIdentificationOutput> {
-  return aiIngredientIdentificationFlow(input);
-}
-
 const identifyIngredientsPrompt = ai.definePrompt({
   name: 'identifyIngredientsPrompt',
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
-  prompt: `You are an AI assistant specialized in identifying food ingredients from photos and videos of fridges and pantries.
-    Meticulously examine the provided media and list all discernable food items.
-    For each item, try to estimate its quantity and provide a confidence score.
+  model: googleAI.model('gemini-2.5-flash'),
+  prompt: `You are an expert AI chef and nutritionist. Your task is to analyze the provided photo or video of a refrigerator or pantry and identify EVERY food item you see.
 
-    MEDIA TO ANALYZE: {{media url=mediaDataUri}}
-    {{#if description}}ADDITIONAL CONTEXT: {{{description}}}{{/if}}`,
+DIRECTIONS:
+1. Examine the media carefully. Look at labels, shapes, and colors.
+2. For each item identified, estimate its quantity.
+3. Provide a confidence score for each identification.
+4. If the image is blurry or items are hard to see, do your best to identify based on context.
+
+MEDIA TO ANALYZE: {{media url=mediaDataUri}}
+{{#if description}}ADDITIONAL CONTEXT: {{{description}}}{{/if}}
+
+Please return a structured list of ingredients and a helpful summary.`,
 });
 
-const aiIngredientIdentificationFlow = ai.defineFlow(
-  {
-    name: 'aiIngredientIdentificationFlow',
-    inputSchema: IngredientIdentificationInputSchema,
-    outputSchema: IngredientIdentificationOutputSchema,
-  },
-  async input => {
-    const {output} = await identifyIngredientsPrompt(input);
-    if (!output) {
-        throw new Error('No output received from the ingredient identification prompt.');
-    }
-    return output;
+export async function aiIngredientIdentification(
+  input: IngredientIdentificationInput
+): Promise<IngredientIdentificationOutput> {
+  const {output} = await identifyIngredientsPrompt(input);
+  if (!output) {
+    throw new Error('No output received from the ingredient identification prompt.');
   }
-);
+  return output;
+}

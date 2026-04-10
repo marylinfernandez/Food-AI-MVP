@@ -16,8 +16,7 @@ import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview Pantalla de escaneo optimizada.
- * Corregido: Validación estricta del flujo de video para evitar capturas fallidas y errores de identificación.
+ * @fileOverview Pantalla de escaneo optimizada con soporte multimodal para Gemini 2.5 Flash.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -40,14 +39,12 @@ export default function ScanPage() {
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Protección de ruta
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push("/login");
     }
   }, [user, isUserLoading, router]);
 
-  // Inicialización de cámara con validación de estado
   useEffect(() => {
     if (isUserLoading || !user) return;
 
@@ -58,8 +55,8 @@ export default function ScanPage() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
           },
           audio: false
         });
@@ -91,7 +88,6 @@ export default function ScanPage() {
 
   if (isUserLoading || !user) return null;
 
-  // Captura de foto con validación de readyState
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -101,9 +97,13 @@ export default function ScanPage() {
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (ctx) {
+        // Mejorar calidad antes de capturar
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         try {
-          const dataUri = canvas.toDataURL('image/jpeg', 0.8);
+          // Usar calidad alta para la identificación
+          const dataUri = canvas.toDataURL('image/jpeg', 0.95);
           setPreview(dataUri);
           identify(dataUri);
         } catch (e) {
@@ -158,9 +158,9 @@ export default function ScanPage() {
 
         timerRef.current = setInterval(() => {
           setRecordingTime(prev => {
-            if (prev >= 9) {
+            if (prev >= 6) { // Suficiente para Gemini 2.5 Flash
               stopRecording();
-              return 10;
+              return 7;
             }
             return prev + 1;
           });
@@ -185,14 +185,14 @@ export default function ScanPage() {
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: `Analizando ${scanMode === 'photo' ? 'foto' : 'video'} de despensa/nevera.`
+        description: `Analizando ${scanMode === 'photo' ? 'foto' : 'video'} con visión multimodal avanzada.`
       });
       setResults(output);
     } catch (error: any) {
       console.error("AI identification error:", error);
       toast({
         title: t('Error'),
-        description: language === 'english' ? "Could not identify. Try better lighting." : "No se pudo identificar. Intenta con mejor iluminación.",
+        description: language === 'english' ? "Vision analysis failed. Ensure good lighting." : "El análisis de visión falló. Asegura buena iluminación.",
         variant: "destructive"
       });
       setPreview(null);
@@ -208,7 +208,7 @@ export default function ScanPage() {
     });
     toast({
       title: language === 'english' ? "Updated" : "Actualizado",
-      description: language === 'english' ? `Added ${results.identifiedIngredients.length} ingredients.` : `Se han añadido ${results.identifiedIngredients.length} ingredientes.`,
+      description: language === 'english' ? `Added ${results.identifiedIngredients.length} items.` : `Se han añadido ${results.identifiedIngredients.length} ingredientes.`,
     });
     resetScanner();
   };
@@ -291,7 +291,7 @@ export default function ScanPage() {
               onClick={capturePhoto} 
               disabled={hasCameraPermission === false || loading}
             >
-              <Camera className="h-8 w-8 mr-3" /> {language === 'english' ? 'ANALYZE NOW' : 'ANALIZAR AHORA'}
+              <Camera className="h-8 w-8 mr-3" /> {language === 'english' ? 'ANALYZE PHOTO' : 'ANALIZAR FOTO'}
             </Button>
           ) : (
             <Button 
@@ -302,7 +302,7 @@ export default function ScanPage() {
               onClick={isRecording ? stopRecording : startRecording} 
               disabled={hasCameraPermission === false || loading}
             >
-              {isRecording ? <><StopCircle className="h-8 w-8 mr-3" /> {language === 'english' ? 'STOP' : 'DETENER'}</> : <><Radio className="h-8 w-8 mr-3 animate-pulse" /> {language === 'english' ? 'RECORD VIDEO' : 'GRABAR VIDEO'}</>}
+              {isRecording ? <><StopCircle className="h-8 w-8 mr-3" /> {language === 'english' ? 'FINISH' : 'FINALIZAR'}</> : <><Radio className="h-8 w-8 mr-3 animate-pulse" /> {language === 'english' ? 'RECORD VIDEO' : 'GRABAR VIDEO'}</>}
             </Button>
           )}
         </div>
