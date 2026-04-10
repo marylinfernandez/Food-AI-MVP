@@ -16,7 +16,7 @@ import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview Pantalla de escaneo optimizada con soporte multimodal para Gemini 2.5 Flash.
+ * @fileOverview Pantalla de escaneo optimizada con soporte multimodal para Gemini 2.5 Flash Lite.
  * Especialmente ajustada para identificar alimentos sin etiquetas y en condiciones de luz variable.
  */
 export default function ScanPage() {
@@ -56,8 +56,9 @@ export default function ScanPage() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            // Resolución optimizada para evitar que el Base64 sea demasiado grande
+            width: { ideal: 640 },
+            height: { ideal: 480 }
           },
           audio: false
         });
@@ -91,12 +92,14 @@ export default function ScanPage() {
     const canvas = canvasRef.current;
 
     if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      // Forzamos el canvas a una resolución ligera
+      canvas.width = 640;
+      canvas.height = 480;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUri = canvas.toDataURL('image/jpeg', 0.9);
+        // Compresión de JPEG al 70%
+        const dataUri = canvas.toDataURL('image/jpeg', 0.7);
         setPreview(dataUri);
         identify(dataUri);
       }
@@ -107,7 +110,10 @@ export default function ScanPage() {
     if (videoRef.current && videoRef.current.srcObject) {
       chunksRef.current = [];
       const stream = videoRef.current.srcObject as MediaStream;
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      
+      // Compresión de video para soportar el formato Base64 sin romper el servidor
+      const options = { mimeType: 'video/webm', videoBitsPerSecond: 150000 };
+      const mediaRecorder = new MediaRecorder(stream, options);
       
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -129,11 +135,12 @@ export default function ScanPage() {
       setIsRecording(true);
       setRecordingTime(0);
 
+      // TEMPORIZADOR AUTOMÁTICO DE 10 SEGUNDOS
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= 4) {
+          if (prev >= 9) { // Al llegar al segundo 9 (para mostrar 10 y cortar)
             stopRecording();
-            return 5;
+            return 10;
           }
           return prev + 1;
         });
@@ -230,7 +237,7 @@ export default function ScanPage() {
             {isRecording && (
               <div className="absolute top-6 left-6 flex items-center gap-2 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg animate-pulse">
                 <div className="h-2 w-2 bg-white rounded-full animate-ping" />
-                REC 00:{recordingTime.toString().padStart(2, '0')}
+                REC 00:{recordingTime.toString().padStart(2, '0')} / 00:10
               </div>
             )}
 
