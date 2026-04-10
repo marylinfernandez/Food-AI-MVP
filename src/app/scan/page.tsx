@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -16,13 +17,13 @@ import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview Pantalla de escaneo optimizada para móviles. 
- * Se ha corregido el error de captura asegurando que el video esté listo antes de procesar la imagen.
+ * @fileOverview Pantalla de escaneo optimizada.
+ * Corregido: Validación estricta del flujo de video para evitar capturas fallidas.
  */
 export default function ScanPage() {
   const { toast } = useToast();
   const { addItem } = usePantry();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   
@@ -94,7 +95,6 @@ export default function ScanPage() {
     const canvas = canvasRef.current;
 
     if (video && canvas && video.readyState >= 2) {
-      // Forzar dimensiones del canvas según el video real
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
@@ -112,7 +112,7 @@ export default function ScanPage() {
     } else {
       toast({ 
         title: t('Error'), 
-        description: "La cámara no está lista o no se detectó video.", 
+        description: language === 'english' ? "Camera not ready. Please wait." : "La cámara no está lista. Por favor espera.", 
         variant: "destructive" 
       });
     }
@@ -190,7 +190,7 @@ export default function ScanPage() {
       console.error("AI identification error:", error);
       toast({
         title: t('Error'),
-        description: "No se pudo identificar. Intenta con mejor iluminación.",
+        description: language === 'english' ? "Could not identify. Try better lighting." : "No se pudo identificar. Intenta con mejor iluminación.",
         variant: "destructive"
       });
       setPreview(null);
@@ -205,8 +205,8 @@ export default function ScanPage() {
       addItem({ name: ing.name, quantity: ing.quantity || "1 unidad" });
     });
     toast({
-      title: "Actualizado",
-      description: `Se han añadido ${results.identifiedIngredients.length} ingredientes.`,
+      title: language === 'english' ? "Updated" : "Actualizado",
+      description: language === 'english' ? `Added ${results.identifiedIngredients.length} ingredients.` : `Se han añadido ${results.identifiedIngredients.length} ingredientes.`,
     });
     resetScanner();
   };
@@ -275,7 +275,9 @@ export default function ScanPage() {
                 <Alert variant="destructive" className="border-none bg-red-500/20 text-white">
                   <AlertCircle className="h-5 w-5 text-white" />
                   <AlertTitle className="font-black uppercase tracking-tighter">{t('Error')}</AlertTitle>
-                  <AlertDescription className="text-xs opacity-90">Activa los permisos de cámara en tu navegador.</AlertDescription>
+                  <AlertDescription className="text-xs opacity-90">
+                    {language === 'english' ? "Enable camera permissions in your browser." : "Activa los permisos de cámara en tu navegador."}
+                  </AlertDescription>
                 </Alert>
               </div>
             )}
