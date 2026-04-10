@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for updating pantry inventory via voice commands.
- * Uses Gemini 2.5 Flash for high performance.
+ * Uses Gemini 2.5 Flash Lite for high performance.
  *
  * - aiVoiceInventoryUpdate - A function that processes a user's voice command to update inventory.
  * - VoiceInventoryUpdateInput - The input type for the aiVoiceInventoryUpdate function.
@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   name: 'voiceInventoryUpdatePrompt',
   input: { schema: VoiceInventoryUpdateInputSchema },
   output: { schema: VoiceInventoryUpdateOutputSchema },
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-2.5-flash-lite',
   prompt: `You are an AI assistant designed to parse natural language voice commands into structured inventory updates.
 The user will provide a command describing changes to their food pantry inventory.
 Your task is to extract all mentioned food items, determine the intended action (add, remove, or update), and any associated quantities or notes.
@@ -49,7 +49,7 @@ Example commands and expected outputs:
 Command: "I used all the milk."
 Output: [ { "itemName": "milk", "quantity": "all", "action": "remove" } ]
 
-Command: "I bought two apples and a new loaf of bread."
+Command: "I bought dos apples and a new loaf of bread."
 Output: [ { "itemName": "apples", "quantity": "2 units", "action": "add" }, { "itemName": "bread", "quantity": "1 loaf", "action": "add" } ]
 
 Command: "The butter is only half left."
