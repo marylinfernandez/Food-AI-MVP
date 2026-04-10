@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Camera, Loader2, Video, StopCircle, Radio, RefreshCw, X, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
 import { aiIngredientIdentification, IngredientIdentificationOutput } from "@/ai/flows/ai-ingredient-identification";
 import { usePantry } from "@/lib/pantry-store";
@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Pantalla de escaneo optimizada con soporte multimodal para Gemini 2.5 Flash.
- * Corregido: Mejorada la calidad de captura y resolución de cámara.
+ * Especialmente ajustada para identificar alimentos sin etiquetas y en condiciones de luz variable.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -56,8 +56,8 @@ export default function ScanPage() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: { ideal: "environment" },
-            width: { ideal: 1920, min: 1280 },
-            height: { ideal: 1080, min: 720 }
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
           },
           audio: false
         });
@@ -65,9 +65,6 @@ export default function ScanPage() {
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(err => console.error("Video play error:", err));
-          };
         }
       } catch (error) {
         console.error('Error accessing camera:', error);
@@ -93,82 +90,54 @@ export default function ScanPage() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (video && canvas && video.readyState >= 2) {
-      // Usar resolución nativa del video para máxima claridad
+    if (video && canvas) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        try {
-          // Calidad máxima de JPEG para evitar artefactos que confundan a la IA
-          const dataUri = canvas.toDataURL('image/jpeg', 1.0);
-          setPreview(dataUri);
-          identify(dataUri);
-        } catch (e) {
-          console.error("Capture processing error:", e);
-          toast({ title: t('Error'), description: "Error procesando la imagen.", variant: "destructive" });
-        }
+        const dataUri = canvas.toDataURL('image/jpeg', 0.9);
+        setPreview(dataUri);
+        identify(dataUri);
       }
-    } else {
-      toast({ 
-        title: t('Error'), 
-        description: "Iniciando cámara... por favor espera.", 
-        variant: "destructive" 
-      });
     }
-  };
-
-  const getSupportedMimeType = () => {
-    const types = ['video/mp4', 'video/webm;codecs=vp8', 'video/webm'];
-    for (const type of types) {
-      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type)) return type;
-    }
-    return '';
   };
 
   const startRecording = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       chunksRef.current = [];
       const stream = videoRef.current.srcObject as MediaStream;
-      const mimeType = getSupportedMimeType();
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
       
-      try {
-        const mediaRecorder = new MediaRecorder(stream, { mimeType });
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) chunksRef.current.push(e.data);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUri = reader.result as string;
+          setPreview(dataUri);
+          identify(dataUri);
         };
+        reader.readAsDataURL(blob);
+      };
 
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(chunksRef.current, { type: mimeType });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const dataUri = reader.result as string;
-            setPreview(dataUri);
-            identify(dataUri);
-          };
-          reader.readAsDataURL(blob);
-        };
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
 
-        mediaRecorderRef.current = mediaRecorder;
-        mediaRecorder.start();
-        setIsRecording(true);
-        setRecordingTime(0);
-
-        timerRef.current = setInterval(() => {
-          setRecordingTime(prev => {
-            if (prev >= 7) { 
-              stopRecording();
-              return 8;
-            }
-            return prev + 1;
-          });
-        }, 1000);
-      } catch (e) {
-        toast({ title: t('Error'), description: "No se pudo iniciar la grabación.", variant: "destructive" });
-      }
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= 4) {
+            stopRecording();
+            return 5;
+          }
+          return prev + 1;
+        });
+      }, 1000);
     }
   };
 
@@ -182,18 +151,17 @@ export default function ScanPage() {
 
   const identify = async (dataUri: string) => {
     setLoading(true);
-    setResults(null);
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: `Análisis multimodal con Gemini 2.5 Flash.`
+        description: `FoodAI Scan: Identifying fresh products, fruits, vegetables and items in containers.`
       });
       setResults(output);
     } catch (error: any) {
       console.error("AI identification error:", error);
       toast({
         title: t('Error'),
-        description: "No se pudieron identificar los productos. Asegúrate de enfocar bien las etiquetas.",
+        description: "No se pudieron identificar los productos. Asegúrate de enfocar bien.",
         variant: "destructive"
       });
       setPreview(null);
@@ -219,7 +187,6 @@ export default function ScanPage() {
     setPreview(null);
     setIsRecording(false);
     setRecordingTime(0);
-    if (timerRef.current) clearInterval(timerRef.current);
   };
 
   return (
@@ -256,14 +223,8 @@ export default function ScanPage() {
             </Button>
           </div>
 
-          <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-black group">
-            <video 
-              ref={videoRef} 
-              className="w-full h-full object-cover" 
-              autoPlay 
-              muted 
-              playsInline 
-            />
+          <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-black">
+            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
             <canvas ref={canvasRef} className="hidden" />
             
             {isRecording && (
@@ -279,7 +240,7 @@ export default function ScanPage() {
                   <AlertCircle className="h-5 w-5 text-white" />
                   <AlertTitle className="font-black uppercase tracking-tighter">{t('Error')}</AlertTitle>
                   <AlertDescription className="text-xs opacity-90">
-                    {language === 'english' ? "Enable camera permissions in your browser." : "Activa los permisos de cámara en tu navegador."}
+                    {language === 'english' ? "Enable camera permissions." : "Activa los permisos de cámara."}
                   </AlertDescription>
                 </Alert>
               </div>
@@ -335,28 +296,29 @@ export default function ScanPage() {
 
           {results && (
             <Card className="glass border-accent/20 animate-in slide-in-from-bottom duration-500">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-bold flex items-center gap-2">
-                  <Sparkles className="text-accent h-6 w-6" /> {t('scan.completed')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs text-muted-foreground italic mb-2">"{results.summary}"</p>
-                {results.identifiedIngredients.map((ing, i) => (
-                  <div key={i} className="flex justify-between items-center bg-white/10 p-4 rounded-2xl border border-white/10 shadow-inner group">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-foreground group-hover:text-primary transition-colors">{ing.name}</span>
-                      <span className="text-[10px] uppercase font-black text-muted-foreground">{ing.quantity || '1 unidad'}</span>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-accent h-6 w-6" /> 
+                  <h2 className="text-xl font-bold">{t('scan.completed')}</h2>
+                </div>
+                <p className="text-xs text-muted-foreground italic">"{results.summary}"</p>
+                <div className="space-y-3">
+                  {results.identifiedIngredients.map((ing, i) => (
+                    <div key={i} className="flex justify-between items-center bg-white/10 p-4 rounded-2xl border border-white/10 shadow-inner group">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-foreground">{ing.name}</span>
+                        <span className="text-[10px] uppercase font-black text-muted-foreground">{ing.quantity || '1 unidad'}</span>
+                      </div>
+                      <Badge className={cn(
+                        "rounded-lg border-none",
+                        ing.confidence > 0.8 ? "bg-green-500/20 text-green-500" : "bg-orange-500/20 text-orange-500"
+                      )}>
+                        {Math.round(ing.confidence * 100)}%
+                      </Badge>
                     </div>
-                    <Badge className={cn(
-                      "rounded-lg border-none",
-                      ing.confidence > 0.8 ? "bg-green-500/20 text-green-500" : "bg-orange-500/20 text-orange-500"
-                    )}>
-                      {Math.round(ing.confidence * 100)}%
-                    </Badge>
-                  </div>
-                ))}
-              </CardContent>
+                  ))}
+                </div>
+              </div>
               <CardFooter className="flex flex-col gap-3">
                 <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-lg" onClick={addAllToPantry}>
                   <CheckCircle2 className="mr-2 h-5 w-5" /> {t('scan.saveBtn')}

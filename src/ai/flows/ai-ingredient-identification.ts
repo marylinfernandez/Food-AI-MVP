@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview Este file define un flujo de Genkit para identificar ingredientes desde una foto o video.
- * Utiliza Gemini 2.5 Flash para capacidades multimodales avanzadas, optimizado para condiciones de luz variable.
+ * @fileOverview Este archivo define un flujo de Genkit para identificar ingredientes desde una foto o video.
+ * Optimizado para identificar alimentos sin etiquetas (frutas, verduras, recipientes) usando Gemini 2.5 Flash.
  */
 
 import {ai} from '@/ai/genkit';
@@ -61,16 +61,25 @@ const identifyIngredientsPrompt = ai.definePrompt({
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
   model: googleAI.model('gemini-2.5-flash'),
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+    ],
+  },
   prompt: `You are an expert AI chef with super-human vision. Your task is to analyze the provided photo or video of a refrigerator or pantry and identify every food item present.
 
-INSTRUCTIONS:
-1. Examine the media meticulously. Look for labels, brands, colors, and shapes.
-2. DO NOT complain about lighting or image quality unless it is completely pitch black. If the image is dim, use your advanced reasoning to infer items from silhouettes or partial labels.
-3. For each item:
-   - Identify the specific name (e.g., "Whole Milk", "Red Apples", "Greek Yogurt").
-   - Estimate the quantity (e.g., "3 units", "half full", "1 box").
-   - Assign a confidence score based on visual clarity.
-4. Provide a helpful summary in the requested language.
+CRITICAL INSTRUCTIONS:
+1. IDENTIFY NON-LABELED ITEMS: Many items will NOT have labels. Identify fruits (apples, bananas), vegetables (carrots, onions), and items in clear containers based on their shape, color, and texture.
+2. LOW LIGHT TOLERANCE: Do not complain about lighting or image quality. Use your advanced reasoning to infer items from silhouettes or partial visibility. Even if it's dim, identify what you see.
+3. BE PRECISE BUT BRAVE: If you see a green leafy vegetable and you are 70% sure it's spinach, identify it as spinach. 
+4. For each item:
+   - Identify the specific name (e.g., "Tomato", "Butter", "Milk").
+   - Estimate the quantity (e.g., "2 units", "half full").
+   - Assign a confidence score.
+5. Provide a helpful summary in Spanish (Latin America).
 
 MEDIA TO ANALYZE: {{media url=mediaDataUri}}
 {{#if description}}CONTEXT: {{{description}}}{{/if}}
