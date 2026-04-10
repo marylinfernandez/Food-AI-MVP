@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -18,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Pantalla de escaneo optimizada para móviles. 
- * Usa cámara trasera por defecto y soporta foto/video con compatibilidad multiplataforma.
+ * Se ha corregido el error de captura asegurando que el video esté listo antes de procesar la imagen.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -91,20 +90,11 @@ export default function ScanPage() {
   if (isUserLoading || !user) return null;
 
   const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
 
-      // Asegurar que el video está listo antes de capturar
-      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
-        toast({ 
-          title: "Cámara no lista", 
-          description: "Por favor espera un segundo a que la imagen se estabilice.", 
-          variant: "destructive" 
-        });
-        return;
-      }
-
+    if (video && canvas && video.readyState >= 2) {
+      // Forzar dimensiones del canvas según el video real
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
@@ -115,21 +105,21 @@ export default function ScanPage() {
           setPreview(dataUri);
           identify(dataUri);
         } catch (e) {
-          console.error("Canvas toDataURL Error:", e);
-          toast({ title: "Error de captura", description: "No se pudo procesar la foto.", variant: "destructive" });
+          console.error("Capture processing error:", e);
+          toast({ title: t('Error'), description: "Error procesando la imagen.", variant: "destructive" });
         }
       }
     } else {
       toast({ 
-        title: "Error de hardware", 
-        description: "No se encontró el dispositivo de captura.", 
+        title: t('Error'), 
+        description: "La cámara no está lista o no se detectó video.", 
         variant: "destructive" 
       });
     }
   };
 
   const getSupportedMimeType = () => {
-    const types = ['video/mp4', 'video/webm;codecs=vp8', 'video/webm', 'video/ogg'];
+    const types = ['video/mp4', 'video/webm;codecs=vp8', 'video/webm'];
     for (const type of types) {
       if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type)) return type;
     }
@@ -144,7 +134,6 @@ export default function ScanPage() {
       
       try {
         const mediaRecorder = new MediaRecorder(stream, { mimeType });
-        
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) chunksRef.current.push(e.data);
         };
@@ -165,20 +154,17 @@ export default function ScanPage() {
         setIsRecording(true);
         setRecordingTime(0);
 
-        if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
           setRecordingTime(prev => {
-            if (prev >= 9) { // Máximo 10 segundos
+            if (prev >= 9) {
               stopRecording();
               return 10;
             }
             return prev + 1;
           });
         }, 1000);
-
       } catch (e) {
-        console.error("Error starting recorder:", e);
-        toast({ title: "Error", description: "No se pudo iniciar la grabación de video.", variant: "destructive" });
+        toast({ title: t('Error'), description: "No se pudo iniciar la grabación.", variant: "destructive" });
       }
     }
   };
@@ -197,14 +183,14 @@ export default function ScanPage() {
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: `Análisis de ${scanMode === 'photo' ? 'foto' : 'video'} de nevera/despensa`
+        description: `Analizando ${scanMode === 'photo' ? 'foto' : 'video'} de despensa/nevera.`
       });
       setResults(output);
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI identification error:", error);
       toast({
-        title: "Error de Escaneo",
-        description: "No se pudo identificar el contenido. Intenta con una toma más clara o mejor iluminación.",
+        title: t('Error'),
+        description: "No se pudo identificar. Intenta con mejor iluminación.",
         variant: "destructive"
       });
       setPreview(null);
@@ -219,8 +205,8 @@ export default function ScanPage() {
       addItem({ name: ing.name, quantity: ing.quantity || "1 unidad" });
     });
     toast({
-      title: "Despensa Actualizada",
-      description: `Se han añadido ${results.identifiedIngredients.length} ingredientes correctamente.`,
+      title: "Actualizado",
+      description: `Se han añadido ${results.identifiedIngredients.length} ingredientes.`,
     });
     resetScanner();
   };
@@ -253,7 +239,7 @@ export default function ScanPage() {
               )}
               onClick={() => setScanMode('photo')}
             >
-              <Camera className="h-4 w-4" /> Foto
+              <Camera className="h-4 w-4" /> {language === 'english' ? 'Photo' : 'Foto'}
             </Button>
             <Button 
               variant="ghost" 
@@ -263,7 +249,7 @@ export default function ScanPage() {
               )}
               onClick={() => setScanMode('video')}
             >
-              <Video className="h-4 w-4" /> Video
+              <Video className="h-4 w-4" /> {language === 'english' ? 'Video' : 'Video'}
             </Button>
           </div>
 
@@ -288,8 +274,8 @@ export default function ScanPage() {
               <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
                 <Alert variant="destructive" className="border-none bg-red-500/20 text-white">
                   <AlertCircle className="h-5 w-5 text-white" />
-                  <AlertTitle className="font-black uppercase tracking-tighter">Cámara Bloqueada</AlertTitle>
-                  <AlertDescription className="text-xs opacity-90">Por favor, activa los permisos de cámara en tu navegador para usar la visión IA.</AlertDescription>
+                  <AlertTitle className="font-black uppercase tracking-tighter">{t('Error')}</AlertTitle>
+                  <AlertDescription className="text-xs opacity-90">Activa los permisos de cámara en tu navegador.</AlertDescription>
                 </Alert>
               </div>
             )}
@@ -297,22 +283,22 @@ export default function ScanPage() {
 
           {scanMode === 'photo' ? (
             <Button 
-              className="w-full h-20 rounded-[2rem] bg-primary text-white font-black text-xl shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all" 
+              className="w-full h-20 rounded-[2rem] bg-primary text-white font-black text-xl shadow-lg hover:scale-[1.02] transition-all" 
               onClick={capturePhoto} 
               disabled={hasCameraPermission === false || loading}
             >
-              <Camera className="h-8 w-8 mr-3" /> ANALIZAR AHORA
+              <Camera className="h-8 w-8 mr-3" /> {language === 'english' ? 'ANALYZE NOW' : 'ANALIZAR AHORA'}
             </Button>
           ) : (
             <Button 
               className={cn(
-                "w-full h-20 rounded-[2rem] font-black text-xl shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all", 
+                "w-full h-20 rounded-[2rem] font-black text-xl shadow-2xl hover:scale-[1.02] transition-all", 
                 isRecording ? "bg-red-500 text-white" : "bg-secondary text-white"
               )} 
               onClick={isRecording ? stopRecording : startRecording} 
               disabled={hasCameraPermission === false || loading}
             >
-              {isRecording ? <><StopCircle className="h-8 w-8 mr-3" /> DETENER</> : <><Radio className="h-8 w-8 mr-3 animate-pulse" /> GRABAR VIDEO</>}
+              {isRecording ? <><StopCircle className="h-8 w-8 mr-3" /> {language === 'english' ? 'STOP' : 'DETENER'}</> : <><Radio className="h-8 w-8 mr-3 animate-pulse" /> {language === 'english' ? 'RECORD VIDEO' : 'GRABAR VIDEO'}</>}
             </Button>
           )}
         </div>
@@ -386,4 +372,3 @@ export default function ScanPage() {
     </div>
   );
 }
-    
