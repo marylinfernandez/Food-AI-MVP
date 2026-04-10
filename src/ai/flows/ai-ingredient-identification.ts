@@ -1,11 +1,11 @@
 'use server';
 /**
  * @fileOverview Este file define un flujo de Genkit para identificar ingredientes desde una foto o video.
- * Utiliza Gemini 2.5 Flash para capacidades multimodales avanzadas.
+ * Utiliza Gemini 2.5 Flash para capacidades multimodales avanzadas, optimizado para condiciones de luz variable.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import {z} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
 
 const IngredientIdentificationInputSchema = z.object({
@@ -61,18 +61,21 @@ const identifyIngredientsPrompt = ai.definePrompt({
   input: {schema: IngredientIdentificationInputSchema},
   output: {schema: IngredientIdentificationOutputSchema},
   model: googleAI.model('gemini-2.5-flash'),
-  prompt: `You are an expert AI chef and nutritionist. Your task is to analyze the provided photo or video of a refrigerator or pantry and identify EVERY food item you see.
+  prompt: `You are an expert AI chef with super-human vision. Your task is to analyze the provided photo or video of a refrigerator or pantry and identify every food item present.
 
-DIRECTIONS:
-1. Examine the media carefully. Look at labels, shapes, and colors.
-2. For each item identified, estimate its quantity.
-3. Provide a confidence score for each identification.
-4. If the image is blurry or items are hard to see, do your best to identify based on context.
+INSTRUCTIONS:
+1. Examine the media meticulously. Look for labels, brands, colors, and shapes.
+2. DO NOT complain about lighting or image quality unless it is completely pitch black. If the image is dim, use your advanced reasoning to infer items from silhouettes or partial labels.
+3. For each item:
+   - Identify the specific name (e.g., "Whole Milk", "Red Apples", "Greek Yogurt").
+   - Estimate the quantity (e.g., "3 units", "half full", "1 box").
+   - Assign a confidence score based on visual clarity.
+4. Provide a helpful summary in the requested language.
 
 MEDIA TO ANALYZE: {{media url=mediaDataUri}}
-{{#if description}}ADDITIONAL CONTEXT: {{{description}}}{{/if}}
+{{#if description}}CONTEXT: {{{description}}}{{/if}}
 
-Please return a structured list of ingredients and a helpful summary.`,
+Identify all ingredients and respond in a professional tone.`,
 });
 
 export async function aiIngredientIdentification(
@@ -80,7 +83,7 @@ export async function aiIngredientIdentification(
 ): Promise<IngredientIdentificationOutput> {
   const {output} = await identifyIngredientsPrompt(input);
   if (!output) {
-    throw new Error('No output received from the ingredient identification prompt.');
+    throw new Error('No output received from the vision analysis.');
   }
   return output;
 }

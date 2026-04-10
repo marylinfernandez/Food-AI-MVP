@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Pantalla de escaneo optimizada con soporte multimodal para Gemini 2.5 Flash.
+ * Corregido: Mejorada la calidad de captura y resolución de cámara.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -55,8 +56,8 @@ export default function ScanPage() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            width: { ideal: 1920, min: 1280 },
+            height: { ideal: 1080, min: 720 }
           },
           audio: false
         });
@@ -93,17 +94,17 @@ export default function ScanPage() {
     const canvas = canvasRef.current;
 
     if (video && canvas && video.readyState >= 2) {
+      // Usar resolución nativa del video para máxima claridad
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        // Mejorar calidad antes de capturar
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         try {
-          // Usar calidad alta para la identificación
-          const dataUri = canvas.toDataURL('image/jpeg', 0.95);
+          // Calidad máxima de JPEG para evitar artefactos que confundan a la IA
+          const dataUri = canvas.toDataURL('image/jpeg', 1.0);
           setPreview(dataUri);
           identify(dataUri);
         } catch (e) {
@@ -114,7 +115,7 @@ export default function ScanPage() {
     } else {
       toast({ 
         title: t('Error'), 
-        description: language === 'english' ? "Camera not ready. Please wait." : "La cámara no está lista. Por favor espera.", 
+        description: "Iniciando cámara... por favor espera.", 
         variant: "destructive" 
       });
     }
@@ -158,9 +159,9 @@ export default function ScanPage() {
 
         timerRef.current = setInterval(() => {
           setRecordingTime(prev => {
-            if (prev >= 6) { // Suficiente para Gemini 2.5 Flash
+            if (prev >= 7) { 
               stopRecording();
-              return 7;
+              return 8;
             }
             return prev + 1;
           });
@@ -185,14 +186,14 @@ export default function ScanPage() {
     try {
       const output = await aiIngredientIdentification({
         mediaDataUri: dataUri,
-        description: `Analizando ${scanMode === 'photo' ? 'foto' : 'video'} con visión multimodal avanzada.`
+        description: `Análisis multimodal con Gemini 2.5 Flash.`
       });
       setResults(output);
     } catch (error: any) {
       console.error("AI identification error:", error);
       toast({
         title: t('Error'),
-        description: language === 'english' ? "Vision analysis failed. Ensure good lighting." : "El análisis de visión falló. Asegura buena iluminación.",
+        description: "No se pudieron identificar los productos. Asegúrate de enfocar bien las etiquetas.",
         variant: "destructive"
       });
       setPreview(null);
