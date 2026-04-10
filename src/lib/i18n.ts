@@ -1,6 +1,5 @@
 /**
  * @fileOverview Diccionario de traducciones exhaustivo para FoodAI.
- * Se han añadido todas las claves necesarias para la pantalla de inicio de sesión.
  */
 
 export type Language = 'english' | 'spanish-es' | 'spanish-la';

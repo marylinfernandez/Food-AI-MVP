@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -18,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Pantalla de escaneo optimizada.
- * Corregido: Validación estricta del flujo de video para evitar capturas fallidas.
+ * Corregido: Validación estricta del flujo de video para evitar capturas fallidas y errores de identificación.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -41,12 +40,14 @@ export default function ScanPage() {
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Protección de ruta
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push("/login");
     }
   }, [user, isUserLoading, router]);
 
+  // Inicialización de cámara con validación de estado
   useEffect(() => {
     if (isUserLoading || !user) return;
 
@@ -90,6 +91,7 @@ export default function ScanPage() {
 
   if (isUserLoading || !user) return null;
 
+  // Captura de foto con validación de readyState
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;

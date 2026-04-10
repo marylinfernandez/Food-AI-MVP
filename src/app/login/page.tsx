@@ -37,7 +37,7 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const processingRef = useRef(false);
 
-  // Manejar el resultado del redireccionamiento de Google
+  // Manejar el resultado del redireccionamiento de Google de forma atómica
   useEffect(() => {
     if (processingRef.current) return;
     processingRef.current = true;
@@ -64,7 +64,7 @@ export default function LoginPage() {
     checkRedirect();
   }, [auth, router, t]);
 
-  // Redirigir si el usuario ya está logueado
+  // Redirigir si el usuario ya está logueado para evitar bucles
   useEffect(() => {
     if (user && !isUserLoading && !isProcessingRedirect) {
       router.replace("/pantry");
@@ -113,6 +113,7 @@ export default function LoginPage() {
     }
   };
 
+  // Mostrar cargador mientras se procesa la sesión para evitar flasheos de la UI
   if (isUserLoading || isProcessingRedirect || (user && !isUserLoading)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
