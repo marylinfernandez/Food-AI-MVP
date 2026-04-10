@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Pantalla de escaneo optimizada con soporte multimodal.
- * Incluye corrección de foto negra y límite estricto de 5 segundos para videos.
+ * Incluye corrección de foto negra, límite de 5s para videos y diagnóstico de errores de IA.
  */
 export default function ScanPage() {
   const { toast } = useToast();
@@ -56,7 +56,6 @@ export default function ScanPage() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: { ideal: "environment" },
-            // Resolución base para evitar problemas de memoria
             width: { ideal: 640 },
             height: { ideal: 480 }
           },
@@ -96,7 +95,6 @@ export default function ScanPage() {
       const realWidth = video.videoWidth;
       const realHeight = video.videoHeight;
       
-      // Mantenemos la proporción original pero lo hacemos ligero (máx 800px)
       const scale = Math.min(800 / realWidth, 800 / realHeight);
       canvas.width = realWidth * scale;
       canvas.height = realHeight * scale;
@@ -121,7 +119,6 @@ export default function ScanPage() {
       chunksRef.current = [];
       const stream = videoRef.current.srcObject as MediaStream;
       
-      // Compresión de video para soportar el formato Base64 sin romper el servidor
       const options = { mimeType: 'video/webm', videoBitsPerSecond: 150000 };
       const mediaRecorder = new MediaRecorder(stream, options);
       
@@ -148,7 +145,7 @@ export default function ScanPage() {
       // SOLUCIÓN VIDEO: Temporizador de 5 segundos
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= 4) { // Al llegar al segundo 4 (para mostrar 5 y cortar)
+          if (prev >= 4) { 
             stopRecording();
             return 5;
           }
@@ -175,11 +172,13 @@ export default function ScanPage() {
       });
       setResults(output);
     } catch (error: any) {
-      console.error("AI identification error:", error);
+      console.error("Detalle completo del error:", error);
+      // DIAGNÓSTICO: Ahora la alerta roja te mostrará el mensaje técnico real
       toast({
-        title: t('Error'),
-        description: "No se pudieron identificar los productos. Asegúrate de enfocar bien.",
-        variant: "destructive"
+        title: "Error Técnico",
+        description: `Motivo: ${error?.message || String(error) || "Error desconocido."}`,
+        variant: "destructive",
+        duration: 8000, 
       });
       setPreview(null);
     } finally {
@@ -247,7 +246,6 @@ export default function ScanPage() {
             {isRecording && (
               <div className="absolute top-6 left-6 flex items-center gap-2 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg animate-pulse">
                 <div className="h-2 w-2 bg-white rounded-full animate-ping" />
-                {/* SOLUCIÓN INTERFAZ: Mostramos el límite de 00:05 */}
                 REC 00:{recordingTime.toString().padStart(2, '0')} / 00:05
               </div>
             )}
