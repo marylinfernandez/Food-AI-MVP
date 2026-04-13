@@ -79,6 +79,9 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=tu_proyecto_id
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=tu_proyecto.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=tu_app_id
+GEMINI_API_KEY=TU APPI KEY
+GOOGLE_GENAI_API_KEY=TU APPI KEY
+
 
 (Nota: Asegúrate de habilitar los métodos de autenticación de Google y Correo/Contraseña en tu consola de Firebase, y agregar localhost a tus dominios autorizados en la sección de Authentication).
 
